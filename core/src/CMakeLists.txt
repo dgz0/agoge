@@ -20,7 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(SRCS agoge-ctx.c agoge-log.c)
+set(SRCS
+        agoge-bus.c
+        agoge-cart-mbc1.c
+        agoge-cart.c
+        agoge-cpu.c
+        agoge-ctx.c
+        agoge-disasm.c
+        agoge-log.c
+)
+
 set(HDRS agoge-log.h)
 
 set(PUBLIC_HDRS ../include/agoge/ctx.h ../include/agoge/log.h)

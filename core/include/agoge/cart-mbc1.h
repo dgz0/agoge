@@ -22,9 +22,27 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+#include <stdbool.h>
+#include <stdint.h>
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+enum mbc1_bank_mode { MBC1_BANK_MODE_SIMPLE, MBC1_BANK_MODE_ADVANCED };
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+
+struct agoge_cart_mbc1 {
+	enum mbc1_bank_mode bank_mode;
+	bool ram_enabled;
+	uint8_t rom_bank;
+	uint8_t ram_bank;
+};
+
+#pragma GCC diagnostic pop
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

@@ -20,11 +20,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <assert.h>
+
 #include "agoge/ctx.h"
 
+#include "agoge-cpu.h"
 #include "agoge-log.h"
+
+static void setup_ctx_ptrs(struct agoge_ctx *const ctx)
+{
+	assert(ctx != NULL);
+
+	ctx->cart.log = &ctx->log;
+
+	ctx->bus.cart = &ctx->cart;
+	ctx->bus.log = &ctx->log;
+
+	ctx->cpu.bus = &ctx->bus;
+	ctx->disasm.cpu = &ctx->cpu;
+}
 
 void agoge_ctx_init(struct agoge_ctx *const ctx)
 {
+	assert(ctx != NULL);
+
+	setup_ctx_ptrs(ctx);
 	LOG_INFO(&ctx->log, "agoge context initialized");
+}
+
+void agoge_ctx_step(struct agoge_ctx *const ctx)
+{
+	assert(ctx != NULL);
+
+	agoge_cpu_step(&ctx->cpu);
 }

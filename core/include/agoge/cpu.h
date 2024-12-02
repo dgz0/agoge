@@ -22,9 +22,43 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+#include <stdint.h>
+#include "bus.h"
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+#define REG_PAIR_DEFINE(hi, lo, pair)       \
+	struct {                            \
+		union {                     \
+			struct {            \
+				uint8_t lo; \
+				uint8_t hi; \
+			};                  \
+			uint16_t pair;      \
+		};                          \
+	}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+
+struct agoge_cpu {
+	struct {
+		REG_PAIR_DEFINE(b, c, bc);
+		REG_PAIR_DEFINE(d, e, de);
+		REG_PAIR_DEFINE(h, l, hl);
+		REG_PAIR_DEFINE(a, f, af);
+
+		uint16_t pc;
+		uint16_t sp;
+	} reg;
+
+	struct agoge_bus *bus;
+};
+
+#pragma GCC diagnostic pop
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

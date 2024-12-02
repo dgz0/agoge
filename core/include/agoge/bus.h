@@ -22,9 +22,18 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+#include "cart.h"
+#include "log.h"
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+struct agoge_bus {
+	struct agoge_cart *cart;
+	struct agoge_log *log;
+};
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

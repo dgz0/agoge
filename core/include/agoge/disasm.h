@@ -22,9 +22,32 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+#include <stddef.h>
+#include "cpu.h"
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+#define AGOGE_DISASM_LEN_MAX (512)
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
+
+struct agoge_disasm {
+	struct {
+		char str[AGOGE_DISASM_LEN_MAX + 1];
+		size_t len;
+	} result;
+
+	struct agoge_cpu *cpu;
+};
+
+#pragma GCC diagnostic pop
+
+void agoge_disasm_trace_before(struct agoge_disasm *disasm);
+void agoge_disasm_trace_after(struct agoge_disasm *disasm);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

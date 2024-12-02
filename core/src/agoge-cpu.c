@@ -20,11 +20,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include <assert.h>
+#include <stddef.h>
 
-#define NODISCARD __attribute__((warn_unused_result))
+#include "agoge-cpu.h"
+#include "agoge-bus.h"
+#include "agoge-log.h"
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+static uint8_t read_u8(struct agoge_cpu *const cpu)
+{
+	assert(cpu != NULL);
+	return agoge_bus_read(cpu->bus, cpu->reg.pc++);
+}
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+void agoge_cpu_step(struct agoge_cpu *const cpu)
+{
+	assert(cpu != NULL);
+
+	const uint8_t instr = read_u8(cpu);
+
+	LOG_ERR(cpu->bus->log,
+		"Illegal instruction $%02X trapped at program counter $%04X.",
+		instr, cpu->reg.pc);
+}

@@ -20,11 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include <assert.h>
 
-#define NODISCARD __attribute__((warn_unused_result))
+#include "agoge-bus.h"
+#include "agoge-cart.h"
+#include "agoge-log.h"
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+uint8_t agoge_bus_read(struct agoge_bus *const bus, const uint16_t address)
+{
+	assert(bus != NULL);
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+	switch (address >> 12) {
+	case 0x0 ... 0x7:
+		return agoge_cart_read(bus->cart, address);
+
+	default:
+		LOG_WARN(bus->log, "Unknown memory read: $%04X, returning $FF",
+			 address);
+		return 0xFF;
+	}
+}

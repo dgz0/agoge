@@ -20,11 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include <assert.h>
+#include <stddef.h>
 
-#define NODISCARD __attribute__((warn_unused_result))
+#include "agoge-cart-mbc1.h"
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+#define ROM_BANK_01_ADDR (0x4000)
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+void agoge_cart_mbc1_init(struct agoge_cart_mbc1 *const mbc)
+{
+	assert(mbc != NULL);
+	mbc->rom_bank = 0x01;
+}
+
+uint8_t agoge_cart_mbc1_read(struct agoge_cart_mbc1 *mbc, const uint8_t *data,
+			     const uint16_t address)
+{
+	assert(mbc != NULL);
+	assert(data != NULL);
+
+	switch (address >> 12) {
+	case 0x0 ... 0x3:
+		return data[address];
+
+	case 0x4 ... 0x7:
+		return data[(address - ROM_BANK_01_ADDR) +
+			    (mbc->rom_bank * ROM_BANK_01_ADDR)];
+
+	default:
+		return 0xFF;
+	}
+}

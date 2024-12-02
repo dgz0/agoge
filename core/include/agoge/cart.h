@@ -22,9 +22,38 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+#include <stddef.h>
+#include <stdint.h>
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+#include "cart-mbc1.h"
+#include "log.h"
+
+struct agoge_cart {
+	struct agoge_log *log;
+	uint8_t *data;
+
+	struct agoge_cart_mbc1 mbc1;
+};
+
+enum agoge_cart_mbc {
+	AGOGE_CART_MBC_ROM_ONLY = 0x00,
+	AGOGE_CART_MBC_MBC1 = 0x01
+};
+
+enum agoge_cart_retval {
+	AGOGE_CART_UNSUPPORTED_MBC = -3,
+	AGOGE_CART_BAD_HEADER_SIZE = -2,
+	AGOGE_CART_INVALID_CHECKSUM = -1,
+	AGOGE_CART_OK = 1
+};
+
+enum agoge_cart_retval agoge_cart_set(struct agoge_cart *cart, uint8_t *data,
+				      const size_t data_size);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

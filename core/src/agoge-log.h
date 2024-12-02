@@ -27,17 +27,17 @@
 void agoge_log_msg(struct agoge_log *log, const enum agoge_log_lvl lvl,
 		   const char *fmt, ...);
 
-#define LOG_HANDLE(log, level, args...)                         \
-	({                                                      \
-		struct agoge_log *logger = (log);               \
-                                                                \
-		if ((logger->cb) && logger->lvl >= (level)) {   \
-			agoge_log_msg(logger, (level), (args)); \
-		}                                               \
+#define LOG_HANDLE(log, level, args...)                       \
+	({                                                    \
+		struct agoge_log *logger = (log);             \
+                                                              \
+		if ((logger->cb) && logger->lvl >= (level)) { \
+			agoge_log_msg(logger, (level), args); \
+		}                                             \
 	})
 
-#define LOG_INFO(log, args...) LOG_HANDLE((log), AGOGE_LOG_LVL_INFO, (args))
-#define LOG_WARN(log, args...) LOG_HANDLE((log), AGOGE_LOG_LVL_WARN, (args))
-#define LOG_ERR(log, args...) LOG_HANDLE((log), AGOGE_LOG_LVL_ERR, (args))
-#define LOG_DBG(log, args...) LOG_HANDLE((log), AGOGE_LOG_LVL_DBG, (args))
-#define LOG_TRACE(log, args...) LOG_HANDLE((log), AGOGE_LOG_LVL_TRACE, (args))
+#define LOG_INFO(log, args...) (LOG_HANDLE((log), AGOGE_LOG_LVL_INFO, args))
+#define LOG_WARN(log, args...) (LOG_HANDLE((log), AGOGE_LOG_LVL_WARN, args))
+#define LOG_ERR(log, args...) (LOG_HANDLE((log), AGOGE_LOG_LVL_ERR, args))
+#define LOG_DBG(log, args...) (LOG_HANDLE((log), AGOGE_LOG_LVL_DBG, args))
+#define LOG_TRACE(log, args...) (LOG_HANDLE((log), AGOGE_LOG_LVL_TRACE, args))

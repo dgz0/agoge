@@ -39,15 +39,9 @@ void agoge_log_msg(struct agoge_log *const log, const enum agoge_log_lvl lvl,
 
 	va_list args;
 	va_start(args, fmt);
-
-	const int num_chars = vsnprintf(NULL, 0, fmt, args);
-
-	assert(unlikely(num_chars < LOG_MSG_LEN_MAX));
-
 	char buf[LOG_MSG_LEN_MAX];
-
 	vsprintf(buf, fmt, args);
 	va_end(args);
 
-	log->cb(log->udata, buf, (size_t)num_chars, lvl);
+	log->cb(log->udata, buf, 0, lvl);
 }

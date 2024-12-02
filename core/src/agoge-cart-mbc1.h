@@ -22,9 +22,9 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#include "agoge/cart-mbc1.h"
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+void agoge_cart_mbc1_init(struct agoge_cart_mbc1 *mbc);
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+uint8_t agoge_cart_mbc1_read(struct agoge_cart_mbc1 *mbc, const uint8_t *data,
+			     const uint16_t address);

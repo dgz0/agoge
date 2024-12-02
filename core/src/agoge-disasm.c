@@ -20,11 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include <assert.h>
+#include <stdint.h>
 
-#define NODISCARD __attribute__((warn_unused_result))
+#include "agoge-cpu-defs.h"
+#include "agoge/disasm.h"
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpadded"
 
-#define unlikely(x) __builtin_expect(!!(x), 0)
+struct disasm_entry {
+	const char *const fmt;
+	const uint32_t flags;
+};
+
+#pragma GCC diagnostic pop
+
+static const struct disasm_entry op_tbl[] = {};
+
+static const struct disasm_entry cb_tbl[] = {
+
+};
+
+void agoge_disasm_trace_before(struct agoge_disasm *const disasm)
+{
+	assert(disasm != NULL);
+}
+
+void agoge_disasm_trace_after(struct agoge_disasm *const disasm)
+{
+	assert(disasm != NULL);
+}

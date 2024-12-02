@@ -28,6 +28,10 @@
 extern "C" {
 #endif // __cplusplus
 
+#include "bus.h"
+#include "cart.h"
+#include "cpu.h"
+#include "disasm.h"
 #include "log.h"
 
 /// @brief Defines a full agoge emulator context.
@@ -36,10 +40,16 @@ extern "C" {
 /// encapsulated instance of an emulator that allows multiple instances within
 /// the same application and promotes separation of concerns.
 struct agoge_ctx {
+	struct agoge_cart cart;
+	struct agoge_bus bus;
+	struct agoge_cpu cpu;
+	struct agoge_disasm disasm;
 	struct agoge_log log;
 };
 
 void agoge_ctx_init(struct agoge_ctx *ctx);
+
+void agoge_ctx_step(struct agoge_ctx *ctx);
 
 #ifdef __cplusplus
 }

@@ -22,9 +22,8 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
-
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
-
-#define unlikely(x) __builtin_expect(!!(x), 0)
+#define CPU_OP_NOP (0x00)
+#define CPU_OP_LD_BC_U16 (0x01)
+#define CPU_OP_LD_MEM_BC_A (0x02)
+#define CPU_OP_INC_BC (0x03)
+#define CPU_OP_INC_B (0x04)

@@ -22,9 +22,7 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#include <stdint.h>
+#include "agoge/bus.h"
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
-
-#define unlikely(x) __builtin_expect(!!(x), 0)
+uint8_t agoge_bus_read(struct agoge_bus *bus, const uint16_t address);

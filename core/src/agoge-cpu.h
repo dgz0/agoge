@@ -22,9 +22,6 @@
 
 #pragma once
 
-#define NODISCARD __attribute__((warn_unused_result))
+#include "agoge/cpu.h"
 
-#define FORMAT_PRINTF(string_index, first_to_check) \
-	__attribute__((format(printf, string_index, first_to_check)))
-
-#define unlikely(x) __builtin_expect(!!(x), 0)
+void agoge_cpu_step(struct agoge_cpu *cpu);
