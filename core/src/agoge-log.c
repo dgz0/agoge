@@ -20,11 +20,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "agoge/ctx.h"
+#include <assert.h>
+#include <stdarg.h>
+#include <stdio.h>
 
+#include "agoge-compiler.h"
 #include "agoge-log.h"
 
-void agoge_ctx_init(struct agoge_ctx *const ctx)
+/// @brief Defines the maximum possible length of a log message.
+#define LOG_MSG_LEN_MAX (512)
+
+FORMAT_PRINTF(3, 4)
+void agoge_log_msg(struct agoge_log *const log, const enum agoge_log_lvl lvl,
+		   const char *const fmt, ...)
 {
-	LOG_INFO(&ctx->log, "agoge context initialized");
+	assert(log != NULL);
+	assert(fmt != NULL);
+
+	va_list args;
+	va_start(args, fmt);
+
+	const int num_chars = vsnprintf(NULL, 0, fmt, args);
+
+	assert(unlikely(num_chars < LOG_MSG_LEN_MAX));
+
+	char buf[LOG_MSG_LEN_MAX];
+
+	vsprintf(buf, fmt, args);
+	va_end(args);
+
+	log->cb(log->udata, buf, (size_t)num_chars, lvl);
 }

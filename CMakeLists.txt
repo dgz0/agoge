@@ -184,3 +184,4 @@ add_library(agoge_build_cfg_c INTERFACE)
 target_compile_options(agoge_build_cfg_c INTERFACE ${COMPILER_FLAGS_C})
 
 add_subdirectory(core)
+add_subdirectory(app)

@@ -20,11 +20,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "agoge/ctx.h"
 
-#include "agoge-log.h"
-
-void agoge_ctx_init(struct agoge_ctx *const ctx)
+static void log_cb(void *const udata, const char *const str,
+		   const size_t str_len, const enum agoge_log_lvl lvl)
 {
-	LOG_INFO(&ctx->log, "agoge context initialized");
+	printf("%s\n", str);
+}
+
+int main(void)
+{
+	struct agoge_ctx ctx;
+	memset(&ctx, 0, sizeof(ctx));
+
+	ctx.log.cb = &log_cb;
+	ctx.log.lvl = AGOGE_LOG_LVL_TRACE;
+	ctx.log.udata = NULL;
+
+	agoge_ctx_init(&ctx);
+	return EXIT_SUCCESS;
 }

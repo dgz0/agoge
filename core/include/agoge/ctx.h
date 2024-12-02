@@ -1,4 +1,4 @@
-// SPDX - License - Identifier : MIT
+// SPDX-License-Identifier: MIT
 //
 // Copyright 2024 dgz
 //
@@ -20,11 +20,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/// @file ctx.h Defines the public interface of an agoge emulator context.
+
 #pragma once
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+#include "log.h"
+
+/// @brief Defines a full agoge emulator context.
+///
+/// This context is what applications should primarily work with; it is a self-
+/// encapsulated instance of an emulator that allows multiple instances within
+/// the same application and promotes separation of concerns.
+struct agoge_ctx {
+	struct agoge_log log;
+};
+
+void agoge_ctx_init(struct agoge_ctx *ctx);
 
 #ifdef __cplusplus
 }

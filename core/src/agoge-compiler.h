@@ -20,11 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "agoge/ctx.h"
+#pragma once
 
-#include "agoge-log.h"
+#define FORMAT_PRINTF(string_index, first_to_check) \
+	__attribute__((format(printf, string_index, first_to_check)))
 
-void agoge_ctx_init(struct agoge_ctx *const ctx)
-{
-	LOG_INFO(&ctx->log, "agoge context initialized");
-}
+#define unlikely(x) __builtin_expect(!!(x), 0)

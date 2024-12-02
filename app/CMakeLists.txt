@@ -20,12 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(SRCS agoge-ctx.c agoge-log.c)
-set(HDRS agoge-log.h)
+set(SRCS main.c)
 
-set(PUBLIC_HDRS ../include/agoge/ctx.h ../include/agoge/log.h)
-
-add_library(core STATIC ${SRCS} ${HDRS} ${PUBLIC_HDRS})
-
-target_include_directories(core PUBLIC ../include)
-target_link_libraries(core PRIVATE agoge_build_cfg_c)
+add_executable(agoge_app ${SRCS})
+target_link_libraries(agoge_app PRIVATE agoge_build_cfg_c core)
