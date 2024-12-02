@@ -54,7 +54,7 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Treat all warnings as errors; only useful for CI pipelines.
-option(AGOGE_WARNINGS_AS_ERRORS "Treat all warnings as errors" OFF)
+option(AGOGE_WARNINGS_ARE_ERRORS "Treat all warnings as errors" OFF)
 
 # Enable the AddressSanitizer (ASan) and Undefined Behavior Sanitizer (UBSan) if
 # possible.
@@ -82,67 +82,48 @@ set(
 # change this list, it is your responsibility to ensure that this statement
 # still holds true.
 set(COMPILER_FLAGS_C
+	-Waggregate-return
 	-Wall
-	-Wextra
-	-Wformat=2
-	-Wformat-signedness
-	-Wformat-overflow=2
-	-Wformat-truncation=2
-	-Wnull-dereference
-	-Wmain
-	-Wmissing-include-dirs
-	-Wmissing-profile
-	-Wswitch-default
-	-Wswitch-enum
-	-Wunused-const-variable=2
-	-Wuninitialized
-	-Winit-self
-	-Wstringop-truncation
-	-Wsuggest-attribute=pure
-	-Wsuggest-attribute=const
-	-Wsuggest-attribute=noreturn
-	-Wsuggest-attribute=malloc
-	-Wsuggest-attribute=format
-	-Wsuggest-attribute=cold
-	-Walloc-zero
 	-Walloca
-	-Wduplicated-branches
-	-Wduplicated-cond
-	-Wtrampolines
-	-Wfloat-equal
-	-Wshadow
-	-Wunsafe-loop-optimizations
-	-Wundef
-	-Wunused-macros
 	-Wbad-function-cast
-	-Wcast-qual
 	-Wcast-align
-	-Wwrite-strings
+	-Wcast-qual
 	-Wconversion
 	-Wdate-time
-	-Wjump-misses-init
-	-Wlogical-op
-	-Waggregate-return
-	-Wno-aggressive-loop-optimizations
-	-Wstrict-prototypes
-	-Wold-style-definition
-	-Wmissing-prototypes
-	-Wmissing-declarations
-	-Wpacked
-	-Wpadded
-	-Wredundant-decls
-	-Wnested-externs
+	-Wdisabled-optimization
+	-Wextra
+	-Wfloat-equal
+	-Wformat=2
+	-Winit-self
 	-Winline
 	-Winvalid-pch
 	-Wlong-long
+	-Wmain
+	-Wmissing-declarations
+	-Wmissing-include-dirs
+	-Wmissing-prototypes
+	-Wnested-externs
+	-Wnull-dereference
+	-Wold-style-definition
+	-Wpacked
+	-Wpadded
+	-Wredundant-decls
+	-Wshadow
+	-Wstrict-prototypes
+	-Wswitch-default
+	-Wswitch-enum
+	-Wundef
+	-Wuninitialized
+	-Wunused-macros
 	-Wvla
-	-Wdisabled-optimization
+	-Wwrite-strings
 )
 
 # There are many variants of Clang that are supported by CMake, such as IBMClang
 # or TIClang or FujitsuClang. This project does not support them, with the sole
 # exception of AppleClang.
-if (CMAKE_C_COMPILER_ID STREQUAL "AppleClang|Clang")
+if ((CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "Clang"))
 	if (CMAKE_C_COMPILER_VERSION LESS ${CLANG_VER_MIN})
 		message(FATAL_ERROR ${C_COMPILER_TOO_OLD_MSG})
 	endif()
@@ -153,19 +134,46 @@ elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
 		message(FATAL_ERROR ${C_COMPILER_TOO_OLD_MSG})
 	endif()
 
-	list(APPEND COMPILER_FLAGS_C "-ggdb3")
+	list(
+		APPEND COMPILER_FLAGS_C
+		-Walloc-zero
+		-Wduplicated-branches
+		-Wduplicated-cond
+		-Wformat-overflow=2
+		-Wformat-signedness
+		-Wformat-truncation=2
+		-Wjump-misses-init
+		-Wlogical-op
+		-Wmissing-profile
+		-Wno-aggressive-loop-optimizations
+		-Wstringop-truncation
+		-Wsuggest-attribute=cold
+		-Wsuggest-attribute=const
+		-Wsuggest-attribute=format
+		-Wsuggest-attribute=malloc
+		-Wsuggest-attribute=noreturn
+		-Wsuggest-attribute=pure
+		-Wtrampolines
+		-Wunsafe-loop-optimizations
+		-Wunused-const-variable=2
+		-ggdb3
+	)
 else()
 	message(FATAL_ERROR
 		"Your C compiler is not supported by this project; you need to "
 		"use clang >=${CLANG_VER_MIN} or gcc >=${GCC_VER_MIN}.")
 endif()
 
-if (AGOGE_WARNINGS_AS_ERRORS)
-	list(APPEND COMPILER_FLAGS_C "-Werror")
+if (AGOGE_OPTIMIZE_FOR_ARCH)
+	list(APPEND COMPILER_FLAGS_C -march=native -mtune=native)
+endif()
+
+if (AGOGE_WARNINGS_ARE_ERRORS)
+	list(APPEND COMPILER_FLAGS_C -Werror)
 endif()
 
 if (AGOGE_ENABLE_SANITIZERS)
-	list(APPEND COMPILER_FLAGS_C "-fsanitize=address,undefined")
+	list(APPEND COMPILER_FLAGS_C -fsanitize=address,undefined)
 endif()
 
 # An INTERFACE library target does not directly create build output, though it
