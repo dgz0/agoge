@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "agoge/disasm.h"
+#include "agoge/log.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -67,6 +69,10 @@ static void log_cb(void *const udata, const char *const str,
 		   const size_t str_len, const enum agoge_log_lvl lvl)
 {
 	printf("%s\n", str);
+	fflush(stdout);
+
+	if (lvl == AGOGE_LOG_LVL_ERR)
+		abort();
 }
 
 static void load_cart(struct agoge_ctx *const ctx, const char *const prog_name,
@@ -87,6 +93,7 @@ static void setup_ctx(struct agoge_ctx *const ctx)
 	ctx->log.cb = &log_cb;
 	ctx->log.lvl = AGOGE_LOG_LVL_TRACE;
 	ctx->log.udata = ctx;
+	ctx->disasm.send_to_logger = true;
 	agoge_ctx_init(ctx);
 }
 
@@ -104,5 +111,10 @@ int main(int argc, char *argv[])
 	setup_ctx(&ctx);
 	load_cart(&ctx, argv[0], argv[1]);
 
+	for (;;) {
+		agoge_disasm_trace_before(&ctx.disasm);
+		agoge_ctx_step(&ctx);
+		agoge_disasm_trace_after(&ctx.disasm);
+	}
 	return EXIT_SUCCESS;
 }

@@ -49,6 +49,7 @@ struct agoge_ctx {
 
 void agoge_ctx_init(struct agoge_ctx *ctx);
 
+void agoge_ctx_reset(struct agoge_ctx *ctx);
 void agoge_ctx_step(struct agoge_ctx *ctx);
 
 #ifdef __cplusplus

@@ -26,3 +26,6 @@
 #include "agoge/bus.h"
 
 uint8_t agoge_bus_read(struct agoge_bus *bus, const uint16_t address);
+
+void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
+		     const uint8_t data);

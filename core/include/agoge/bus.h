@@ -30,6 +30,8 @@ extern "C" {
 #include "log.h"
 
 struct agoge_bus {
+	uint8_t wram[0x2000];
+
 	struct agoge_cart *cart;
 	struct agoge_log *log;
 };

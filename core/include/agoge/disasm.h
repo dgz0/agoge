@@ -38,9 +38,16 @@ struct agoge_disasm {
 	struct {
 		char str[AGOGE_DISASM_LEN_MAX + 1];
 		size_t len;
-	} result;
+	} res;
+
+	struct {
+		uint16_t pc;
+		unsigned int num_traces;
+		const unsigned int *traces;
+	} state;
 
 	struct agoge_cpu *cpu;
+	bool send_to_logger;
 };
 
 #pragma GCC diagnostic pop

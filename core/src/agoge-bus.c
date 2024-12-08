@@ -34,9 +34,29 @@ uint8_t agoge_bus_read(struct agoge_bus *const bus, const uint16_t address)
 	case 0x0 ... 0x7:
 		return agoge_cart_read(bus->cart, address);
 
+	case 0xC ... 0xD:
+		return bus->wram[address - 0xC000];
+
 	default:
 		LOG_WARN(bus->log, "Unknown memory read: $%04X, returning $FF",
 			 address);
 		return 0xFF;
+	}
+}
+
+void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
+		     const uint8_t data)
+{
+	assert(bus != NULL);
+
+	switch (address >> 12) {
+	case 0xC ... 0xD:
+		bus->wram[address - 0xC000] = data;
+		return;
+
+	default:
+		LOG_WARN(bus->log,
+			 "Unknown memory write: $%04X <- $%02X; ignoring",
+			 address, data);
 	}
 }

@@ -45,7 +45,17 @@ void agoge_ctx_init(struct agoge_ctx *const ctx)
 	assert(ctx != NULL);
 
 	setup_ctx_ptrs(ctx);
+	agoge_ctx_reset(ctx);
+
 	LOG_INFO(&ctx->log, "agoge context initialized");
+}
+
+void agoge_ctx_reset(struct agoge_ctx *const ctx)
+{
+	assert(ctx != NULL);
+	agoge_cpu_reset(&ctx->cpu);
+
+	LOG_INFO(&ctx->log, "agoge context reset");
 }
 
 void agoge_ctx_step(struct agoge_ctx *const ctx)

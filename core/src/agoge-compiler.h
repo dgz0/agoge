@@ -22,6 +22,8 @@
 
 #pragma once
 
+#define UNREACHABLE __builtin_unreachable()
+
 #define NODISCARD __attribute__((warn_unused_result))
 
 #define FORMAT_PRINTF(string_index, first_to_check) \

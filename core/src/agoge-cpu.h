@@ -24,4 +24,5 @@
 
 #include "agoge/cpu.h"
 
+void agoge_cpu_reset(struct agoge_cpu *cpu);
 void agoge_cpu_step(struct agoge_cpu *cpu);

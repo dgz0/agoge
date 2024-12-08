@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include "agoge/cart.h"
 #include <assert.h>
 #include <stdbool.h>
 
@@ -46,7 +45,7 @@ NODISCARD static bool valid_csum(const uint8_t *const data,
 	uint8_t csum = 0;
 
 	for (size_t i = HDR_TITLE_START; i <= HDR_MASK_ROM_VER; ++i) {
-		csum = csum - (uint8_t)(data[i] - 1);
+		csum = csum - data[i] - 1;
 	}
 	return data[HDR_CSUM] == csum;
 }
