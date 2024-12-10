@@ -58,7 +58,7 @@ option(AGOGE_WARNINGS_ARE_ERRORS "Treat all warnings as errors" OFF)
 
 # Enable the AddressSanitizer (ASan) and Undefined Behavior Sanitizer (UBSan) if
 # possible.
-option(AGOGE_ENABLE_SANITIZERS "Enable ASan and UBSan if possible" OFF)
+option(AGOGE_ENABLE_SANITIZERS "Enable ASan and UBSan if possible" ON)
 
 # Compile with the maximum possible optimisations specific to the build machine.
 option(
@@ -182,6 +182,13 @@ endif()
 # wide settings that we set here.
 add_library(agoge_build_cfg_c INTERFACE)
 target_compile_options(agoge_build_cfg_c INTERFACE ${COMPILER_FLAGS_C})
+
+if (AGOGE_ENABLE_SANITIZERS)
+	target_link_options(
+		agoge_build_cfg_c INTERFACE
+		-fsanitize=address,undefined
+	)
+endif()
 
 add_subdirectory(core)
 add_subdirectory(app)

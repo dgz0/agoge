@@ -31,6 +31,9 @@ extern "C" {
 
 struct agoge_bus {
 	uint8_t wram[0x2000];
+	uint8_t hram[0x2000];
+	char buf[256];
+	size_t buf_n;
 
 	struct agoge_cart *cart;
 	struct agoge_log *log;

@@ -68,8 +68,10 @@ static size_t open_rom(const char *const prog_name, const char *const file_name)
 static void log_cb(void *const udata, const char *const str,
 		   const size_t str_len, const enum agoge_log_lvl lvl)
 {
-	printf("%s\n", str);
-	fflush(stdout);
+	if (lvl == AGOGE_LOG_LVL_DBG) {
+		printf("%s\n", str);
+		fflush(stdout);
+	}
 
 	if (lvl == AGOGE_LOG_LVL_ERR)
 		abort();

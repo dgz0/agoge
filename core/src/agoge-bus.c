@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 #include <assert.h>
+#include <string.h>
 
 #include "agoge-bus.h"
 #include "agoge-cart.h"
@@ -28,6 +29,10 @@
 
 uint8_t agoge_bus_read(struct agoge_bus *const bus, const uint16_t address)
 {
+	if ((address >= 0xFF80) && (address <= 0xFFFE)) {
+		return bus->hram[address - 0xFF80];
+	}
+
 	assert(bus != NULL);
 
 	switch (address >> 12) {
@@ -47,11 +52,28 @@ uint8_t agoge_bus_read(struct agoge_bus *const bus, const uint16_t address)
 void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
 		     const uint8_t data)
 {
-	assert(bus != NULL);
+	if ((address >= 0xFF80) && (address <= 0xFFFE)) {
+		bus->hram[address - 0xFF80] = data;
+		return;
+	}
 
 	switch (address >> 12) {
 	case 0xC ... 0xD:
 		bus->wram[address - 0xC000] = data;
+		return;
+
+	case 0xF:
+		if ((((address >> 8) & 0xF) == 0xF) &&
+		    ((address & 0xFF) == 0x01)) {
+			bus->buf[bus->buf_n++] = (char)data;
+
+			if (data == '\n') {
+				LOG_DBG(bus->log, "Serial output: %s",
+					bus->buf);
+				memset(bus->buf, 0, sizeof(bus->buf));
+				bus->buf_n = 0;
+			}
+		}
 		return;
 
 	default:

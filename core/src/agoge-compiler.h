@@ -22,11 +22,15 @@
 
 #pragma once
 
+#define NONNULL __attribute__((nonnull))
+
 #define UNREACHABLE __builtin_unreachable()
 
 #define NODISCARD __attribute__((warn_unused_result))
 
 #define FORMAT_PRINTF(string_index, first_to_check) \
 	__attribute__((format(printf, string_index, first_to_check)))
+
+#define ALWAYS_INLINE inline __attribute__((always_inline))
 
 #define unlikely(x) __builtin_expect(!!(x), 0)
