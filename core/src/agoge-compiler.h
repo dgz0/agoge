@@ -20,17 +20,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/// @file agoge-compiler.h Defines abstractions around various compiler features
+/// for easier readability.
+
 #pragma once
 
+/// All the parameters in a function are expected to be non-NULL.
 #define NONNULL __attribute__((nonnull))
 
+/// Control flow is unreachable at a location.
 #define UNREACHABLE __builtin_unreachable()
 
+/// The return value of a function must not be discarded.
 #define NODISCARD __attribute__((warn_unused_result))
 
+/// This function is a printf-like function, and the format string passed to it is checked at compile-time for validity.
+///
+/// @param string_index Specifies which argument is the format string argument (starting from 1).
+/// @param first_to_check The number of the first argument to check against the format string
 #define FORMAT_PRINTF(string_index, first_to_check) \
 	__attribute__((format(printf, string_index, first_to_check)))
 
+/// This function will always be inlined regardless of compiler heuristics or
+/// optimization level.
 #define ALWAYS_INLINE inline __attribute__((always_inline))
 
+/// This branch is unlikely to be executed.
 #define unlikely(x) __builtin_expect(!!(x), 0)
