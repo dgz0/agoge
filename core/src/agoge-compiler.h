@@ -34,10 +34,14 @@
 /// The return value of a function must not be discarded.
 #define NODISCARD __attribute__((warn_unused_result))
 
-/// This function is a printf-like function, and the format string passed to it is checked at compile-time for validity.
+/// This function is a printf-like function, and the format string passed to it
+/// is checked at compile-time for validity.
 ///
-/// @param string_index Specifies which argument is the format string argument (starting from 1).
-/// @param first_to_check The number of the first argument to check against the format string
+/// @param string_index Specifies which argument is the format string argument
+/// (starting from 1).
+///
+/// @param first_to_check The number of the first argument to check against the
+/// format string.
 #define FORMAT_PRINTF(string_index, first_to_check) \
 	__attribute__((format(printf, string_index, first_to_check)))
 
