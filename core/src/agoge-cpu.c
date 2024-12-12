@@ -866,8 +866,35 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 	OP(CPU_OP_DEC_H, alu_dec, cpu->reg.h);
 	LD_R8_U8(CPU_OP_LD_H_U8, cpu->reg.h);
 
-	case CPU_OP_DAA:
+	case CPU_OP_DAA: {
+		uint8_t correction = 0;
+
+		if (cpu->reg.f & CPU_HALF_CARRY_FLAG) {
+			correction |= 0x06;
+		}
+
+		if (cpu->reg.f & CPU_CARRY_FLAG) {
+			correction |= 0x60;
+		}
+
+		if (!(cpu->reg.f & CPU_SUBTRACT_FLAG)) {
+			if ((cpu->reg.a & 0x0F) > 0x09) {
+				correction |= 0x06;
+			}
+
+			if (cpu->reg.a > 0x99) {
+				correction |= 0x60;
+			}
+			cpu->reg.a += correction;
+		} else {
+			cpu->reg.a -= correction;
+		}
+		zero_flag_set(cpu, cpu->reg.a);
+		carry_flag_set(cpu, correction & 0x60);
+		cpu->reg.f &= ~CPU_HALF_CARRY_FLAG;
+
 		return;
+	}
 
 	BRANCH(CPU_OP_JR_Z_S8, jr_if, cpu->reg.f & CPU_ZERO_FLAG);
 	ADD_HL_R16(CPU_OP_ADD_HL_HL, cpu->reg.hl);
@@ -925,7 +952,7 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 
 	case CPU_OP_CCF:
 		cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
-		carry_flag_set(cpu, !(cpu->reg.f & CPU_CARRY_FLAG));
+		cpu->reg.f ^= CPU_CARRY_FLAG;
 
 		return;
 
