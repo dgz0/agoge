@@ -21,13 +21,15 @@
 # SOFTWARE.
 
 set(SRCS
-        agoge-bus.c
-        agoge-cart-mbc1.c
-        agoge-cart.c
-        agoge-cpu.c
-        agoge-ctx.c
-        agoge-disasm.c
-        agoge-log.c
+	agoge-bus.c
+	agoge-cart-mbc1.c
+	agoge-cart.c
+	agoge-cpu.c
+	agoge-ctx.c
+	agoge-disasm.c
+	agoge-log.c
+	agoge-sched.c
+	agoge-timer.c
 )
 
 set(HDRS agoge-log.h)

@@ -20,52 +20,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <assert.h>
-
-#include "agoge/ctx.h"
-
-#include "agoge-cpu.h"
-#include "agoge-log.h"
+#include "agoge-compiler.h"
 #include "agoge-timer.h"
+#include "agoge-sched.h"
 
-static void setup_ctx_ptrs(struct agoge_ctx *const ctx)
+NONNULL static void on_systick(void *udata)
 {
-	assert(ctx != NULL);
+	struct agoge_timer *timer = (struct agoge_timer *)udata;
+	timer->systick++;
 
-	ctx->cart.log = &ctx->log;
-
-	ctx->bus.cart = &ctx->cart;
-	ctx->bus.log = &ctx->log;
-	ctx->bus.sched = &ctx->sched;
-
-	ctx->cpu.bus = &ctx->bus;
-	ctx->disasm.cpu = &ctx->cpu;
-
-	//ctx->timer.sched = &ctx->sched;
+	struct agoge_sched_event ev = {
+		.cb = &on_systick,
+		.ts = 4,
+		.udata = timer,
+	};
+	agoge_sched_event_add(timer->sched, &ev);
 }
 
-void agoge_ctx_init(struct agoge_ctx *const ctx)
+NONNULL void agoge_timer_init(struct agoge_timer *const timer)
 {
-	assert(ctx != NULL);
-
-	setup_ctx_ptrs(ctx);
-	agoge_ctx_reset(ctx);
-	//agoge_timer_init(&ctx->timer);
-
-	LOG_INFO(&ctx->log, "agoge context initialized");
-}
-
-void agoge_ctx_reset(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-	agoge_cpu_reset(&ctx->cpu);
-
-	LOG_INFO(&ctx->log, "agoge context reset");
-}
-
-void agoge_ctx_step(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-
-	agoge_cpu_step(&ctx->cpu);
+	struct agoge_sched_event ev = {
+		.cb = &on_systick,
+		.ts = 4,
+		.udata = timer,
+	};
+	agoge_sched_event_add(timer->sched, &ev);
 }

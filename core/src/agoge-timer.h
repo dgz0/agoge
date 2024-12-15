@@ -20,52 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <assert.h>
+#pragma once
 
-#include "agoge/ctx.h"
+#include "agoge/timer.h"
 
-#include "agoge-cpu.h"
-#include "agoge-log.h"
-#include "agoge-timer.h"
-
-static void setup_ctx_ptrs(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-
-	ctx->cart.log = &ctx->log;
-
-	ctx->bus.cart = &ctx->cart;
-	ctx->bus.log = &ctx->log;
-	ctx->bus.sched = &ctx->sched;
-
-	ctx->cpu.bus = &ctx->bus;
-	ctx->disasm.cpu = &ctx->cpu;
-
-	//ctx->timer.sched = &ctx->sched;
-}
-
-void agoge_ctx_init(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-
-	setup_ctx_ptrs(ctx);
-	agoge_ctx_reset(ctx);
-	//agoge_timer_init(&ctx->timer);
-
-	LOG_INFO(&ctx->log, "agoge context initialized");
-}
-
-void agoge_ctx_reset(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-	agoge_cpu_reset(&ctx->cpu);
-
-	LOG_INFO(&ctx->log, "agoge context reset");
-}
-
-void agoge_ctx_step(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-
-	agoge_cpu_step(&ctx->cpu);
-}
+void agoge_timer_init(struct agoge_timer *timer);

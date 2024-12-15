@@ -33,6 +33,7 @@ extern "C" {
 #include "cpu.h"
 #include "disasm.h"
 #include "log.h"
+#include "sched.h"
 
 /// @brief Defines a full agoge emulator context.
 ///
@@ -45,6 +46,7 @@ struct agoge_ctx {
 	struct agoge_cpu cpu;
 	struct agoge_disasm disasm;
 	struct agoge_log log;
+	struct agoge_sched sched;
 };
 
 void agoge_ctx_init(struct agoge_ctx *ctx);

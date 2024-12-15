@@ -28,6 +28,8 @@ extern "C" {
 
 #include "cart.h"
 #include "log.h"
+#include "sched.h"
+#include "timer.h"
 
 struct agoge_bus {
 	uint8_t wram[0x2000];
@@ -37,6 +39,9 @@ struct agoge_bus {
 
 	struct agoge_cart *cart;
 	struct agoge_log *log;
+	struct agoge_sched *sched;
+
+	struct agoge_timer timer;
 };
 
 #ifdef __cplusplus

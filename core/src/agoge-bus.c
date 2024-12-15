@@ -25,18 +25,24 @@
 
 #include "agoge-bus.h"
 #include "agoge-cart.h"
+#include "agoge-compiler.h"
 #include "agoge-log.h"
+#include "agoge-sched.h"
 
-uint8_t agoge_bus_read(struct agoge_bus *const bus, const uint16_t address)
+NONNULL NODISCARD uint8_t agoge_bus_read(struct agoge_bus *const bus,
+					 const uint16_t address)
 {
+	agoge_sched_step(bus->sched);
+
 	if ((address >= 0xFF80) && (address <= 0xFFFE)) {
 		return bus->hram[address - 0xFF80];
 	}
 
-	assert(bus != NULL);
-
 	switch (address >> 12) {
-	case 0x0 ... 0x7:
+	case 0x0 ... 0x3:
+		return agoge_cart_read(bus->cart, address);
+
+	case 0x4 ... 0x7:
 		return agoge_cart_read(bus->cart, address);
 
 	case 0xC ... 0xD:
@@ -81,4 +87,5 @@ void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
 			 "Unknown memory write: $%04X <- $%02X; ignoring",
 			 address, data);
 	}
+	agoge_sched_step(bus->sched);
 }

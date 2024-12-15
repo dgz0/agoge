@@ -20,52 +20,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <assert.h>
+#pragma once
 
-#include "agoge/ctx.h"
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-#include "agoge-cpu.h"
-#include "agoge-log.h"
-#include "agoge-timer.h"
+#include <stddef.h>
+#include <stdint.h>
 
-static void setup_ctx_ptrs(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
+/// The maximum number of events we can handle.
+#define AGOGE_SCHED_NUM_EVENTS_MAX (32)
 
-	ctx->cart.log = &ctx->log;
+struct agoge_sched_event {
+	uintmax_t ts;
+	void *udata;
+	void (*cb)(void *udata);
+};
 
-	ctx->bus.cart = &ctx->cart;
-	ctx->bus.log = &ctx->log;
-	ctx->bus.sched = &ctx->sched;
+struct agoge_sched {
+	uintmax_t curr_ts;
+	struct agoge_sched_event events[AGOGE_SCHED_NUM_EVENTS_MAX];
+	size_t num_events;
+};
 
-	ctx->cpu.bus = &ctx->bus;
-	ctx->disasm.cpu = &ctx->cpu;
-
-	//ctx->timer.sched = &ctx->sched;
+#ifdef __cplusplus
 }
-
-void agoge_ctx_init(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-
-	setup_ctx_ptrs(ctx);
-	agoge_ctx_reset(ctx);
-	//agoge_timer_init(&ctx->timer);
-
-	LOG_INFO(&ctx->log, "agoge context initialized");
-}
-
-void agoge_ctx_reset(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-	agoge_cpu_reset(&ctx->cpu);
-
-	LOG_INFO(&ctx->log, "agoge context reset");
-}
-
-void agoge_ctx_step(struct agoge_ctx *const ctx)
-{
-	assert(ctx != NULL);
-
-	agoge_cpu_step(&ctx->cpu);
-}
+#endif // __cplusplus
