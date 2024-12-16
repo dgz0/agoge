@@ -32,15 +32,21 @@ extern "C" {
 /// The maximum number of events we can handle.
 #define AGOGE_SCHED_NUM_EVENTS_MAX (32)
 
-struct agoge_sched_event {
+enum agoge_sched_event_group {
+	AGOGE_SCHED_EVENT_GROUP_NONE = 0,
+	AGOGE_SCHED_EVENT_GROUP_TIMER = 1
+};
+
+struct agoge_sched_ev {
+	enum agoge_sched_event_group group;
 	uintmax_t ts;
+	void (*cb)(void *ptr);
 	void *udata;
-	void (*cb)(void *udata);
 };
 
 struct agoge_sched {
 	uintmax_t curr_ts;
-	struct agoge_sched_event events[AGOGE_SCHED_NUM_EVENTS_MAX];
+	struct agoge_sched_ev events[AGOGE_SCHED_NUM_EVENTS_MAX];
 	size_t num_events;
 };
 

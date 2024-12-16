@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#include <assert.h>
 #include <string.h>
 
 #include "agoge-bus.h"
@@ -28,25 +27,34 @@
 #include "agoge-compiler.h"
 #include "agoge-log.h"
 #include "agoge-sched.h"
+#include "agoge-timer.h"
 
 NONNULL NODISCARD uint8_t agoge_bus_read(struct agoge_bus *const bus,
 					 const uint16_t address)
 {
 	agoge_sched_step(bus->sched);
 
-	if ((address >= 0xFF80) && (address <= 0xFFFE)) {
-		return bus->hram[address - 0xFF80];
-	}
-
-	switch (address >> 12) {
-	case 0x0 ... 0x3:
+	switch (address) {
+	case 0x0000 ... 0x7FFF:
 		return agoge_cart_read(bus->cart, address);
 
-	case 0x4 ... 0x7:
-		return agoge_cart_read(bus->cart, address);
+	case 0x8000 ... 0x9FFF:
+		return 0xFF;
 
-	case 0xC ... 0xD:
+	case 0xC000 ... 0xDFFF:
 		return bus->wram[address - 0xC000];
+
+	case 0xFF05:
+		return bus->timer.tima;
+
+	case 0xFF0F:
+		return bus->intr_flag;
+
+	case 0xFF44:
+		return 0xFF;
+
+	case 0xFF80 ... 0xFFFE:
+		return bus->hram[address - 0xFF80];
 
 	default:
 		LOG_WARN(bus->log, "Unknown memory read: $%04X, returning $FF",
@@ -55,37 +63,48 @@ NONNULL NODISCARD uint8_t agoge_bus_read(struct agoge_bus *const bus,
 	}
 }
 
-void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
-		     const uint8_t data)
+NONNULL void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
+			     const uint8_t data)
 {
-	if ((address >= 0xFF80) && (address <= 0xFFFE)) {
-		bus->hram[address - 0xFF80] = data;
-		return;
-	}
-
-	switch (address >> 12) {
-	case 0xC ... 0xD:
+	switch (address) {
+	case 0xC000 ... 0xDFFF:
 		bus->wram[address - 0xC000] = data;
-		return;
+		break;
 
-	case 0xF:
-		if ((((address >> 8) & 0xF) == 0xF) &&
-		    ((address & 0xFF) == 0x01)) {
-			bus->buf[bus->buf_n++] = (char)data;
+	case 0x8000 ... 0x9FFF:
+		break;
 
-			if (data == '\n') {
-				LOG_DBG(bus->log, "Serial output: %s",
-					bus->buf);
-				memset(bus->buf, 0, sizeof(bus->buf));
-				bus->buf_n = 0;
-			}
+	case 0xFF80 ... 0xFFFE:
+		bus->hram[address - 0xFF80] = data;
+		break;
+
+	case 0xFF01:
+		bus->buf[bus->buf_n++] = (char)data;
+
+		if (data == '\n') {
+			LOG_DBG(bus->log, "Serial output: %s", bus->buf);
+			memset(bus->buf, 0, sizeof(bus->buf));
+			bus->buf_n = 0;
 		}
+		break;
+
+	case 0xFF05:
+		agoge_timer_write_tima(&bus->timer, data);
 		return;
+
+	case 0xFF06:
+		bus->timer.tma = data;
+		break;
+
+	case 0xFF07:
+		agoge_timer_write_tac(&bus->timer, data);
+		break;
 
 	default:
 		LOG_WARN(bus->log,
 			 "Unknown memory write: $%04X <- $%02X; ignoring",
 			 address, data);
+		break;
 	}
 	agoge_sched_step(bus->sched);
 }

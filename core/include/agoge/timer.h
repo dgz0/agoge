@@ -30,7 +30,14 @@ extern "C" {
 
 struct agoge_timer {
 	struct agoge_sched *sched;
+	uint8_t tac;
+	uint8_t tima;
+	uint8_t tma;
 	uint16_t systick;
+	uint8_t *intr_flag;
+
+	size_t ev_tima_ovf_stage1;
+	size_t ev_tima_ovf_stage2;
 };
 
 #ifdef __cplusplus

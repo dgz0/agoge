@@ -41,21 +41,22 @@ static size_t right_child_node_get(const size_t idx)
 	return left_child_node_get(idx) + 1;
 }
 
-NONNULL void agoge_sched_event_add(struct agoge_sched *const sched,
-				   struct agoge_sched_event *const event)
+NONNULL size_t agoge_sched_ev_add(struct agoge_sched *const sched,
+				  struct agoge_sched_ev *const ev)
 {
 	assert(sched->num_events < AGOGE_SCHED_NUM_EVENTS_MAX);
 
-	event->ts += sched->curr_ts;
+	ev->ts += sched->curr_ts;
 
 	size_t idx = sched->num_events;
-	sched->events[sched->num_events++] = *event;
+	sched->events[sched->num_events++] = *ev;
 
 	while (idx && (sched->events[parent_node_get(idx)].ts >
 		       sched->events[idx].ts)) {
 		SWAP(sched->events[parent_node_get(idx)], sched->events[idx]);
 		idx = parent_node_get(idx);
 	}
+	return sched->num_events;
 }
 
 NONNULL static void heapify(struct agoge_sched *const sched, size_t idx)
@@ -86,14 +87,14 @@ NONNULL static void heapify(struct agoge_sched *const sched, size_t idx)
 	}
 }
 
-NONNULL static void delete_element(struct agoge_sched *const sched, size_t idx)
+NONNULL void agoge_sched_ev_del(struct agoge_sched *const sched, size_t ev)
 {
-	sched->events[idx].ts = 0;
+	sched->events[ev].ts = 0;
 
-	while (idx && (sched->events[parent_node_get(idx)].ts >
-		       sched->events[idx].ts)) {
-		SWAP(sched->events[parent_node_get(idx)], sched->events[idx]);
-		idx = parent_node_get(idx);
+	while (ev &&
+	       (sched->events[parent_node_get(ev)].ts > sched->events[ev].ts)) {
+		SWAP(sched->events[parent_node_get(ev)], sched->events[ev]);
+		ev = parent_node_get(ev);
 	}
 
 	sched->events[0] = sched->events[sched->num_events - 1];
@@ -108,6 +109,6 @@ NONNULL void agoge_sched_step(struct agoge_sched *const sched)
 
 	while ((sched->num_events) && (sched->events[0].ts == sched->curr_ts)) {
 		sched->events[0].cb(sched->events[0].udata);
-		delete_element(sched, 0);
+		agoge_sched_ev_del(sched, 0);
 	}
 }

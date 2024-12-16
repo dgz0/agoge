@@ -40,10 +40,16 @@ uint8_t agoge_cart_mbc1_read(struct agoge_cart_mbc1 *mbc, const uint8_t *data,
 	assert(data != NULL);
 
 	switch (address >> 12) {
-	case 0x0 ... 0x3:
+	case 0x0:
+	case 0x1:
+	case 0x2:
+	case 0x3:
 		return data[address];
 
-	case 0x4 ... 0x7:
+	case 0x4:
+	case 0x5:
+	case 0x6:
+	case 0x7:
 		return data[(address - ROM_BANK_01_ADDR) +
 			    (mbc->rom_bank * ROM_BANK_01_ADDR)];
 

@@ -24,7 +24,8 @@
 
 #include "agoge/sched.h"
 
-void agoge_sched_event_add(struct agoge_sched *sched,
-			   struct agoge_sched_event *event);
+size_t agoge_sched_ev_add(struct agoge_sched *sched, struct agoge_sched_ev *ev);
+
+void agoge_sched_ev_del(struct agoge_sched *sched, size_t ev);
 
 void agoge_sched_step(struct agoge_sched *sched);

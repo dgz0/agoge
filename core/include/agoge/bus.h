@@ -42,6 +42,8 @@ struct agoge_bus {
 	struct agoge_sched *sched;
 
 	struct agoge_timer timer;
+
+	uint8_t intr_flag;
 };
 
 #ifdef __cplusplus

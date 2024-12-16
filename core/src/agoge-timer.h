@@ -24,4 +24,5 @@
 
 #include "agoge/timer.h"
 
-void agoge_timer_init(struct agoge_timer *timer);
+void agoge_timer_write_tima(struct agoge_timer *timer, uint8_t tima);
+void agoge_timer_write_tac(struct agoge_timer *timer, uint8_t tac);

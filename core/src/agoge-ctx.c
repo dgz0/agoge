@@ -41,7 +41,9 @@ static void setup_ctx_ptrs(struct agoge_ctx *const ctx)
 	ctx->cpu.bus = &ctx->bus;
 	ctx->disasm.cpu = &ctx->cpu;
 
-	//ctx->timer.sched = &ctx->sched;
+	ctx->bus.timer.sched = &ctx->sched;
+
+	ctx->bus.timer.intr_flag = &ctx->bus.intr_flag;
 }
 
 void agoge_ctx_init(struct agoge_ctx *const ctx)
@@ -50,7 +52,6 @@ void agoge_ctx_init(struct agoge_ctx *const ctx)
 
 	setup_ctx_ptrs(ctx);
 	agoge_ctx_reset(ctx);
-	//agoge_timer_init(&ctx->timer);
 
 	LOG_INFO(&ctx->log, "agoge context initialized");
 }

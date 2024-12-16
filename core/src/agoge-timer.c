@@ -21,28 +21,108 @@
 // SOFTWARE.
 
 #include "agoge-compiler.h"
-#include "agoge-timer.h"
 #include "agoge-sched.h"
+#include "agoge-timer.h"
 
-NONNULL static void on_systick(void *udata)
+#define TAC_BIT_ENABLE (UINT8_C(1) << 2)
+#define TAC_MASK_CLKSEL (UINT8_C(0b00000011))
+
+#define TAC_CLKSEL_M_CYCLE_256 (0b00)
+#define TAC_CLKSEL_M_CYCLE_4 (0b01)
+#define TAC_CLKSEL_M_CYCLE_16 (0b10)
+#define TAC_CLKSEL_M_CYCLE_64 (0b11)
+
+#define IF_TIMER (UINT8_C(1) << 2)
+
+static const unsigned int m_cycles[] = { [TAC_CLKSEL_M_CYCLE_256] = 256,
+					 [TAC_CLKSEL_M_CYCLE_4] = 4,
+					 [TAC_CLKSEL_M_CYCLE_16] = 16,
+					 [TAC_CLKSEL_M_CYCLE_64] = 64 };
+
+NONNULL static void tima_inc(void *const udata)
 {
 	struct agoge_timer *timer = (struct agoge_timer *)udata;
-	timer->systick++;
+	timer->tima++;
 
-	struct agoge_sched_event ev = {
-		.cb = &on_systick,
-		.ts = 4,
-		.udata = timer,
+	struct agoge_sched_ev ev = {
+		.group = AGOGE_SCHED_EVENT_GROUP_TIMER,
+		.ts = m_cycles[timer->tac & TAC_MASK_CLKSEL],
+		.cb = &tima_inc,
+		.udata = timer
 	};
-	agoge_sched_event_add(timer->sched, &ev);
+	agoge_sched_ev_add(timer->sched, &ev);
 }
 
-NONNULL void agoge_timer_init(struct agoge_timer *const timer)
+NONNULL static void tima_ovf_stage2(void *const udata)
 {
-	struct agoge_sched_event ev = {
-		.cb = &on_systick,
-		.ts = 4,
-		.udata = timer,
+	struct agoge_timer *timer = (struct agoge_timer *)udata;
+
+	timer->tima = timer->tma;
+	*timer->intr_flag |= IF_TIMER;
+}
+
+NONNULL static void tima_ovf_stage1(void *const udata)
+{
+	struct agoge_timer *timer = (struct agoge_timer *)udata;
+	timer->tima = 0x00;
+}
+
+NONNULL static void tima_inc_ev_add(struct agoge_timer *const timer,
+				    const uint8_t tac)
+{
+	struct agoge_sched_ev ev = { .group = AGOGE_SCHED_EVENT_GROUP_TIMER,
+				     .ts = m_cycles[tac & TAC_MASK_CLKSEL],
+				     .cb = &tima_inc,
+				     .udata = timer };
+
+	agoge_sched_ev_add(timer->sched, &ev);
+}
+
+NONNULL static void tima_ovf_ev_add(struct agoge_timer *const timer)
+{
+	const uintmax_t ts = (UINT8_MAX - timer->tima) *
+			     m_cycles[timer->tac & TAC_MASK_CLKSEL];
+
+	struct agoge_sched_ev ev_tima_ovf_stage1 = {
+		.group = AGOGE_SCHED_EVENT_GROUP_TIMER,
+		.ts = ts,
+		.cb = &tima_ovf_stage1,
+		.udata = timer
 	};
-	agoge_sched_event_add(timer->sched, &ev);
+
+	struct agoge_sched_ev ev_tima_ovf_stage2 = {
+		.group = AGOGE_SCHED_EVENT_GROUP_TIMER,
+		.ts = ts + 4,
+		.cb = &tima_ovf_stage2,
+		.udata = timer
+	};
+
+	timer->ev_tima_ovf_stage1 =
+		agoge_sched_ev_add(timer->sched, &ev_tima_ovf_stage1);
+
+	timer->ev_tima_ovf_stage2 =
+		agoge_sched_ev_add(timer->sched, &ev_tima_ovf_stage2);
+}
+
+NONNULL void agoge_timer_write_tima(struct agoge_timer *const timer,
+				    const uint8_t tima)
+{
+	timer->tima = tima;
+
+	if (timer->tac & TAC_BIT_ENABLE) {
+		agoge_sched_ev_del(timer->sched, timer->ev_tima_ovf_stage1);
+		agoge_sched_ev_del(timer->sched, timer->ev_tima_ovf_stage2);
+
+		tima_ovf_ev_add(timer);
+	}
+}
+
+NONNULL void agoge_timer_write_tac(struct agoge_timer *const timer,
+				   const uint8_t tac)
+{
+	if (likely(!(timer->tac & TAC_BIT_ENABLE)) && (tac & TAC_BIT_ENABLE)) {
+		tima_inc_ev_add(timer, tac);
+		tima_ovf_ev_add(timer);
+		timer->tac = tac;
+	}
 }

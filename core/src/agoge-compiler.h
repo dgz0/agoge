@@ -49,5 +49,8 @@
 /// optimization level.
 #define ALWAYS_INLINE inline __attribute__((always_inline))
 
+/// This branch is likely to be executed.
+#define likely(x) __builtin_expect(!!(x), 1)
+
 /// This branch is unlikely to be executed.
 #define unlikely(x) __builtin_expect(!!(x), 0)
