@@ -558,12 +558,7 @@ NONNULL static void alu_bit(struct agoge_cpu *const cpu, const unsigned int bit,
 {
 	cpu->reg.f &= ~CPU_SUBTRACT_FLAG;
 	cpu->reg.f |= CPU_HALF_CARRY_FLAG;
-
-	if (!(val & (UINT8_C(1) << bit))) {
-		cpu->reg.f |= CPU_ZERO_FLAG;
-	} else {
-		cpu->reg.f &= ~CPU_ZERO_FLAG;
-	}
+	zero_flag_set(cpu, val & (UINT8_C(1) << bit));
 }
 
 /// Implements the `RST n` instruction.
