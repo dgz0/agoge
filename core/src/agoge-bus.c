@@ -29,11 +29,8 @@
 #include "agoge-sched.h"
 #include "agoge-timer.h"
 
-NONNULL NODISCARD uint8_t agoge_bus_read(struct agoge_bus *const bus,
-					 const uint16_t address)
+NONNULL NODISCARD uint8_t agoge_bus_get(const struct agoge_bus *const bus, const uint16_t address)
 {
-	agoge_sched_step(bus->sched);
-
 	switch (address) {
 	case 0x0000 ... 0x7FFF:
 		return agoge_cart_read(bus->cart, address);
@@ -61,6 +58,13 @@ NONNULL NODISCARD uint8_t agoge_bus_read(struct agoge_bus *const bus,
 			 address);
 		return 0xFF;
 	}
+}
+
+NONNULL NODISCARD uint8_t agoge_bus_read(struct agoge_bus *const bus,
+					 const uint16_t address)
+{
+	agoge_sched_step(bus->sched);
+	return agoge_bus_get(bus, address);
 }
 
 NONNULL void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
@@ -98,6 +102,10 @@ NONNULL void agoge_bus_write(struct agoge_bus *bus, const uint16_t address,
 
 	case 0xFF07:
 		agoge_timer_write_tac(&bus->timer, data);
+		break;
+
+	case 0xFF0F:
+		bus->intr_flag = data;
 		break;
 
 	default:

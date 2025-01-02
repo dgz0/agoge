@@ -38,6 +38,7 @@ struct agoge_timer {
 
 	size_t ev_tima_ovf_stage1;
 	size_t ev_tima_ovf_stage2;
+	size_t ev_tima_inc;
 };
 
 #ifdef __cplusplus

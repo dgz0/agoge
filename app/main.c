@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include "../core/src/agoge-log.h"
 #include "agoge/disasm.h"
 #include "agoge/log.h"
 #include <assert.h>
@@ -114,9 +115,12 @@ int main(int argc, char *argv[])
 	load_cart(&ctx, argv[0], argv[1]);
 
 	for (;;) {
+		const uintmax_t n = ctx.sched.curr_ts;
 		agoge_disasm_trace_before(&ctx.disasm);
 		agoge_ctx_step(&ctx);
 		agoge_disasm_trace_after(&ctx.disasm);
+		const uintmax_t a = ctx.sched.curr_ts;
+		printf("instr took %d\n", a - n);
 	}
 	return EXIT_SUCCESS;
 }

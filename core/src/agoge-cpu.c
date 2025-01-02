@@ -39,6 +39,7 @@
 #include "agoge-cpu.h"
 #include "agoge-cpu-defs.h"
 #include "agoge-log.h"
+#include "agoge-sched.h"
 
 /// Sets a bit in the Flag register (F) if a given condition is `true`, or
 /// clears a bit in the Flag register (F) is a given condition is `false`.
@@ -176,6 +177,7 @@ NONNULL static void jr_if(struct agoge_cpu *const cpu, const bool condition)
 	const int8_t offset = (int8_t)read_u8(cpu);
 
 	if (condition) {
+		agoge_sched_step(cpu->bus->sched);
 		cpu->reg.pc += offset;
 	}
 }

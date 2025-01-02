@@ -46,6 +46,8 @@ struct agoge_bus {
 	uint8_t intr_flag;
 };
 
+uint8_t agoge_bus_get(const struct agoge_bus *bus, uint16_t address);
+
 #ifdef __cplusplus
 }
 #endif // __cplusplus

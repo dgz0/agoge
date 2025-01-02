@@ -779,7 +779,7 @@ static const char *get_mem_name(const uint16_t address)
 static uint8_t read_u8(struct agoge_disasm *const disasm, const uint16_t pc)
 {
 	assert(disasm != NULL);
-	return agoge_bus_read(disasm->cpu->bus, pc);
+	return agoge_bus_get(disasm->cpu->bus, pc);
 }
 
 static uint16_t read_u16(struct agoge_disasm *const disasm, const uint16_t pc)
@@ -934,13 +934,13 @@ void agoge_disasm_trace_before(struct agoge_disasm *const disasm)
 
 	disasm->state.pc = disasm->cpu->reg.pc;
 
-	uint8_t instr = agoge_bus_read(disasm->cpu->bus, disasm->cpu->reg.pc);
+	uint8_t instr = agoge_bus_get(disasm->cpu->bus, disasm->cpu->reg.pc);
 
 	const struct disasm_entry *entry;
 
 	if (instr == CPU_OP_PREFIX_CB) {
 		return;
-		instr = agoge_bus_read(disasm->cpu->bus,
+		instr = agoge_bus_get(disasm->cpu->bus,
 				       disasm->cpu->reg.pc + 1);
 		entry = &cb_tbl[instr];
 	} else {

@@ -34,10 +34,10 @@
 
 #define IF_TIMER (UINT8_C(1) << 2)
 
-static const unsigned int m_cycles[] = { [TAC_CLKSEL_M_CYCLE_256] = 256,
-					 [TAC_CLKSEL_M_CYCLE_4] = 4,
-					 [TAC_CLKSEL_M_CYCLE_16] = 16,
-					 [TAC_CLKSEL_M_CYCLE_64] = 64 };
+static const unsigned int m_cycles[] = { [TAC_CLKSEL_M_CYCLE_256] = 1024,
+					 [TAC_CLKSEL_M_CYCLE_4] = 16,
+					 [TAC_CLKSEL_M_CYCLE_16] = 64,
+					 [TAC_CLKSEL_M_CYCLE_64] = 256 };
 
 NONNULL static void tima_inc(void *const udata)
 {
