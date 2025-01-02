@@ -610,17 +610,6 @@ NONNULL NODISCARD static uint8_t alu_sra(struct agoge_cpu *const cpu,
 	return val;
 }
 
-/// Implements the `RES b, n` instruction.
-///
-/// @param bit The bit to clear.
-/// @param val The value to clear the bit on.
-/// @returns The modified value.
-NONNULL NODISCARD static uint8_t alu_res(const unsigned int bit,
-					 const uint8_t val)
-{
-	return val & ~(UINT8_C(1) << bit);
-}
-
 /// Resets the CPU interpreter to the state immediately following boot ROM
 /// execution.
 ///
