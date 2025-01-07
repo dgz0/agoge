@@ -22,17 +22,19 @@
 
 /// @file agoge-cpu.c Defines the implementation of the CPU interpreter.
 ///
-/// The interpreter is implemented as a simple fetch-decode-execute scheme
-/// without many tricks behind it.
+/// The interpreter is implemented as a simple fetch-decode-execute scheme.
 ///
-/// For the sake of speed and to better exploit compiler optimizations, the
-/// interpreter handles instruction execution with two `switch` statements; one
-/// for non-CB prefixed instructions, and one for CB-prefixed instructions. Each
-/// `case` label is the direct opcode value corresponding to a specific
-/// instruction.
+/// For the sake of speed and to better exploit the compiler's optimization
+/// capabilities, the interpreter implements each and every specific opcode as a
+/// case label. This has the disadvantage of decreasing maintainability, as
+/// there are now 501 cases to handle, and increasing code size, but the
+/// compiler generally turns this scheme into a jump table for us. At this time,
+/// there is no evidence that the computed goto extension could do much better,
+/// but it's something worth investigating in the future.
 ///
-/// The tradeoff of this approach: there are 501 valid instructions, so there
-/// are 501 cases to handle.
+/// A code size and maintainability friendly implementation would deduce which
+/// functions to call based on certain bits of the opcode, but this comes at the
+/// cost of reduced speed. However, it may be necessary on constrained targets.
 
 #include "agoge-bus.h"
 #include "agoge-compiler.h"
@@ -100,7 +102,7 @@ NONNULL static void half_carry_flag_set(struct agoge_cpu *const cpu,
 NONNULL NODISCARD static uint8_t alu_inc(struct agoge_cpu *const cpu,
 					 uint8_t val)
 {
-	cpu->reg.f &= ~CPU_SUBTRACT_FLAG;
+	cpu->reg.f &= (uint8_t)~CPU_SUBTRACT_FLAG;
 	half_carry_flag_set(cpu, (val & 0x0F) == 0x0F);
 	zero_flag_set(cpu, ++val);
 
@@ -151,8 +153,8 @@ NONNULL NODISCARD static uint16_t read_u16(struct agoge_cpu *const cpu)
 /// @param val The value to push to the stack.
 NONNULL static void stack_push(struct agoge_cpu *const cpu, const uint16_t val)
 {
-	agoge_bus_write(cpu->bus, --cpu->reg.sp, val >> 8);
-	agoge_bus_write(cpu->bus, --cpu->reg.sp, val & 0x00FF);
+	agoge_bus_write(cpu->bus, --cpu->reg.sp, (uint8_t)(val >> 8));
+	agoge_bus_write(cpu->bus, --cpu->reg.sp, (uint8_t)(val & 0x00FF));
 }
 
 /// Pops two bytes from the stack, forming a 16-bit value.
@@ -178,7 +180,7 @@ NONNULL static void jr_if(struct agoge_cpu *const cpu, const bool condition)
 
 	if (condition) {
 		agoge_sched_step(cpu->bus->sched);
-		cpu->reg.pc += offset;
+		cpu->reg.pc += (uint16_t)offset;
 	}
 }
 
@@ -199,6 +201,9 @@ NONNULL static void ret_if(struct agoge_cpu *const cpu, const bool condition)
 /// @param cpu The current CPU instance.
 /// @param condition `true` if the condition to call a subroutine was met,
 /// or `false` otherwise.
+///
+/// @note This cannot be used for the `CALL u16` instruction, since the
+/// appropriate number of cycles taken by the instruction will not be counted.
 NONNULL static void call_if(struct agoge_cpu *const cpu, const bool condition)
 {
 	const uint16_t address = read_u16(cpu);
@@ -231,8 +236,8 @@ NONNULL static void jp_if(struct agoge_cpu *const cpu, const bool condition)
 NONNULL NODISCARD static uint8_t alu_swap(struct agoge_cpu *const cpu,
 					  uint8_t val)
 {
-	val = ((val & 0x0F) << 4) | (val >> 4);
-	cpu->reg.f = (!val) ? CPU_ZERO_FLAG : 0x00;
+	val = (uint8_t)((val & 0x0F) << 4) | (val >> 4);
+	cpu->reg.f = !val ? CPU_ZERO_FLAG : 0x00;
 
 	return val;
 }
@@ -245,7 +250,7 @@ NONNULL NODISCARD static uint8_t alu_swap(struct agoge_cpu *const cpu,
 NONNULL NODISCARD static uint8_t alu_srl(struct agoge_cpu *const cpu,
 					 uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 	const bool carry = val & 1;
 
 	val >>= 1;
@@ -267,12 +272,12 @@ NONNULL NODISCARD static uint8_t alu_srl(struct agoge_cpu *const cpu,
 NONNULL NODISCARD static uint8_t alu_rl_helper(struct agoge_cpu *const cpu,
 					       uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 	const bool carry = cpu->reg.f & CPU_CARRY_FLAG;
 
 	carry_flag_set(cpu, val & (UINT8_C(1) << 7));
 
-	val = (val << 1) | carry;
+	val = (uint8_t)((val << 1) | carry);
 	return val;
 }
 
@@ -301,7 +306,7 @@ NONNULL NODISCARD static uint8_t alu_rl(struct agoge_cpu *const cpu,
 NONNULL NODISCARD static uint8_t alu_rr_helper(struct agoge_cpu *const cpu,
 					       uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 
 	const bool old_carry = val & 1;
 	const bool carry = cpu->reg.f & CPU_CARRY_FLAG;
@@ -337,10 +342,10 @@ NONNULL NODISCARD static uint8_t alu_rr(struct agoge_cpu *const cpu,
 NONNULL NODISCARD static uint8_t alu_rlc_helper(struct agoge_cpu *const cpu,
 						uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 	carry_flag_set(cpu, val & (UINT8_C(1) << 7));
 
-	val = (val << 1) | (val >> 7);
+	val = (uint8_t)((val << 1) | (val >> 7));
 	return val;
 }
 
@@ -369,10 +374,10 @@ NONNULL NODISCARD static uint8_t alu_rlc(struct agoge_cpu *const cpu,
 NONNULL NODISCARD static uint8_t alu_rrc_helper(struct agoge_cpu *const cpu,
 						uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 	carry_flag_set(cpu, val & 1);
 
-	val = (val >> 1) | (val << 7);
+	val = (uint8_t)((val >> 1) | (val << 7));
 	return val;
 }
 
@@ -396,7 +401,7 @@ NONNULL NODISCARD static uint8_t alu_rrc(struct agoge_cpu *const cpu,
 /// @returns The sum of the Accumulator (register A) and the stack pointer.
 NONNULL NODISCARD static uint16_t alu_add_sp(struct agoge_cpu *const cpu)
 {
-	cpu->reg.f &= ~(CPU_ZERO_FLAG | CPU_SUBTRACT_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_ZERO_FLAG | CPU_SUBTRACT_FLAG);
 	const int8_t s8 = (int8_t)read_u8(cpu);
 
 	const int sum = cpu->reg.sp + s8;
@@ -417,7 +422,7 @@ NONNULL static void alu_add_helper(struct agoge_cpu *const cpu,
 				   const uint8_t addend,
 				   const unsigned int carry)
 {
-	cpu->reg.f &= ~CPU_SUBTRACT_FLAG;
+	cpu->reg.f &= (uint8_t)~CPU_SUBTRACT_FLAG;
 
 	const unsigned int result = cpu->reg.a + addend + carry;
 	const uint8_t sum = (uint8_t)result;
@@ -455,7 +460,7 @@ NONNULL static void alu_adc(struct agoge_cpu *const cpu, const uint8_t addend)
 NONNULL static void alu_add_hl(struct agoge_cpu *const cpu,
 			       const uint16_t addend)
 {
-	cpu->reg.f &= ~CPU_SUBTRACT_FLAG;
+	cpu->reg.f &= (uint8_t)~CPU_SUBTRACT_FLAG;
 
 	const unsigned int sum = cpu->reg.hl + addend;
 
@@ -558,7 +563,7 @@ NONNULL static void alu_or(struct agoge_cpu *const cpu, const uint8_t val)
 NONNULL static void alu_bit(struct agoge_cpu *const cpu, const unsigned int bit,
 			    const uint8_t val)
 {
-	cpu->reg.f &= ~CPU_SUBTRACT_FLAG;
+	cpu->reg.f &= (uint8_t)~CPU_SUBTRACT_FLAG;
 	cpu->reg.f |= CPU_HALF_CARRY_FLAG;
 	zero_flag_set(cpu, val & (UINT8_C(1) << bit));
 }
@@ -581,10 +586,10 @@ NONNULL static void rst(struct agoge_cpu *const cpu, const uint16_t vec)
 NONNULL NODISCARD static uint8_t alu_sla(struct agoge_cpu *const cpu,
 					 uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 
 	carry_flag_set(cpu, val & (UINT8_C(1) << 7));
-	val <<= 1;
+	val = (uint8_t)(val << 1);
 	zero_flag_set(cpu, val);
 
 	return val;
@@ -598,7 +603,7 @@ NONNULL NODISCARD static uint8_t alu_sla(struct agoge_cpu *const cpu,
 NONNULL NODISCARD static uint8_t alu_sra(struct agoge_cpu *const cpu,
 					 uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+	cpu->reg.f &= (uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 	carry_flag_set(cpu, val & 1);
 
 	val = (val >> 1) | (val & (UINT8_C(1) << 7));
@@ -655,16 +660,17 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 
 	case CPU_OP_RLCA:
 		cpu->reg.a = alu_rlc_helper(cpu, cpu->reg.a);
-		cpu->reg.f &= ~CPU_ZERO_FLAG;
+		cpu->reg.f &= (uint8_t)~CPU_ZERO_FLAG;
 
 		return;
 
 	case CPU_OP_LD_MEM_U16_SP: {
 		const uint16_t u16 = read_u16(cpu);
 
-		agoge_bus_write(cpu->bus, u16 + 0, cpu->reg.sp & 0x00FF);
-		agoge_bus_write(cpu->bus, u16 + 1, cpu->reg.sp >> 8);
+		agoge_bus_write(cpu->bus, u16 + 0,
+				(uint8_t)(cpu->reg.sp & 0x00FF));
 
+		agoge_bus_write(cpu->bus, u16 + 1, (uint8_t)(cpu->reg.sp >> 8));
 		return;
 	}
 
@@ -694,7 +700,7 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 
 	case CPU_OP_RRCA:
 		cpu->reg.a = alu_rrc_helper(cpu, cpu->reg.a);
-		cpu->reg.f &= ~CPU_ZERO_FLAG;
+		cpu->reg.f &= (uint8_t)~CPU_ZERO_FLAG;
 
 		return;
 
@@ -724,7 +730,7 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 
 	case CPU_OP_RLA:
 		cpu->reg.a = alu_rl_helper(cpu, cpu->reg.a);
-		cpu->reg.f &= ~CPU_ZERO_FLAG;
+		cpu->reg.f &= (uint8_t)~CPU_ZERO_FLAG;
 
 		return;
 
@@ -758,7 +764,7 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 
 	case CPU_OP_RRA:
 		cpu->reg.a = alu_rr_helper(cpu, cpu->reg.a);
-		cpu->reg.f &= ~CPU_ZERO_FLAG;
+		cpu->reg.f &= (uint8_t)~CPU_ZERO_FLAG;
 
 		return;
 
@@ -815,7 +821,7 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 		}
 		zero_flag_set(cpu, cpu->reg.a);
 		carry_flag_set(cpu, correction & 0x60);
-		cpu->reg.f &= ~CPU_HALF_CARRY_FLAG;
+		cpu->reg.f &= (uint8_t)~CPU_HALF_CARRY_FLAG;
 
 		return;
 	}
@@ -894,7 +900,8 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 	}
 
 	case CPU_OP_SCF:
-		cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+		cpu->reg.f &=
+			(uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 		cpu->reg.f |= CPU_CARRY_FLAG;
 
 		return;
@@ -928,7 +935,8 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 		return;
 
 	case CPU_OP_CCF:
-		cpu->reg.f &= ~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
+		cpu->reg.f &=
+			(uint8_t)~(CPU_SUBTRACT_FLAG | CPU_HALF_CARRY_FLAG);
 		cpu->reg.f ^= CPU_CARRY_FLAG;
 
 		return;
@@ -2093,291 +2101,291 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 			return;
 
 		case CPU_OP_RES_0_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 0);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 0);
 			return;
 
 		case CPU_OP_RES_0_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 0);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 0);
 			return;
 
 		case CPU_OP_RES_0_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 0);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 0);
 			return;
 
 		case CPU_OP_RES_0_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 0);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 0);
 			return;
 
 		case CPU_OP_RES_0_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 0);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 0);
 			return;
 
 		case CPU_OP_RES_0_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 0);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 0);
 			return;
 
 		case CPU_OP_RES_0_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 0);
+			data &= (uint8_t)~(UINT8_C(1) << 0);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_0_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 0);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 0);
 			return;
 
 		case CPU_OP_RES_1_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 1);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 1);
 			return;
 
 		case CPU_OP_RES_1_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 1);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 1);
 			return;
 
 		case CPU_OP_RES_1_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 1);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 1);
 			return;
 
 		case CPU_OP_RES_1_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 1);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 1);
 			return;
 
 		case CPU_OP_RES_1_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 1);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 1);
 			return;
 
 		case CPU_OP_RES_1_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 1);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 1);
 			return;
 
 		case CPU_OP_RES_1_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 1);
+			data &= (uint8_t)~(UINT8_C(1) << 1);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_1_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 1);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 1);
 			return;
 
 		case CPU_OP_RES_2_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 2);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 2);
 			return;
 
 		case CPU_OP_RES_2_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 2);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 2);
 			return;
 
 		case CPU_OP_RES_2_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 2);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 2);
 			return;
 
 		case CPU_OP_RES_2_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 2);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 2);
 			return;
 
 		case CPU_OP_RES_2_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 2);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 2);
 			return;
 
 		case CPU_OP_RES_2_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 2);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 2);
 			return;
 
 		case CPU_OP_RES_2_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 2);
+			data &= (uint8_t)~(UINT8_C(1) << 2);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_2_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 2);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 2);
 			return;
 
 		case CPU_OP_RES_3_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 3);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 3);
 			return;
 
 		case CPU_OP_RES_3_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 3);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 3);
 			return;
 
 		case CPU_OP_RES_3_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 3);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 3);
 			return;
 
 		case CPU_OP_RES_3_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 3);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 3);
 			return;
 
 		case CPU_OP_RES_3_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 3);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 3);
 			return;
 
 		case CPU_OP_RES_3_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 3);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 3);
 			return;
 
 		case CPU_OP_RES_3_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 3);
+			data &= (uint8_t)~(UINT8_C(1) << 3);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_3_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 3);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 3);
 			return;
 
 		case CPU_OP_RES_4_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 4);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 4);
 			return;
 
 		case CPU_OP_RES_4_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 4);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 4);
 			return;
 
 		case CPU_OP_RES_4_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 4);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 4);
 			return;
 
 		case CPU_OP_RES_4_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 4);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 4);
 			return;
 
 		case CPU_OP_RES_4_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 4);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 4);
 			return;
 
 		case CPU_OP_RES_4_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 4);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 4);
 			return;
 
 		case CPU_OP_RES_4_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 4);
+			data &= (uint8_t)~(UINT8_C(1) << 4);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_4_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 4);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 4);
 			return;
 
 		case CPU_OP_RES_5_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 5);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 5);
 			return;
 
 		case CPU_OP_RES_5_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 5);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 5);
 			return;
 
 		case CPU_OP_RES_5_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 5);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 5);
 			return;
 
 		case CPU_OP_RES_5_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 5);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 5);
 			return;
 
 		case CPU_OP_RES_5_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 5);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 5);
 			return;
 
 		case CPU_OP_RES_5_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 5);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 5);
 			return;
 
 		case CPU_OP_RES_5_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 5);
+			data &= (uint8_t)~(UINT8_C(1) << 5);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_5_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 5);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 5);
 			return;
 
 		case CPU_OP_RES_6_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 6);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 6);
 			return;
 
 		case CPU_OP_RES_6_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 6);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 6);
 			return;
 
 		case CPU_OP_RES_6_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 6);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 6);
 			return;
 
 		case CPU_OP_RES_6_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 6);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 6);
 			return;
 
 		case CPU_OP_RES_6_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 6);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 6);
 			return;
 
 		case CPU_OP_RES_6_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 6);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 6);
 			return;
 
 		case CPU_OP_RES_6_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 6);
+			data &= (uint8_t)~(UINT8_C(1) << 6);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_6_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 6);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 6);
 			return;
 
 		case CPU_OP_RES_7_B:
-			cpu->reg.b &= ~(UINT8_C(1) << 7);
+			cpu->reg.b &= (uint8_t)~(UINT8_C(1) << 7);
 			return;
 
 		case CPU_OP_RES_7_C:
-			cpu->reg.c &= ~(UINT8_C(1) << 7);
+			cpu->reg.c &= (uint8_t)~(UINT8_C(1) << 7);
 			return;
 
 		case CPU_OP_RES_7_D:
-			cpu->reg.d &= ~(UINT8_C(1) << 7);
+			cpu->reg.d &= (uint8_t)~(UINT8_C(1) << 7);
 			return;
 
 		case CPU_OP_RES_7_E:
-			cpu->reg.e &= ~(UINT8_C(1) << 7);
+			cpu->reg.e &= (uint8_t)~(UINT8_C(1) << 7);
 			return;
 
 		case CPU_OP_RES_7_H:
-			cpu->reg.h &= ~(UINT8_C(1) << 7);
+			cpu->reg.h &= (uint8_t)~(UINT8_C(1) << 7);
 			return;
 
 		case CPU_OP_RES_7_L:
-			cpu->reg.l &= ~(UINT8_C(1) << 7);
+			cpu->reg.l &= (uint8_t)~(UINT8_C(1) << 7);
 			return;
 
 		case CPU_OP_RES_7_MEM_HL: {
 			uint8_t data = agoge_bus_read(cpu->bus, cpu->reg.hl);
-			data &= ~(UINT8_C(1) << 7);
+			data &= (uint8_t)~(UINT8_C(1) << 7);
 			agoge_bus_write(cpu->bus, cpu->reg.hl, data);
 
 			return;
 		}
 
 		case CPU_OP_RES_7_A:
-			cpu->reg.a &= ~(UINT8_C(1) << 7);
+			cpu->reg.a &= (uint8_t)~(UINT8_C(1) << 7);
 			return;
 
 		case CPU_OP_SET_0_B:
@@ -2814,7 +2822,7 @@ NONNULL void agoge_cpu_step(struct agoge_cpu *const cpu)
 	}
 
 	case CPU_OP_POP_AF:
-		cpu->reg.af = stack_pop(cpu) & ~0x0F;
+		cpu->reg.af = (uint16_t)(stack_pop(cpu) & ~0x0F);
 		return;
 
 	case CPU_OP_LD_A_MEM_FF00_C:
