@@ -20,30 +20,45 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
 #include <stdint.h>
-#include "agogecore/log.h"
+#include "log.h"
 
-void agoge_core_log_handle(struct agoge_core_log *log,
-			   enum agoge_core_log_lvl lvl,
-			   enum agoge_core_log_ch ch, const char *fmt, ...);
+/// The minimum size of a valid cartridge in bytes (32 KiB).
+#define AGOGE_CORE_CART_SIZE_MIN (32768)
 
-#define LOG_CHANNEL(x) static const enum agoge_core_log_ch __LOG_CHANNEL__ = (x)
+/// The maximum size of a valid cartridge in bytes (8 MiB).
+#define AGOGE_CORE_CART_SIZE_MAX (8388608)
 
-#define LOG_HANDLE(log, ch, level, args...)                                     \
-	({                                                                      \
-		struct agoge_core_log *const m_log = (log);                     \
-                                                                                \
-		if ((m_log->cb) && ((m_log->curr_lvl) >= (level)) &&            \
-		    ((m_log->ch_enabled & (UINT32_C(1) << __LOG_CHANNEL__)))) { \
-			agoge_core_log_handle(m_log, (level), ch, args);        \
-		}                                                               \
-	})
+struct agoge_core_cart {
+	/// Pointer to the current cartridge data. This must remain valid at
+	/// all times if a cartridge is "inserted".
+	uint8_t *data;
+	struct agoge_core_log *log;
 
-#define LOG_INFO(log, args...) \
-	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_INFO, args)
+	uint8_t (*banked_read_cb)(struct agoge_core_cart *cart, uint16_t addr);
+	unsigned int rom_bank;
+};
 
-#define LOG_WARN(log, args...) \
-	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_WARN, args)
+enum agoge_core_cart_retval {
+	AGOGE_CORE_CART_RETVAL_UNSUPPORTED_MBC,
+	AGOGE_CORE_CART_RETVAL_INVALID_CHECKSUM,
+	AGOGE_CORE_CART_RETVAL_BAD_SIZE,
+	AGOGE_CORE_CART_RETVAL_OK
+};
 
-#define LOG_ERR(log, args...) \
-	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_ERR, args)
+enum agoge_core_cart_mbc_type {
+	AGOGE_CORE_CART_MBC_ROM_ONLY = 0x00,
+	AGOGE_CORE_CART_MBC_MBC1 = 0x01,
+};
+
+enum agoge_core_cart_retval agoge_core_cart_set(struct agoge_core_cart *cart,
+						uint8_t *data,
+						size_t data_size);
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

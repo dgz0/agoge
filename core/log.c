@@ -47,6 +47,7 @@ __attribute__((format(printf, 4, 5))) void agoge_core_log_handle(
 		[AGOGE_CORE_LOG_CH_CTX] = STR_DEFINE("[ctx] "),
 		[AGOGE_CORE_LOG_CH_BUS] = STR_DEFINE("[bus] "),
 		[AGOGE_CORE_LOG_CH_CPU] = STR_DEFINE("[cpu] "),
+		[AGOGE_CORE_LOG_CH_CART] = STR_DEFINE("[cart] ")
 	};
 
 #undef STR_DEFINE

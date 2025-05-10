@@ -22,12 +22,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #include "agogecore/ctx.h"
 
+#define RED "\e[1;91m"
 #define YEL "\e[1;93m"
 #define WHT "\e[1;97m"
 #define RESET "\x1B[0m"
+
+static size_t rom_size;
+static uint8_t rom[AGOGE_CORE_CART_SIZE_MAX];
+static struct agoge_core_ctx ctx;
 
 static void log_cb(void *const udata,
 		   const struct agoge_core_log_msg *const msg)
@@ -41,24 +48,79 @@ static void log_cb(void *const udata,
 		printf(YEL "%s\n" RESET, msg->msg);
 		return;
 
+	case AGOGE_CORE_LOG_LVL_ERR:
+		printf(RED "%s\n" RESET, msg->msg);
+		return;
+
 	default:
 		__builtin_unreachable();
 	}
 }
 
-int main(void)
+static bool open_rom(const char *const rom_file)
 {
-	struct agoge_core_ctx ctx;
-	memset(&ctx, 0, sizeof(ctx));
+	struct stat st;
 
+	if (stat(rom_file, &st) < 0) {
+		fprintf(stderr, "Unable to get file size of ROM %s: %s\n",
+			rom_file, strerror(errno));
+		return false;
+	}
+
+	FILE *rom_file_handle = fopen(rom_file, "rb");
+
+	if (rom_file_handle == NULL) {
+		fprintf(stderr, "Unable to open ROM %s: %s\n", rom_file,
+			strerror(errno));
+		return false;
+	}
+
+	rom_size = fread(rom, 1, st.st_size, rom_file_handle);
+
+	if ((rom_size != (size_t)st.st_size) || (ferror(rom_file_handle))) {
+		fprintf(stderr, "Error reading ROM %s: %s\n", rom_file,
+			strerror(errno));
+		fclose(rom_file_handle);
+
+		return false;
+	}
+
+	fclose(rom_file_handle);
+	return true;
+}
+
+static void setup_ctx(void)
+{
 	ctx.log.cb = &log_cb;
-	ctx.log.curr_lvl = AGOGE_CORE_LOG_LVL_WARN;
+	ctx.log.curr_lvl = AGOGE_CORE_LOG_LVL_TRACE;
 
 	ctx.log.ch_enabled |= AGOGE_CORE_LOG_CH_CTX_BIT |
-			      AGOGE_CORE_LOG_CH_BUS_BIT;
+			      AGOGE_CORE_LOG_CH_BUS_BIT |
+			      AGOGE_CORE_LOG_CH_CART_BIT;
 
 	agoge_core_ctx_init(&ctx);
+}
 
-	agoge_core_bus_peek(&ctx.bus, 0xFFFF);
+int main(int argc, char *argv[])
+{
+	if (argc < 2) {
+		fprintf(stderr, "%s: Missing required argument.\n", argv[0]);
+		fprintf(stderr, "Syntax: %s <rom_file>\n", argv[0]);
+
+		return EXIT_FAILURE;
+	}
+	setup_ctx();
+
+	if (!open_rom(argv[1])) {
+		return EXIT_FAILURE;
+	}
+
+	const enum agoge_core_cart_retval ret =
+		agoge_core_cart_set(&ctx.cart, rom, rom_size);
+
+	if (ret != AGOGE_CORE_CART_RETVAL_OK) {
+		fprintf(stderr, "agoge_core_cart_set error, see log\n");
+		return EXIT_FAILURE;
+	}
 	return EXIT_SUCCESS;
 }

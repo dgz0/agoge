@@ -29,6 +29,7 @@ extern "C" {
 #define AGOGE_CORE_LOG_CH_CTX_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_CTX)
 #define AGOGE_CORE_LOG_CH_BUS_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_BUS)
 #define AGOGE_CORE_LOG_CH_CPU_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_CPU)
+#define AGOGE_CORE_LOG_CH_CART_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_CART)
 
 enum agoge_core_log_lvl {
 	AGOGE_CORE_LOG_LVL_OFF = 0,
@@ -42,7 +43,8 @@ enum agoge_core_log_lvl {
 enum agoge_core_log_ch {
 	AGOGE_CORE_LOG_CH_CTX = 0,
 	AGOGE_CORE_LOG_CH_BUS = 1,
-	AGOGE_CORE_LOG_CH_CPU = 2
+	AGOGE_CORE_LOG_CH_CPU = 2,
+	AGOGE_CORE_LOG_CH_CART = 3
 };
 
 struct agoge_core_log_msg {

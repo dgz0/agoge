@@ -27,6 +27,7 @@ void agoge_core_bus_init(struct agoge_core_bus *const bus,
 			 struct agoge_core_log *const log)
 {
 	bus->log = log;
+	LOG_INFO(bus->log, "initialized");
 }
 
 uint8_t agoge_core_bus_peek(struct agoge_core_bus *const bus,
