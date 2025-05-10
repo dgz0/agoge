@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "agogecore/bus.h"
+#include "agogecore/cpu.h"
 
-void agoge_core_bus_init(struct agoge_core_bus *bus,
+void agoge_core_cpu_init(struct agoge_core_cpu *cpu, struct agoge_core_bus *bus,
 			 struct agoge_core_log *log);
 
-uint8_t agoge_core_bus_read(struct agoge_core_bus *bus, uint16_t addr);
+void agoge_core_cpu_run(struct agoge_core_cpu *cpu, unsigned int run_cycles);

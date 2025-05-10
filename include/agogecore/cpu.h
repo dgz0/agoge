@@ -20,9 +20,39 @@
 
 #pragma once
 
-#include "agogecore/bus.h"
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-void agoge_core_bus_init(struct agoge_core_bus *bus,
-			 struct agoge_core_log *log);
+#include "bus.h"
+#include "log.h"
 
-uint8_t agoge_core_bus_read(struct agoge_core_bus *bus, uint16_t addr);
+#define AGOGE_CORE_REG_PAIR_DEFINE(hi, lo, pair) \
+	struct {                                 \
+		union {                          \
+			struct {                 \
+				uint8_t lo;      \
+				uint8_t hi;      \
+			};                       \
+			uint16_t pair;           \
+		};                               \
+	}
+
+struct agoge_core_cpu {
+	struct {
+		AGOGE_CORE_REG_PAIR_DEFINE(b, c, bc);
+		AGOGE_CORE_REG_PAIR_DEFINE(d, e, de);
+		AGOGE_CORE_REG_PAIR_DEFINE(h, l, hl);
+		AGOGE_CORE_REG_PAIR_DEFINE(a, f, af);
+
+		uint16_t pc;
+		uint16_t sp;
+	} reg;
+
+	struct agoge_core_bus *bus;
+	struct agoge_core_log *log;
+};
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus

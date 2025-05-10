@@ -26,13 +26,16 @@
 extern "C" {
 #endif // __cplusplus
 
-#include <stdint.h>
+#include "cart.h"
 #include "log.h"
 
 /// Defines the system bus contents.
 struct agoge_core_bus {
 	/// Pointer to the agoge context's log instance.
 	struct agoge_core_log *log;
+
+	/// The cartridge instance to use for this context.
+	struct agoge_core_cart cart;
 };
 
 /// @brief Retrieves a byte from an emulated memory address without interfering

@@ -18,11 +18,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include "comp.h"
+#include "cpu.h"
+#include "bus.h"
+#include "log.h"
 
-#include "agogecore/bus.h"
+LOG_CHANNEL(AGOGE_CORE_LOG_CH_CPU);
 
-void agoge_core_bus_init(struct agoge_core_bus *bus,
-			 struct agoge_core_log *log);
+NODISCARD static uint8_t read_u8(struct agoge_core_cpu *const cpu)
+{
+	return agoge_core_bus_read(cpu->bus, cpu->reg.pc++);
+}
 
-uint8_t agoge_core_bus_read(struct agoge_core_bus *bus, uint16_t addr);
+void agoge_core_cpu_init(struct agoge_core_cpu *const cpu,
+			 struct agoge_core_bus *const bus,
+			 struct agoge_core_log *const log)
+{
+	cpu->bus = bus;
+	cpu->log = log;
+
+	LOG_INFO(cpu->log, "initialized");
+}
+
+void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
+			const unsigned int run_cycles)
+{
+#define DISPATCH()                            \
+	({                                    \
+		if (unlikely(steps-- == 0)) { \
+			return;               \
+		}                             \
+		instr = read_u8(cpu);         \
+		goto *op_tbl[instr];          \
+	})
+
+	static const void *op_tbl[] = { [0x00] = &&op_nop };
+
+	uint8_t instr;
+	unsigned int steps = run_cycles;
+
+	DISPATCH();
+
+op_nop:
+	DISPATCH();
+}

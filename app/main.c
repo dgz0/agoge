@@ -116,11 +116,15 @@ int main(int argc, char *argv[])
 	}
 
 	const enum agoge_core_cart_retval ret =
-		agoge_core_cart_set(&ctx.cart, rom, rom_size);
+		agoge_core_cart_set(&ctx.bus.cart, rom, rom_size);
 
 	if (ret != AGOGE_CORE_CART_RETVAL_OK) {
 		fprintf(stderr, "agoge_core_cart_set error, see log\n");
 		return EXIT_FAILURE;
+	}
+
+	for (;;) {
+		agoge_core_ctx_step(&ctx, 1);
 	}
 	return EXIT_SUCCESS;
 }

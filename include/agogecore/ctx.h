@@ -26,7 +26,7 @@
 extern "C" {
 #endif // __cplusplus
 
-#include "cart.h"
+#include "cpu.h"
 #include "bus.h"
 #include "log.h"
 
@@ -42,8 +42,8 @@ struct agoge_core_ctx {
 	/// The logger instance to use for this context.
 	struct agoge_core_log log;
 
-	/// The cartridge instance to use for this context.
-	struct agoge_core_cart cart;
+	/// The CPU instance to use for this context.
+	struct agoge_core_cpu cpu;
 };
 
 /// @brief Initializes an agoge emulator context.
@@ -53,6 +53,8 @@ struct agoge_core_ctx {
 ///
 /// @param ctx The context to initialize.
 void agoge_core_ctx_init(struct agoge_core_ctx *ctx);
+
+void agoge_core_ctx_step(struct agoge_core_ctx *ctx, unsigned int num_cycles);
 
 #ifdef __cplusplus
 }
