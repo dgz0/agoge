@@ -18,10 +18,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(SRCS ctx.c)
+set(SRCS ctx.c log.c)
+set(HDRS log.h)
 
 set(HDRS_PUBLIC
-	${PROJECT_SOURCE_DIR}/include/agogecore/ctx.h
+        ${PROJECT_SOURCE_DIR}/include/agogecore/ctx.h
+        ${PROJECT_SOURCE_DIR}/include/agogecore/log.h
 )
 
 add_library(agogecore STATIC ${SRCS} ${HDRS} ${HDRS_PUBLIC})
@@ -29,5 +31,5 @@ add_library(agogecore STATIC ${SRCS} ${HDRS} ${HDRS_PUBLIC})
 target_link_libraries(agogecore PRIVATE agoge_base_c)
 
 target_include_directories(
-	agogecore PUBLIC ${PROJECT_SOURCE_DIR}/include
+        agogecore PUBLIC ${PROJECT_SOURCE_DIR}/include
 )

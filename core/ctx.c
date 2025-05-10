@@ -19,3 +19,11 @@
 // SOFTWARE.
 
 #include "agogecore/ctx.h"
+#include "log.h"
+
+LOG_CHANNEL(AGOGE_CORE_LOG_CH_CTX);
+
+void agoge_core_ctx_init(struct agoge_core_ctx *const ctx)
+{
+	LOG_INFO(&ctx->log, "agoge context initialized");
+}

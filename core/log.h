@@ -20,18 +20,27 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
+#include <stdint.h>
+#include "agogecore/log.h"
 
-#include "log.h"
+void agoge_core_log_handle(struct agoge_core_log *log,
+			   enum agoge_core_log_lvl lvl,
+			   enum agoge_core_log_ch ch, const char *fmt, ...);
 
-struct agoge_core_ctx {
-	struct agoge_core_log log;
-};
+#define LOG_CHANNEL(x) static const enum agoge_core_log_ch __LOG_CHANNEL__ = (x)
 
-void agoge_core_ctx_init(struct agoge_core_ctx *ctx);
+#define LOG_HANDLE(log, ch, level, args...)                                     \
+	({                                                                      \
+		struct agoge_core_log *const m_log = (log);                     \
+                                                                                \
+		if ((m_log->cb) && ((m_log->curr_lvl) >= (level)) &&            \
+		    ((m_log->ch_enabled & (UINT32_C(1) << __LOG_CHANNEL__)))) { \
+			agoge_core_log_handle(m_log, (level), ch, args);        \
+		}                                                               \
+	})
 
-#ifdef __cplusplus
-}
-#endif // __cplusplus
+#define LOG_INFO(log, args...) \
+	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_INFO, args)
+
+#define LOG_WARN(log, args...) \
+	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_WARN, args)
