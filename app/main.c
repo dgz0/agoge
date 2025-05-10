@@ -25,6 +25,7 @@
 
 #include "agogecore/ctx.h"
 
+#define YEL "\e[1;93m"
 #define WHT "\e[1;97m"
 #define RESET "\x1B[0m"
 
@@ -34,6 +35,10 @@ static void log_cb(void *const udata,
 	switch (msg->lvl) {
 	case AGOGE_CORE_LOG_LVL_INFO:
 		printf(WHT "%s\n" RESET, msg->msg);
+		return;
+
+	case AGOGE_CORE_LOG_LVL_WARN:
+		printf(YEL "%s\n" RESET, msg->msg);
 		return;
 
 	default:
@@ -47,9 +52,13 @@ int main(void)
 	memset(&ctx, 0, sizeof(ctx));
 
 	ctx.log.cb = &log_cb;
-	ctx.log.curr_lvl = AGOGE_CORE_LOG_LVL_INFO;
-	ctx.log.ch_enabled |= (UINT32_C(1) << AGOGE_CORE_LOG_CH_CTX);
+	ctx.log.curr_lvl = AGOGE_CORE_LOG_LVL_WARN;
+
+	ctx.log.ch_enabled |= AGOGE_CORE_LOG_CH_CTX_BIT |
+			      AGOGE_CORE_LOG_CH_BUS_BIT;
 
 	agoge_core_ctx_init(&ctx);
+
+	agoge_core_bus_peek(&ctx.bus, 0xFFFF);
 	return EXIT_SUCCESS;
 }

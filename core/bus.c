@@ -18,48 +18,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-#pragma once
+#include "bus.h"
+#include "log.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
+LOG_CHANNEL(AGOGE_CORE_LOG_CH_BUS);
 
-#include <stddef.h>
-
-#define AGOGE_CORE_LOG_CH_CTX_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_CTX)
-#define AGOGE_CORE_LOG_CH_BUS_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_BUS)
-#define AGOGE_CORE_LOG_CH_CPU_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_CPU)
-
-enum agoge_core_log_lvl {
-	AGOGE_CORE_LOG_LVL_OFF = 0,
-	AGOGE_CORE_LOG_LVL_INFO = 1,
-	AGOGE_CORE_LOG_LVL_WARN = 2,
-	AGOGE_CORE_LOG_LVL_ERR = 3,
-	AGOGE_CORE_LOG_LVL_DBG = 4,
-	AGOGE_CORE_LOG_LVL_TRACE = 5
-};
-
-enum agoge_core_log_ch {
-	AGOGE_CORE_LOG_CH_CTX = 0,
-	AGOGE_CORE_LOG_CH_BUS = 1,
-	AGOGE_CORE_LOG_CH_CPU = 2
-};
-
-struct agoge_core_log_msg {
-	const char *const msg;
-	const size_t msg_len;
-	const enum agoge_core_log_ch ch;
-	const enum agoge_core_log_lvl lvl;
-};
-
-struct agoge_core_log {
-	void *udata;
-	void (*cb)(void *udata, const struct agoge_core_log_msg *msg);
-
-	enum agoge_core_log_lvl curr_lvl;
-	unsigned int ch_enabled;
-};
-
-#ifdef __cplusplus
+void agoge_core_bus_init(struct agoge_core_bus *const bus,
+			 struct agoge_core_log *const log)
+{
+	bus->log = log;
 }
-#endif // __cplusplus
+
+uint8_t agoge_core_bus_peek(struct agoge_core_bus *const bus,
+			    const uint16_t addr)
+{
+	LOG_WARN(bus->log, "Unknown memory peek: $%04X; returning $FF", addr);
+	return 0xFF;
+}

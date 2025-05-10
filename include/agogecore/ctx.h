@@ -24,9 +24,11 @@
 extern "C" {
 #endif // __cplusplus
 
+#include "bus.h"
 #include "log.h"
 
 struct agoge_core_ctx {
+	struct agoge_core_bus bus;
 	struct agoge_core_log log;
 };
 
