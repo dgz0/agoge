@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/// @file ctx.c Defines the implementation of an agoge context.
+
 #include "agogecore/ctx.h"
 #include "bus.h"
 #include "log.h"

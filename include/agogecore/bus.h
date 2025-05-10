@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/// @file bus.h Defines the interface for the system bus.
+
 #pragma once
 
 #ifdef __cplusplus
@@ -27,10 +29,18 @@ extern "C" {
 #include <stdint.h>
 #include "log.h"
 
+/// Defines the system bus contents.
 struct agoge_core_bus {
+	/// Pointer to the agoge context's log instance.
 	struct agoge_core_log *log;
 };
 
+/// @brief Retrieves a byte from an emulated memory address without interfering
+/// with emulation operations.
+///
+/// @param bus The system bus instance.
+/// @param addr The address to retrieve a byte from.
+/// @returns The byte retrieved from the emulated memory map.
 uint8_t agoge_core_bus_peek(struct agoge_core_bus *bus, uint16_t addr);
 
 #ifdef __cplusplus

@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/// @file ctx.h Defines the interface of an agoge context.
+
 #pragma once
 
 #ifdef __cplusplus
@@ -27,11 +29,25 @@ extern "C" {
 #include "bus.h"
 #include "log.h"
 
+/// Defines an agoge context.
+///
+/// An `agoge_core_ctx` is a full, self-contained and isolated emulator
+/// instance. The majority of functions frontends use will be used through a
+/// given context.
 struct agoge_core_ctx {
+	/// The system bus instance to use for this context.
 	struct agoge_core_bus bus;
+
+	/// The logger instance to use for this context.
 	struct agoge_core_log log;
 };
 
+/// @brief Initializes an agoge emulator context.
+///
+/// It is highly recommended to create the context somewhere, set it to zero,
+/// and set some initial parameters for logging.
+///
+/// @param ctx The context to initialize.
 void agoge_core_ctx_init(struct agoge_core_ctx *ctx);
 
 #ifdef __cplusplus
