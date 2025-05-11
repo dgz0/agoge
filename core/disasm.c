@@ -37,11 +37,17 @@ struct disasm_entry {
 
 static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_NOP] = { .op = OP_NONE, .fmt = "NOP" },
+	[CPU_OP_LD_C_U8] = { .op = OP_U8, .fmt = "LD C, $%02X" },
 	[CPU_OP_LD_DE_U16] = { .op = OP_U16, .fmt = "LD DE, $%04X" },
 	[CPU_OP_LD_HL_U16] = { .op = OP_U16, .fmt = "LD HL, $%04X" },
 	[CPU_OP_LD_B_A] = { .op = OP_NONE, .fmt = "LD B, A" },
 	[CPU_OP_JP_U16] = { .op = OP_U16, .fmt = "JP $%04X" }
 };
+
+NODISCARD static uint8_t read_u8(struct agoge_core_disasm *const disasm)
+{
+	return agoge_core_bus_peek(disasm->bus, disasm->res.addr + 1);
+}
 
 NODISCARD static uint16_t read_u16(struct agoge_core_disasm *const disasm)
 {
@@ -58,7 +64,7 @@ static void format_instr(struct agoge_core_disasm *const disasm,
 			 const struct disasm_entry *const entry)
 {
 	static const void *const jmp_tbl[] = {
-		[OP_NONE] = &&op_none, [OP_U16] = &&op_u16
+		[OP_NONE] = &&op_none, [OP_U8] = &&op_u8, [OP_U16] = &&op_u16
 	};
 
 	goto *jmp_tbl[entry->op];
@@ -68,6 +74,10 @@ static void format_instr(struct agoge_core_disasm *const disasm,
 
 op_none:
 	disasm->res.len = sprintf(disasm->res.str, entry->fmt);
+	return;
+
+op_u8:
+	disasm->res.len = sprintf(disasm->res.str, entry->fmt, read_u8(disasm));
 	return;
 
 op_u16:
