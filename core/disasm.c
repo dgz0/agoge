@@ -41,6 +41,7 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_LD_DE_U16] = { .op = OP_U16, .fmt = "LD DE, $%04X" },
 	[CPU_OP_LD_MEM_DE_A] = { .op = OP_NONE, .fmt = "LD (DE), A" },
 	[CPU_OP_INC_E] = { .op = OP_NONE, .fmt = "INC E" },
+	[CPU_OP_JR_NZ_S8] = { .op = OP_S8, .fmt = "JR NZ, $%04X" },
 	[CPU_OP_LD_HL_U16] = { .op = OP_U16, .fmt = "LD HL, $%04X" },
 	[CPU_OP_LDI_A_MEM_HL] = { .op = OP_NONE, .fmt = "LD A, (HL+)" },
 	[CPU_OP_LD_B_A] = { .op = OP_NONE, .fmt = "LD B, A" },
@@ -66,9 +67,10 @@ NODISCARD static uint16_t read_u16(struct agoge_core_disasm *const disasm)
 static void format_instr(struct agoge_core_disasm *const disasm,
 			 const struct disasm_entry *const entry)
 {
-	static const void *const jmp_tbl[] = {
-		[OP_NONE] = &&op_none, [OP_U8] = &&op_u8, [OP_U16] = &&op_u16
-	};
+	static const void *const jmp_tbl[] = { [OP_NONE] = &&op_none,
+					       [OP_U8] = &&op_u8,
+					       [OP_U16] = &&op_u16,
+					       [OP_S8] = &&op_s8 };
 
 	goto *jmp_tbl[entry->op];
 
@@ -86,6 +88,11 @@ op_u8:
 op_u16:
 	disasm->res.len =
 		sprintf(disasm->res.str, entry->fmt, read_u16(disasm));
+	return;
+
+op_s8:
+	disasm->res.len = sprintf(disasm->res.str, entry->fmt,
+				  ((int8_t)read_u8(disasm)) + disasm->res.addr);
 	return;
 
 #pragma GCC diagnostic pop
