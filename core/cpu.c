@@ -76,6 +76,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 	})
 
 	static const void *const op_tbl[] = { [CPU_OP_NOP] = &&nop,
+					      [CPU_OP_LD_DE_U16] = &&ld_de_u16,
 					      [CPU_OP_LD_HL_U16] = &&ld_hl_u16,
 					      [CPU_OP_LD_B_A] = &&ld_b_a,
 					      [CPU_OP_JP_U16] = &&jp_u16 };
@@ -86,6 +87,10 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 	DISPATCH();
 
 nop:
+	DISPATCH();
+
+ld_de_u16:
+	cpu->reg.de = read_u16(cpu);
 	DISPATCH();
 
 ld_hl_u16:
