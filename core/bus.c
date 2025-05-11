@@ -55,6 +55,19 @@ unknown:
 	return 0xFF;
 }
 
+void agoge_core_bus_write(struct agoge_core_bus *const bus, const uint16_t addr,
+			  const uint8_t data)
+{
+	static const void *jmp_tbl[] = { [0x0000 ... 0xFFFF] = &&unknown };
+
+	goto *jmp_tbl[addr];
+
+unknown:
+	LOG_WARN(bus->log, "Unknown memory write: $%04X <- $%02X; ignoring",
+		 addr, data);
+	return;
+}
+
 uint8_t agoge_core_bus_peek(struct agoge_core_bus *const bus,
 			    const uint16_t addr)
 {
