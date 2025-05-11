@@ -37,6 +37,7 @@ struct disasm_entry {
 
 static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_NOP] = { .op = OP_NONE, .fmt = "NOP" },
+	[CPU_OP_LD_HL_U16] = { .op = OP_U16, .fmt = "LD HL, $%04X" },
 	[CPU_OP_JP_U16] = { .op = OP_U16, .fmt = "JP $%04X" }
 };
 
@@ -87,6 +88,7 @@ void agoge_core_disasm_single(struct agoge_core_disasm *const disasm,
 			      const uint16_t addr)
 {
 	uint8_t instr = agoge_core_bus_peek(disasm->bus, addr);
+	LOG_TRACE(disasm->log, "instr = $%02X", instr);
 
 	const struct disasm_entry *entry = &op_tbl[instr];
 

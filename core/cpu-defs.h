@@ -23,6 +23,7 @@
 #include <stdint.h>
 
 #define CPU_OP_NOP (UINT8_C(0x00))
+#define CPU_OP_LD_HL_U16 (UINT8_C(0x21))
 #define CPU_OP_JP_U16 (UINT8_C(0xC3))
 
 #define CPU_PWRUP_REG_PC (UINT16_C(0x0100))

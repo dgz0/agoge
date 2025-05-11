@@ -75,9 +75,9 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		goto *op_tbl[instr];          \
 	})
 
-	static const void *op_tbl[] = {
-		[CPU_OP_NOP] = &&nop, [CPU_OP_JP_U16] = &&jp_u16
-	};
+	static const void *const op_tbl[] = { [CPU_OP_NOP] = &&nop,
+					      [CPU_OP_LD_HL_U16] = &&ld_hl_u16,
+					      [CPU_OP_JP_U16] = &&jp_u16 };
 
 	uint8_t instr;
 	unsigned int steps = run_cycles;
@@ -85,6 +85,10 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 	DISPATCH();
 
 nop:
+	DISPATCH();
+
+ld_hl_u16:
+	cpu->reg.hl = read_u16(cpu);
 	DISPATCH();
 
 jp_u16:
