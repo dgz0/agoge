@@ -39,6 +39,30 @@ NODISCARD static uint16_t read_u16(struct agoge_core_cpu *const cpu)
 	return (hi << 8) | lo;
 }
 
+static void flag_upd(struct agoge_core_cpu *const cpu, const uint8_t flag,
+		     const bool cond_met)
+{
+	if (cond_met) {
+		cpu->reg.f |= flag;
+	} else {
+		cpu->reg.f &= ~flag;
+	}
+}
+
+static void flag_zero_upd(struct agoge_core_cpu *const cpu, const uint8_t val)
+{
+	flag_upd(cpu, CPU_FLAG_ZERO, !val);
+}
+
+NODISCARD static uint8_t alu_inc(struct agoge_core_cpu *const cpu, uint8_t val)
+{
+	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
+	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (val & 0x0F) == 0x0F);
+	flag_zero_upd(cpu, ++val);
+
+	return val;
+}
+
 static void jp_if(struct agoge_core_cpu *const cpu, const bool cond_met)
 {
 	const uint16_t addr = read_u16(cpu);
@@ -80,6 +104,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LD_C_U8] = &&ld_c_u8,
 		[CPU_OP_LD_DE_U16] = &&ld_de_u16,
 		[CPU_OP_LD_MEM_DE_A] = &&ld_mem_de_a,
+		[CPU_OP_INC_E] = &&inc_e,
 		[CPU_OP_LD_HL_U16] = &&ld_hl_u16,
 		[CPU_OP_LDI_A_MEM_HL] = &&ldi_a_mem_hl,
 		[CPU_OP_LD_B_A] = &&ld_b_a,
@@ -104,6 +129,10 @@ ld_de_u16:
 
 ld_mem_de_a:
 	agoge_core_bus_write(cpu->bus, cpu->reg.de, cpu->reg.a);
+	DISPATCH();
+
+inc_e:
+	cpu->reg.e = alu_inc(cpu, cpu->reg.e);
 	DISPATCH();
 
 ld_hl_u16:
