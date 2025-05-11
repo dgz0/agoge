@@ -30,6 +30,7 @@
 #define RED "\e[1;91m"
 #define YEL "\e[1;93m"
 #define WHT "\e[1;97m"
+#define PURPLE "\e[0;95m"
 #define RESET "\x1B[0m"
 
 static size_t rom_size;
@@ -50,6 +51,10 @@ static void log_cb(void *const udata,
 
 	case AGOGE_CORE_LOG_LVL_ERR:
 		printf(RED "%s\n" RESET, msg->msg);
+		return;
+
+	case AGOGE_CORE_LOG_LVL_TRACE:
+		printf(PURPLE "%s\n" RESET, msg->msg);
 		return;
 
 	default:
@@ -94,9 +99,9 @@ static void setup_ctx(void)
 	ctx.log.cb = &log_cb;
 	ctx.log.curr_lvl = AGOGE_CORE_LOG_LVL_TRACE;
 
-	ctx.log.ch_enabled |= AGOGE_CORE_LOG_CH_CTX_BIT |
-			      AGOGE_CORE_LOG_CH_BUS_BIT |
-			      AGOGE_CORE_LOG_CH_CART_BIT;
+	ctx.log.ch_enabled |=
+		AGOGE_CORE_LOG_CH_CTX_BIT | AGOGE_CORE_LOG_CH_BUS_BIT |
+		AGOGE_CORE_LOG_CH_CART_BIT | AGOGE_CORE_LOG_CH_DISASM_BIT;
 
 	agoge_core_ctx_init(&ctx);
 }
@@ -124,6 +129,7 @@ int main(int argc, char *argv[])
 	}
 
 	for (;;) {
+		agoge_core_disasm_single(&ctx.disasm, ctx.cpu.reg.pc);
 		agoge_core_ctx_step(&ctx, 1);
 	}
 	return EXIT_SUCCESS;

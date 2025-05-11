@@ -47,3 +47,6 @@ void agoge_core_log_handle(struct agoge_core_log *log,
 
 #define LOG_ERR(log, args...) \
 	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_ERR, args)
+
+#define LOG_TRACE(log, args...) \
+	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_TRACE, args)

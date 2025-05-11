@@ -20,6 +20,7 @@
 
 #include "comp.h"
 #include "cpu.h"
+#include "cpu-defs.h"
 #include "bus.h"
 #include "log.h"
 
@@ -30,6 +31,23 @@ NODISCARD static uint8_t read_u8(struct agoge_core_cpu *const cpu)
 	return agoge_core_bus_read(cpu->bus, cpu->reg.pc++);
 }
 
+NODISCARD static uint16_t read_u16(struct agoge_core_cpu *const cpu)
+{
+	const uint8_t lo = read_u8(cpu);
+	const uint8_t hi = read_u8(cpu);
+
+	return (hi << 8) | lo;
+}
+
+static void jp_if(struct agoge_core_cpu *const cpu, const bool cond_met)
+{
+	const uint16_t addr = read_u16(cpu);
+
+	if (cond_met) {
+		cpu->reg.pc = addr;
+	}
+}
+
 void agoge_core_cpu_init(struct agoge_core_cpu *const cpu,
 			 struct agoge_core_bus *const bus,
 			 struct agoge_core_log *const log)
@@ -38,6 +56,11 @@ void agoge_core_cpu_init(struct agoge_core_cpu *const cpu,
 	cpu->log = log;
 
 	LOG_INFO(cpu->log, "initialized");
+}
+
+void agoge_core_cpu_reset(struct agoge_core_cpu *const cpu)
+{
+	cpu->reg.pc = CPU_PWRUP_REG_PC;
 }
 
 void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
@@ -52,13 +75,19 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		goto *op_tbl[instr];          \
 	})
 
-	static const void *op_tbl[] = { [0x00] = &&op_nop };
+	static const void *op_tbl[] = {
+		[CPU_OP_NOP] = &&nop, [CPU_OP_JP_U16] = &&jp_u16
+	};
 
 	uint8_t instr;
 	unsigned int steps = run_cycles;
 
 	DISPATCH();
 
-op_nop:
+nop:
+	DISPATCH();
+
+jp_u16:
+	jp_if(cpu, true);
 	DISPATCH();
 }

@@ -40,14 +40,16 @@ __attribute__((format(printf, 4, 5))) void agoge_core_log_handle(
 	static const struct str_data lvl_tbl[] = {
 		[AGOGE_CORE_LOG_LVL_INFO] = STR_DEFINE("[info] "),
 		[AGOGE_CORE_LOG_LVL_WARN] = STR_DEFINE("[warn] "),
-		[AGOGE_CORE_LOG_LVL_ERR] = STR_DEFINE("[error] ")
+		[AGOGE_CORE_LOG_LVL_ERR] = STR_DEFINE("[error] "),
+		[AGOGE_CORE_LOG_LVL_TRACE] = STR_DEFINE("[trace] ")
 	};
 
 	static const struct str_data ch_tbl[] = {
 		[AGOGE_CORE_LOG_CH_CTX] = STR_DEFINE("[ctx] "),
 		[AGOGE_CORE_LOG_CH_BUS] = STR_DEFINE("[bus] "),
 		[AGOGE_CORE_LOG_CH_CPU] = STR_DEFINE("[cpu] "),
-		[AGOGE_CORE_LOG_CH_CART] = STR_DEFINE("[cart] ")
+		[AGOGE_CORE_LOG_CH_CART] = STR_DEFINE("[cart] "),
+		[AGOGE_CORE_LOG_CH_DISASM] = STR_DEFINE("[disasm] ")
 	};
 
 #undef STR_DEFINE

@@ -28,6 +28,7 @@ extern "C" {
 
 #include "cpu.h"
 #include "bus.h"
+#include "disasm.h"
 #include "log.h"
 
 /// Defines an agoge context.
@@ -44,6 +45,9 @@ struct agoge_core_ctx {
 
 	/// The CPU instance to use for this context.
 	struct agoge_core_cpu cpu;
+
+	/// The disassembler instance to use for this context.
+	struct agoge_core_disasm disasm;
 };
 
 /// @brief Initializes an agoge emulator context.
@@ -53,6 +57,8 @@ struct agoge_core_ctx {
 ///
 /// @param ctx The context to initialize.
 void agoge_core_ctx_init(struct agoge_core_ctx *ctx);
+
+void agoge_core_ctx_reset(struct agoge_core_ctx *ctx);
 
 void agoge_core_ctx_step(struct agoge_core_ctx *ctx, unsigned int num_cycles);
 

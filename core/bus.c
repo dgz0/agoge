@@ -58,6 +58,5 @@ unknown:
 uint8_t agoge_core_bus_peek(struct agoge_core_bus *const bus,
 			    const uint16_t addr)
 {
-	LOG_WARN(bus->log, "Unknown memory peek: $%04X; returning $FF", addr);
-	return 0xFF;
+	return agoge_core_bus_read(bus, addr);
 }

@@ -18,33 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/// @file ctx.c Defines the implementation of an agoge context.
+#pragma once
 
-#include "agogecore/ctx.h"
-#include "bus.h"
-#include "cpu.h"
-#include "disasm.h"
-#include "log.h"
+#include "agogecore/disasm.h"
 
-LOG_CHANNEL(AGOGE_CORE_LOG_CH_CTX);
-
-void agoge_core_ctx_init(struct agoge_core_ctx *const ctx)
-{
-	agoge_core_bus_init(&ctx->bus, &ctx->log);
-	agoge_core_cpu_init(&ctx->cpu, &ctx->bus, &ctx->log);
-	agoge_core_disasm_init(&ctx->disasm, &ctx->bus, &ctx->log);
-
-	agoge_core_ctx_reset(ctx);
-	LOG_INFO(&ctx->log, "initialized");
-}
-
-void agoge_core_ctx_reset(struct agoge_core_ctx *const ctx)
-{
-	agoge_core_cpu_reset(&ctx->cpu);
-}
-
-void agoge_core_ctx_step(struct agoge_core_ctx *const ctx,
-			 const unsigned int num_cycles)
-{
-	agoge_core_cpu_run(&ctx->cpu, num_cycles);
-}
+void agoge_core_disasm_init(struct agoge_core_disasm *disasm,
+			    struct agoge_core_bus *bus,
+			    struct agoge_core_log *log);

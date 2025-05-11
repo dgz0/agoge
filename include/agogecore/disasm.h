@@ -18,33 +18,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/// @file ctx.c Defines the implementation of an agoge context.
+#pragma once
 
-#include "agogecore/ctx.h"
 #include "bus.h"
-#include "cpu.h"
-#include "disasm.h"
 #include "log.h"
 
-LOG_CHANNEL(AGOGE_CORE_LOG_CH_CTX);
+#define AGOGE_CORE_DISASM_RES_LEN_MAX (256)
 
-void agoge_core_ctx_init(struct agoge_core_ctx *const ctx)
-{
-	agoge_core_bus_init(&ctx->bus, &ctx->log);
-	agoge_core_cpu_init(&ctx->cpu, &ctx->bus, &ctx->log);
-	agoge_core_disasm_init(&ctx->disasm, &ctx->bus, &ctx->log);
+struct agoge_core_disasm {
+	struct {
+		char str[AGOGE_CORE_DISASM_RES_LEN_MAX + 1];
+		size_t len;
+		uint16_t addr;
+	} res;
 
-	agoge_core_ctx_reset(ctx);
-	LOG_INFO(&ctx->log, "initialized");
-}
+	struct agoge_core_bus *bus;
+	struct agoge_core_log *log;
+};
 
-void agoge_core_ctx_reset(struct agoge_core_ctx *const ctx)
-{
-	agoge_core_cpu_reset(&ctx->cpu);
-}
-
-void agoge_core_ctx_step(struct agoge_core_ctx *const ctx,
-			 const unsigned int num_cycles)
-{
-	agoge_core_cpu_run(&ctx->cpu, num_cycles);
-}
+void agoge_core_disasm_single(struct agoge_core_disasm *disasm, uint16_t addr);
