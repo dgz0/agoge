@@ -37,6 +37,7 @@ struct disasm_entry {
 
 static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_NOP] = { .op = OP_NONE, .fmt = "NOP" },
+	[CPU_OP_DEC_C] = { .op = OP_NONE, .fmt = "DEC C" },
 	[CPU_OP_LD_C_U8] = { .op = OP_U8, .fmt = "LD C, $%02X" },
 	[CPU_OP_LD_DE_U16] = { .op = OP_U16, .fmt = "LD DE, $%04X" },
 	[CPU_OP_LD_MEM_DE_A] = { .op = OP_NONE, .fmt = "LD (DE), A" },
@@ -92,8 +93,9 @@ op_u16:
 	return;
 
 op_s8:
-	disasm->res.len = sprintf(disasm->res.str, entry->fmt,
-				  ((int8_t)read_u8(disasm)) + disasm->res.addr);
+	disasm->res.len =
+		sprintf(disasm->res.str, entry->fmt,
+			((int8_t)read_u8(disasm)) + disasm->res.addr + 2);
 	return;
 
 #pragma GCC diagnostic pop

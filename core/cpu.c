@@ -63,6 +63,15 @@ NODISCARD static uint8_t alu_inc(struct agoge_core_cpu *const cpu, uint8_t val)
 	return val;
 }
 
+NODISCARD static uint8_t alu_dec(struct agoge_core_cpu *const cpu, uint8_t val)
+{
+	cpu->reg.f |= CPU_FLAG_SUBTRACT;
+	flag_upd(cpu, CPU_FLAG_HALF_CARRY, !(val & 0x0F));
+	flag_zero_upd(cpu, --val);
+
+	return val;
+}
+
 static void jp_if(struct agoge_core_cpu *const cpu, const bool cond_met)
 {
 	const uint16_t addr = read_u16(cpu);
@@ -110,6 +119,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 
 	static const void *const op_tbl[] = {
 		[CPU_OP_NOP] = &&nop,
+		[CPU_OP_DEC_C] = &&dec_c,
 		[CPU_OP_LD_C_U8] = &&ld_c_u8,
 		[CPU_OP_LD_DE_U16] = &&ld_de_u16,
 		[CPU_OP_LD_MEM_DE_A] = &&ld_mem_de_a,
@@ -128,6 +138,10 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 	DISPATCH();
 
 nop:
+	DISPATCH();
+
+dec_c:
+	cpu->reg.c = alu_dec(cpu, cpu->reg.c);
 	DISPATCH();
 
 ld_c_u8:
