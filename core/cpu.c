@@ -129,6 +129,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LD_HL_U16] = &&ld_hl_u16,
 		[CPU_OP_LDI_A_MEM_HL] = &&ldi_a_mem_hl,
 		[CPU_OP_LD_B_A] = &&ld_b_a,
+		[CPU_OP_LD_A_B] = &&ld_a_b,
 		[CPU_OP_JP_U16] = &&jp_u16
 	};
 
@@ -178,6 +179,10 @@ ldi_a_mem_hl:
 
 ld_b_a:
 	cpu->reg.b = cpu->reg.a;
+	DISPATCH();
+
+ld_a_b:
+	cpu->reg.a = cpu->reg.b;
 	DISPATCH();
 
 jp_u16:
