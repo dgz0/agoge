@@ -29,8 +29,12 @@ extern "C" {
 #include "cart.h"
 #include "log.h"
 
+#define AGOGE_CORE_BUS_WRAM_SIZE (8192)
+
 /// Defines the system bus contents.
 struct agoge_core_bus {
+	uint8_t wram[AGOGE_CORE_BUS_WRAM_SIZE];
+
 	/// Pointer to the agoge context's log instance.
 	struct agoge_core_log *log;
 
