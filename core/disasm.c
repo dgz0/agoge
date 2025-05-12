@@ -48,7 +48,8 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_LDI_A_MEM_HL] = { .op = OP_NONE, .fmt = "LD A, (HL+)" },
 	[CPU_OP_LD_B_A] = { .op = OP_NONE, .fmt = "LD B, A" },
 	[CPU_OP_LD_A_B] = { .op = OP_NONE, .fmt = "LD A, B" },
-	[CPU_OP_JP_U16] = { .op = OP_U16, .fmt = "JP $%04X" }
+	[CPU_OP_JP_U16] = { .op = OP_U16, .fmt = "JP $%04X" },
+	[CPU_OP_DI] = { .op = OP_NONE, .fmt = "DI" }
 };
 
 NODISCARD static uint8_t read_u8(struct agoge_core_disasm *const disasm)
