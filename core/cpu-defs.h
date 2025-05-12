@@ -36,6 +36,7 @@
 #define CPU_OP_LD_B_A (UINT8_C(0x47))
 #define CPU_OP_LD_A_B (UINT8_C(0x78))
 #define CPU_OP_JP_U16 (UINT8_C(0xC3))
+#define CPU_OP_LD_MEM_U16_A (UINT8_C(0xEA))
 #define CPU_OP_DI (UINT8_C(0xF3))
 
 #define CPU_PWRUP_REG_PC (UINT16_C(0x0100))
