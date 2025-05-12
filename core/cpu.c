@@ -72,11 +72,27 @@ NODISCARD static uint8_t alu_dec(struct agoge_core_cpu *const cpu, uint8_t val)
 	return val;
 }
 
+static void stack_push(struct agoge_core_cpu *const cpu, const uint16_t val)
+{
+	agoge_core_bus_write(cpu->bus, --cpu->reg.sp, val >> 8);
+	agoge_core_bus_write(cpu->bus, --cpu->reg.sp, val & UINT8_MAX);
+}
+
 static void jp_if(struct agoge_core_cpu *const cpu, const bool cond_met)
 {
 	const uint16_t addr = read_u16(cpu);
 
 	if (cond_met) {
+		cpu->reg.pc = addr;
+	}
+}
+
+static void call_if(struct agoge_core_cpu *const cpu, const bool cond_met)
+{
+	const uint16_t addr = read_u16(cpu);
+
+	if (cond_met) {
+		stack_push(cpu, cpu->reg.pc);
 		cpu->reg.pc = addr;
 	}
 }
@@ -133,6 +149,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LD_B_A] = &&ld_b_a,
 		[CPU_OP_LD_A_B] = &&ld_a_b,
 		[CPU_OP_JP_U16] = &&jp_u16,
+		[CPU_OP_CALL_U16] = &&call_u16,
 		[CPU_OP_LD_MEM_FF00_U8_A] = &&ld_mem_ff00_u8_a,
 		[CPU_OP_LD_MEM_U16_A] = &&ld_mem_u16_a,
 		[CPU_OP_DI] = &&di
@@ -200,6 +217,10 @@ ld_a_b:
 
 jp_u16:
 	jp_if(cpu, true);
+	DISPATCH();
+
+call_u16:
+	call_if(cpu, true);
 	DISPATCH();
 
 ld_mem_ff00_u8_a:
