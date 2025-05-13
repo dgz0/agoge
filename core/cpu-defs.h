@@ -43,6 +43,7 @@
 #define CPU_OP_RET (UINT8_C(0xC9))
 #define CPU_OP_CALL_U16 (UINT8_C(0xCD))
 #define CPU_OP_LD_MEM_FF00_U8_A (UINT8_C(0xE0))
+#define CPU_OP_PUSH_HL (UINT8_C(0xE5))
 #define CPU_OP_LD_MEM_U16_A (UINT8_C(0xEA))
 #define CPU_OP_DI (UINT8_C(0xF3))
 
