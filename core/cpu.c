@@ -147,6 +147,13 @@ static void alu_or(struct agoge_core_cpu *const cpu, const uint8_t val)
 	cpu->reg.f = (!cpu->reg.a) ? CPU_FLAG_ZERO : 0x00;
 }
 
+static void alu_and(struct agoge_core_cpu *const cpu, const uint8_t val)
+{
+	cpu->reg.a &= val;
+	cpu->reg.f = (!cpu->reg.a) ? (CPU_FLAG_ZERO | CPU_FLAG_HALF_CARRY) :
+				     CPU_FLAG_HALF_CARRY;
+}
+
 void agoge_core_cpu_init(struct agoge_core_cpu *const cpu,
 			 struct agoge_core_bus *const bus,
 			 struct agoge_core_log *const log)
@@ -205,6 +212,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LD_MEM_FF00_U8_A] = &&ld_mem_ff00_u8_a,
 		[CPU_OP_POP_HL] = &&pop_hl,
 		[CPU_OP_PUSH_HL] = &&push_hl,
+		[CPU_OP_AND_A_U8] = &&and_a_u8,
 		[CPU_OP_LD_MEM_U16_A] = &&ld_mem_u16_a,
 		[CPU_OP_LD_A_MEM_FF00_U8] = &&ld_a_mem_ff00_u8,
 		[CPU_OP_POP_AF] = &&pop_af,
@@ -336,6 +344,10 @@ pop_hl:
 
 push_hl:
 	stack_push(cpu, cpu->reg.hl);
+	DISPATCH();
+
+and_a_u8:
+	alu_and(cpu, read_u8(cpu));
 	DISPATCH();
 
 ld_mem_u16_a:
