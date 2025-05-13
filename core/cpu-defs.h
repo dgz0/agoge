@@ -47,6 +47,7 @@
 #define CPU_OP_POP_HL (UINT8_C(0xE1))
 #define CPU_OP_PUSH_HL (UINT8_C(0xE5))
 #define CPU_OP_LD_MEM_U16_A (UINT8_C(0xEA))
+#define CPU_OP_POP_AF (UINT8_C(0xF1))
 #define CPU_OP_DI (UINT8_C(0xF3))
 #define CPU_OP_PUSH_AF (UINT8_C(0xF5))
 
