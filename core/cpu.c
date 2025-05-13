@@ -121,6 +121,12 @@ static void jr_if(struct agoge_core_cpu *const cpu, const bool cond_met)
 	}
 }
 
+static void alu_or(struct agoge_core_cpu *const cpu, const uint8_t val)
+{
+	cpu->reg.a |= val;
+	cpu->reg.f = (!cpu->reg.a) ? CPU_FLAG_ZERO : 0x00;
+}
+
 void agoge_core_cpu_init(struct agoge_core_cpu *const cpu,
 			 struct agoge_core_bus *const bus,
 			 struct agoge_core_log *const log)
@@ -169,6 +175,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LD_A_B] = &&ld_a_b,
 		[CPU_OP_LD_A_H] = &&ld_a_h,
 		[CPU_OP_LD_A_L] = &&ld_a_l,
+		[CPU_OP_OR_A_C] = &&or_a_c,
 		[CPU_OP_JP_U16] = &&jp_u16,
 		[CPU_OP_PUSH_BC] = &&push_bc,
 		[CPU_OP_RET] = &&ret,
@@ -264,6 +271,10 @@ ld_a_h:
 
 ld_a_l:
 	cpu->reg.a = cpu->reg.l;
+	DISPATCH();
+
+or_a_c:
+	alu_or(cpu, cpu->reg.c);
 	DISPATCH();
 
 jp_u16:
