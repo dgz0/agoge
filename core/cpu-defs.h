@@ -24,6 +24,7 @@
 
 #define CPU_OP_NOP (UINT8_C(0x00))
 #define CPU_OP_LD_BC_U16 (UINT8_C(0x01))
+#define CPU_OP_INC_BC (UINT8_C(0x03))
 #define CPU_OP_DEC_C (UINT8_C(0x0D))
 #define CPU_OP_LD_C_U8 (UINT8_C(0x0E))
 #define CPU_OP_LD_DE_U16 (UINT8_C(0x11))
