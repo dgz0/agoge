@@ -29,22 +29,22 @@
 cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 
 project(
-	agoge
-	VERSION 0.1.0
-	DESCRIPTION "Game Boy emulator"
-	HOMEPAGE_URL "https://github.com/dgz0/agoge"
-	LANGUAGES C)
+        agoge
+        VERSION 0.1.0
+        DESCRIPTION "Game Boy emulator"
+        HOMEPAGE_URL "https://github.com/dgz0/agoge"
+        LANGUAGES C)
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
-	message(FATAL_ERROR
-		"In-tree builds are not supported. Please create a separate "
-		"build directory and run CMake from there.")
-endif()
+    message(FATAL_ERROR
+            "In-tree builds are not supported. Please create a separate "
+            "build directory and run CMake from there.")
+endif ()
 
 if (CMAKE_VERSION LESS "3.26")
-	# CMake versions >=3.26 set this property to ON by default.
-	set(GLOBAL PROPERTY USE_FOLDERS ON)
-endif()
+    # CMake versions >=3.26 set this property to ON by default.
+    set(GLOBAL PROPERTY USE_FOLDERS ON)
+endif ()
 
 # Generate a compile_commands.json file containing the exact compiler calls for
 # all translation units of the project in machine-readable form.
@@ -57,115 +57,116 @@ set(VER_MIN_CLANG "14.0.0")
 set(VER_MIN_GCC "11.4.0")
 
 option(AGOGE_ENABLE_SANITIZERS "Enable ASan and UBSan" OFF)
+option(AGOGE_OPTIMIZE_FOR_ARCH "Optimize for this specific machine" OFF)
 
 function(agoge_base_c_init)
-	# These flags are supported by both clang and gcc for C targets only.
-	set(C_FLAGS_LIST
-		-Wall
-		-Walloc-zero
-		-Walloca
-		-Warray-bounds=2
-		-Wattribute-alias=2
-		-Wbad-function-cast
-		-Wcast-align
-		-Wcast-qual
-		-Wdate-time
-		-Wdisabled-optimization
-		-Wdouble-promotion
-		-Wextra
-		-Wfloat-equal
-		-Wformat-overflow=2
-		-Wformat-signedness
-		-Wformat-truncation=2
-		-Wformat=2
-		-Winit-self
-		-Winline
-		-Winvalid-pch
-		-Wjump-misses-init
-		-Wmain
-		-Wmissing-declarations
-		-Wmissing-include-dirs
-		-Wmissing-prototypes
-		-Wnested-externs
-		-Wno-aggressive-loop-optimizations
-		-Wno-coverage-mismatch
-		-Wold-style-declaration
-		-Wold-style-definition
-		-Wpacked
-		-Wredundant-decls
-		-Wshadow
-		-Wshift-overflow=2
-		-Wstrict-overflow=4
-		-Wstrict-prototypes
-		-Wstringop-overflow=4
-		-Wsuggest-attribute=cold
-		-Wsuggest-attribute=const
-		-Wsuggest-attribute=format
-		-Wsuggest-attribute=malloc
-		-Wsuggest-attribute=noreturn
-		-Wsuggest-attribute=pure
-		-Wswitch-default
-		-Wswitch-enum
-		-Wtrampolines
-		-Wundef
-		-Wuninitialized
-		-Wunsafe-loop-optimizations
-		-Wunsuffixed-float-constants
-		-Wunused-const-variable=2
-		-Wunused-macros
-		-Wvector-operation-performance
-		-Wvla
-		-Wwrite-strings
-		-fdiagnostics-color=always
-	)
+    # These flags are supported by both clang and gcc for C targets only.
+    set(C_FLAGS_LIST
+            -Wall
+            -Walloc-zero
+            -Walloca
+            -Warray-bounds=2
+            -Wattribute-alias=2
+            -Wbad-function-cast
+            -Wcast-align
+            -Wcast-qual
+            -Wdate-time
+            -Wdisabled-optimization
+            -Wdouble-promotion
+            -Wextra
+            -Wfloat-equal
+            -Wformat-overflow=2
+            -Wformat-signedness
+            -Wformat-truncation=2
+            -Wformat=2
+            -Winit-self
+            -Winline
+            -Winvalid-pch
+            -Wjump-misses-init
+            -Wmain
+            -Wmissing-declarations
+            -Wmissing-include-dirs
+            -Wmissing-prototypes
+            -Wnested-externs
+            -Wno-aggressive-loop-optimizations
+            -Wno-coverage-mismatch
+            -Wold-style-declaration
+            -Wold-style-definition
+            -Wpacked
+            -Wredundant-decls
+            -Wshadow
+            -Wshift-overflow=2
+            -Wstrict-overflow=4
+            -Wstrict-prototypes
+            -Wstringop-overflow=4
+            -Wsuggest-attribute=cold
+            -Wsuggest-attribute=const
+            -Wsuggest-attribute=format
+            -Wsuggest-attribute=malloc
+            -Wsuggest-attribute=noreturn
+            -Wsuggest-attribute=pure
+            -Wswitch-default
+            -Wswitch-enum
+            -Wtrampolines
+            -Wundef
+            -Wuninitialized
+            -Wunsafe-loop-optimizations
+            -Wunsuffixed-float-constants
+            -Wunused-const-variable=2
+            -Wunused-macros
+            -Wvector-operation-performance
+            -Wvla
+            -Wwrite-strings
+            -fdiagnostics-color=always
+    )
 
-	set(C_COMPILER_INVALID_MSG
-		"Your C compiler version is too old for this project. Please "
-		"use clang >=${VER_MIN_CLANG} or gcc >=${VER_MIN_GCC}."
-	)
+    set(C_COMPILER_INVALID_MSG
+            "Your C compiler version is too old for this project. Please "
+            "use clang >=${VER_MIN_CLANG} or gcc >=${VER_MIN_GCC}."
+    )
 
-	if ((CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
-	    (CMAKE_C_COMPILER_ID STREQUAL "Clang"))
-		if (CMAKE_C_COMPILER_VERSION LESS ${VER_MIN_CLANG})
-			message(FATAL_ERROR ${C_COMPILER_INVALID_MSG})
-		endif()
+    if ((CMAKE_C_COMPILER_ID STREQUAL "AppleClang") OR
+    (CMAKE_C_COMPILER_ID STREQUAL "Clang"))
+        if (CMAKE_C_COMPILER_VERSION LESS ${VER_MIN_CLANG})
+            message(FATAL_ERROR ${C_COMPILER_INVALID_MSG})
+        endif ()
 
-		list(APPEND C_FLAGS_LIST "-glldb")
-	elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
-		if (CMAKE_C_COMPILER_VERSION LESS ${VER_MIN_GCC})
-			message(FATAL_ERROR ${C_COMPILER_INVALID_MSG})
-		endif()
+        list(APPEND C_FLAGS_LIST "-glldb")
+    elseif (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+        if (CMAKE_C_COMPILER_VERSION LESS ${VER_MIN_GCC})
+            message(FATAL_ERROR ${C_COMPILER_INVALID_MSG})
+        endif ()
 
-		list(APPEND C_FLAGS_LIST
-			-Walloc-zero
-			-ggdb3
-		)
-	else()
-		message(FATAL_ERROR
-			"Your C compiler is not supported by agoge; please use "
-			"clang >=${VER_MIN_CLANG} or gcc >=${VER_MIN_GCC}."
-		)
-	endif()
+        list(APPEND C_FLAGS_LIST
+                -Walloc-zero
+                -ggdb3
+        )
+    else ()
+        message(FATAL_ERROR
+                "Your C compiler is not supported by agoge; please use "
+                "clang >=${VER_MIN_CLANG} or gcc >=${VER_MIN_GCC}."
+        )
+    endif ()
 
-	if (AGOGE_OPTIMIZE_FOR_ARCH)
-		list(APPEND C_FLAGS_LIST -march=native -mtune=native)
-	endif()
+    if (AGOGE_OPTIMIZE_FOR_ARCH)
+        list(APPEND C_FLAGS_LIST -march=native -mtune=native)
+    endif ()
 
-	if (AGOGE_WARNINGS_ARE_ERRORS)
-		list(APPEND C_FLAGS_LIST -Werror)
-	endif()
+    if (AGOGE_WARNINGS_ARE_ERRORS)
+        list(APPEND C_FLAGS_LIST -Werror)
+    endif ()
 
-	add_library(agoge_base_c INTERFACE)
+    add_library(agoge_base_c INTERFACE)
 
-	if (AGOGE_ENABLE_SANITIZERS)
-		list(APPEND C_FLAGS_LIST -fsanitize=address,undefined)
+    if (AGOGE_ENABLE_SANITIZERS)
+        list(APPEND C_FLAGS_LIST -fsanitize=address,undefined)
 
-		target_link_options(agoge_base_c INTERFACE
-			-fsanitize=address,undefined
-		)
-	endif()
-	
-	target_compile_options(agoge_base_c INTERFACE ${C_FLAGS_LIST})
+        target_link_options(agoge_base_c INTERFACE
+                -fsanitize=address,undefined
+        )
+    endif ()
+
+    target_compile_options(agoge_base_c INTERFACE ${C_FLAGS_LIST})
 endfunction()
 
 agoge_base_c_init()
