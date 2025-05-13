@@ -56,6 +56,7 @@
 #define CPU_OP_POP_AF (UINT8_C(0xF1))
 #define CPU_OP_DI (UINT8_C(0xF3))
 #define CPU_OP_PUSH_AF (UINT8_C(0xF5))
+#define CPU_OP_CP_A_U8 (UINT8_C(0xFE))
 
 #define CPU_PWRUP_REG_PC (UINT16_C(0x0100))
 

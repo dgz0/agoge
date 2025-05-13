@@ -86,6 +86,26 @@ NODISCARD static uint16_t stack_pop(struct agoge_core_cpu *const cpu)
 	return (hi << 8) | lo;
 }
 
+static uint8_t alu_sub_op(struct agoge_core_cpu *const cpu, const uint8_t val,
+			  const bool carry)
+{
+	cpu->reg.f |= CPU_FLAG_SUBTRACT;
+
+	const int res = cpu->reg.a - val - carry;
+	const uint8_t diff = res;
+
+	flag_zero_upd(cpu, diff);
+	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.a ^ val ^ res) & 0x10);
+	flag_upd(cpu, CPU_FLAG_CARRY, res < 0);
+
+	return diff;
+}
+
+static void alu_cp(struct agoge_core_cpu *const cpu, const uint8_t val)
+{
+	(void)alu_sub_op(cpu, val, 0);
+}
+
 static void jp_if(struct agoge_core_cpu *const cpu, const bool cond_met)
 {
 	const uint16_t addr = read_u16(cpu);
@@ -188,7 +208,8 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LD_A_MEM_FF00_U8] = &&ld_a_mem_ff00_u8,
 		[CPU_OP_POP_AF] = &&pop_af,
 		[CPU_OP_DI] = &&di,
-		[CPU_OP_PUSH_AF] = &&push_af
+		[CPU_OP_PUSH_AF] = &&push_af,
+		[CPU_OP_CP_A_U8] = &&cp_a_u8
 	};
 
 	uint8_t instr;
@@ -328,5 +349,9 @@ di:
 
 push_af:
 	stack_push(cpu, cpu->reg.af);
+	DISPATCH();
+
+cp_a_u8:
+	alu_cp(cpu, read_u8(cpu));
 	DISPATCH();
 }
