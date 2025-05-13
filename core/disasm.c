@@ -61,7 +61,8 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_POP_HL] = { .op = OP_NONE, .fmt = "POP HL" },
 	[CPU_OP_PUSH_HL] = { .op = OP_NONE, .fmt = "PUSH HL" },
 	[CPU_OP_LD_MEM_U16_A] = { .op = OP_U16, .fmt = "LD ($%04X), A" },
-	[CPU_OP_DI] = { .op = OP_NONE, .fmt = "DI" }
+	[CPU_OP_DI] = { .op = OP_NONE, .fmt = "DI" },
+	[CPU_OP_PUSH_AF] = { .op = OP_NONE, .fmt = "PUSH AF" }
 };
 
 NODISCARD static uint8_t read_u8(struct agoge_core_disasm *const disasm)
