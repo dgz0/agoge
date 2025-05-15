@@ -1,0 +1,13 @@
+name: Automated Builds
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  linux:
+    name: Linux build
+    uses: "./.github/workflows/linux-build.yml"
