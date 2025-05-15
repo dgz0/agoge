@@ -1,0 +1,22 @@
+name: Build on Ubuntu 22.04
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  linux-build:
+    name: "build"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: build-essential ninja-build cmake
+          version: 1.0
+
+      - name: Build
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+          cd build
+          ninja
