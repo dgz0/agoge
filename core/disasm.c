@@ -106,6 +106,7 @@ static void format_instr(struct agoge_core_disasm *const disasm,
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
 op_none:
 	disasm->res.len = sprintf(disasm->res.str, entry->fmt);
