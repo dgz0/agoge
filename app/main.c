@@ -41,6 +41,8 @@ static struct agoge_core_ctx ctx;
 static void log_cb(void *const udata,
 		   const struct agoge_core_log_msg *const msg)
 {
+	(void)udata;
+
 	switch (msg->lvl) {
 	case AGOGE_CORE_LOG_LVL_INFO:
 		printf(WHT "%s\n" RESET, msg->msg);
