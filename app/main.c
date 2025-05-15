@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +58,8 @@ static void log_cb(void *const udata,
 		printf(PURPLE "%s\n" RESET, msg->msg);
 		return;
 
+	case AGOGE_CORE_LOG_LVL_OFF:
+	case AGOGE_CORE_LOG_LVL_DBG:
 	default:
 		__builtin_unreachable();
 	}
