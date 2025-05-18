@@ -38,6 +38,7 @@
 #define CPU_OP_INC_HL (UINT8_C(0x23))
 #define CPU_OP_JR_Z_S8 (UINT8_C(0x28))
 #define CPU_OP_LDI_A_MEM_HL (UINT8_C(0x2A))
+#define CPU_OP_INC_L (UINT8_C(0x2C))
 #define CPU_OP_LD_SP_U16 (UINT8_C(0x31))
 #define CPU_OP_LD_A_U8 (UINT8_C(0x3E))
 #define CPU_OP_LD_B_A (UINT8_C(0x47))
