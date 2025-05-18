@@ -206,6 +206,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_INC_E] = &&inc_e,
 		[CPU_OP_JR_NZ_S8] = &&jr_nz_s8,
 		[CPU_OP_LD_HL_U16] = &&ld_hl_u16,
+		[CPU_OP_LDI_MEM_HL_A] = &&ldi_mem_hl_a,
 		[CPU_OP_INC_HL] = &&inc_hl,
 		[CPU_OP_INC_H] = &&inc_h,
 		[CPU_OP_JR_Z_S8] = &&jr_z_s8,
@@ -305,6 +306,10 @@ jr_nz_s8:
 
 ld_hl_u16:
 	cpu->reg.hl = read_u16(cpu);
+	DISPATCH();
+
+ldi_mem_hl_a:
+	agoge_core_bus_write(cpu->bus, cpu->reg.hl++, cpu->reg.a);
 	DISPATCH();
 
 inc_hl:
