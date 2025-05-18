@@ -46,6 +46,7 @@
 #define CPU_OP_OR_A_C (UINT8_C(0xB1))
 #define CPU_OP_POP_BC (UINT8_C(0xC1))
 #define CPU_OP_JP_U16 (UINT8_C(0xC3))
+#define CPU_OP_CALL_NZ_U16 (UINT8_C(0xC4))
 #define CPU_OP_PUSH_BC (UINT8_C(0xC5))
 #define CPU_OP_RET (UINT8_C(0xC9))
 #define CPU_OP_CALL_U16 (UINT8_C(0xCD))
