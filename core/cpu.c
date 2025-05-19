@@ -88,6 +88,21 @@ NODISCARD static uint16_t stack_pop(struct agoge_core_cpu *const cpu)
 	return (hi << 8) | lo;
 }
 
+static void alu_add_op(struct agoge_core_cpu *const cpu, const uint8_t val,
+		       const bool carry)
+{
+	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
+
+	const unsigned int res = cpu->reg.a + val + carry;
+	const uint8_t sum = res;
+
+	flag_zero_upd(cpu, sum);
+	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.a ^ val ^ res) & 0x10);
+	flag_upd(cpu, CPU_FLAG_CARRY, res > UINT8_MAX);
+
+	cpu->reg.a = sum;
+}
+
 static uint8_t alu_sub_op(struct agoge_core_cpu *const cpu, const uint8_t val,
 			  const bool carry)
 {
@@ -101,6 +116,11 @@ static uint8_t alu_sub_op(struct agoge_core_cpu *const cpu, const uint8_t val,
 	flag_upd(cpu, CPU_FLAG_CARRY, res < 0);
 
 	return diff;
+}
+
+static void alu_add(struct agoge_core_cpu *const cpu, const uint8_t val)
+{
+	alu_add_op(cpu, val, 0);
 }
 
 static void alu_cp(struct agoge_core_cpu *const cpu, const uint8_t val)
@@ -225,6 +245,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_JP_U16] = &&jp_u16,
 		[CPU_OP_CALL_NZ_U16] = &&call_nz_u16,
 		[CPU_OP_PUSH_BC] = &&push_bc,
+		[CPU_OP_ADD_A_U8] = &&add_a_u8,
 		[CPU_OP_RET] = &&ret,
 		[CPU_OP_CALL_U16] = &&call_u16,
 		[CPU_OP_LD_MEM_FF00_U8_A] = &&ld_mem_ff00_u8_a,
@@ -382,6 +403,10 @@ call_nz_u16:
 
 push_bc:
 	stack_push(cpu, cpu->reg.bc);
+	DISPATCH();
+
+add_a_u8:
+	alu_add(cpu, read_u8(cpu));
 	DISPATCH();
 
 ret:
