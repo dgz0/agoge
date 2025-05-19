@@ -88,6 +88,28 @@ NODISCARD static uint16_t stack_pop(struct agoge_core_cpu *const cpu)
 	return (hi << 8) | lo;
 }
 
+NODISCARD static uint8_t alu_rr_op(struct agoge_core_cpu *const cpu,
+				   uint8_t val)
+{
+	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+
+	const bool old_carry = val & 1;
+	const bool carry = cpu->reg.f & CPU_FLAG_CARRY;
+
+	val = (val >> 1) | (carry << 7);
+	flag_upd(cpu, CPU_FLAG_CARRY, old_carry);
+
+	return val;
+}
+
+NODISCARD static uint8_t alu_rr(struct agoge_core_cpu *const cpu, uint8_t val)
+{
+	val = alu_rr_op(cpu, val);
+	flag_zero_upd(cpu, val);
+
+	return val;
+}
+
 NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
 {
 	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
@@ -290,7 +312,9 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_CP_A_U8] = &&cp_a_u8
 	};
 
-	static const void *const cb_tbl[] = { [CPU_OP_SRL_B] = &&srl_b };
+	static const void *const cb_tbl[] = {
+		[CPU_OP_RR_C] = &&rr_c, [CPU_OP_SRL_B] = &&srl_b
+	};
 
 	uint8_t instr;
 	unsigned int steps = run_cycles;
@@ -479,6 +503,10 @@ ret:
 prefix_cb:
 	instr = read_u8(cpu);
 	goto *cb_tbl[instr];
+
+rr_c:
+	cpu->reg.c = alu_rr(cpu, cpu->reg.c);
+	DISPATCH();
 
 srl_b:
 	cpu->reg.b = alu_srl(cpu, cpu->reg.b);

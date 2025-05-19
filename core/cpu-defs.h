@@ -83,6 +83,7 @@
 #define CPU_OP_LD_A_MEM_U16 (UINT8_C(0xFA))
 #define CPU_OP_CP_A_U8 (UINT8_C(0xFE))
 
+#define CPU_OP_RR_C (UINT8_C(0x19))
 #define CPU_OP_SRL_B (UINT8_C(0x38))
 
 #define CPU_PWRUP_REG_PC (UINT16_C(0x0100))
