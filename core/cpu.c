@@ -311,6 +311,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_CALL_NZ_U16] = &&call_nz_u16,
 		[CPU_OP_PUSH_BC] = &&push_bc,
 		[CPU_OP_ADD_A_U8] = &&add_a_u8,
+		[CPU_OP_RET_Z] = &&ret_z,
 		[CPU_OP_RET] = &&ret,
 		[CPU_OP_PREFIX_CB] = &&prefix_cb,
 		[CPU_OP_CALL_U16] = &&call_u16,
@@ -565,6 +566,10 @@ push_bc:
 
 add_a_u8:
 	alu_add(cpu, read_u8(cpu));
+	DISPATCH();
+
+ret_z:
+	ret_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
 	DISPATCH();
 
 ret:
