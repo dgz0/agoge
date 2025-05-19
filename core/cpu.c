@@ -123,6 +123,11 @@ static void alu_add(struct agoge_core_cpu *const cpu, const uint8_t val)
 	alu_add_op(cpu, val, 0);
 }
 
+static void alu_sub(struct agoge_core_cpu *const cpu, const uint8_t val)
+{
+	cpu->reg.a = alu_sub_op(cpu, val, 0);
+}
+
 static void alu_cp(struct agoge_core_cpu *const cpu, const uint8_t val)
 {
 	(void)alu_sub_op(cpu, val, 0);
@@ -249,6 +254,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_ADD_A_U8] = &&add_a_u8,
 		[CPU_OP_RET] = &&ret,
 		[CPU_OP_CALL_U16] = &&call_u16,
+		[CPU_OP_SUB_A_U8] = &&sub_a_u8,
 		[CPU_OP_LD_MEM_FF00_U8_A] = &&ld_mem_ff00_u8_a,
 		[CPU_OP_POP_HL] = &&pop_hl,
 		[CPU_OP_PUSH_HL] = &&push_hl,
@@ -420,6 +426,10 @@ ret:
 
 call_u16:
 	call_if(cpu, true);
+	DISPATCH();
+
+sub_a_u8:
+	alu_sub(cpu, read_u8(cpu));
 	DISPATCH();
 
 ld_mem_ff00_u8_a:
