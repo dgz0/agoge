@@ -123,6 +123,18 @@ NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
 	return val;
 }
 
+static void alu_add_hl(struct agoge_core_cpu *const cpu, const uint16_t val)
+{
+	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
+
+	const unsigned int sum = cpu->reg.hl + val;
+
+	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.hl ^ val ^ sum) & 0x1000);
+	flag_upd(cpu, CPU_FLAG_CARRY, sum > UINT16_MAX);
+
+	cpu->reg.hl = sum;
+}
+
 static void alu_add_op(struct agoge_core_cpu *const cpu, const uint8_t val,
 		       const bool carry)
 {
@@ -278,6 +290,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_DEC_H] = &&dec_h,
 		[CPU_OP_LD_H_U8] = &&ld_h_u8,
 		[CPU_OP_JR_Z_S8] = &&jr_z_s8,
+		[CPU_OP_ADD_HL_HL] = &&add_hl_hl,
 		[CPU_OP_LDI_A_MEM_HL] = &&ldi_a_mem_hl,
 		[CPU_OP_INC_L] = &&inc_l,
 		[CPU_OP_DEC_L] = &&dec_l,
@@ -439,6 +452,10 @@ ld_h_u8:
 
 jr_z_s8:
 	jr_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
+	DISPATCH();
+
+add_hl_hl:
+	alu_add_hl(cpu, cpu->reg.hl);
 	DISPATCH();
 
 ldi_a_mem_hl:
