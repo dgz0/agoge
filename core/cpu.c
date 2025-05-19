@@ -482,6 +482,10 @@ ld_e_a:
 	cpu->reg.e = cpu->reg.a;
 	DISPATCH();
 
+ld_mem_hl_c:
+	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.c);
+	DISPATCH();
+
 ld_mem_hl_d:
 	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.d);
 	DISPATCH();
