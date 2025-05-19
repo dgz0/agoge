@@ -79,6 +79,7 @@
 #define CPU_OP_PUSH_HL (UINT8_C(0xE5))
 #define CPU_OP_AND_A_U8 (UINT8_C(0xE6))
 #define CPU_OP_LD_MEM_U16_A (UINT8_C(0xEA))
+#define CPU_OP_XOR_A_U8 (UINT8_C(0xEE))
 #define CPU_OP_LD_A_MEM_FF00_U8 (UINT8_C(0xF0))
 #define CPU_OP_POP_AF (UINT8_C(0xF1))
 #define CPU_OP_DI (UINT8_C(0xF3))
