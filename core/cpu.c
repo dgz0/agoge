@@ -326,6 +326,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_OR_A_C] = &&or_a_c,
 		[CPU_OP_OR_A_MEM_HL] = &&or_a_mem_hl,
 		[CPU_OP_OR_A_A] = &&or_a_a,
+		[CPU_OP_CP_A_E] = &&cp_a_e,
 		[CPU_OP_POP_BC] = &&pop_bc,
 		[CPU_OP_JP_NZ_U16] = &&jp_nz_u16,
 		[CPU_OP_JP_U16] = &&jp_u16,
@@ -603,6 +604,10 @@ or_a_mem_hl:
 
 or_a_a:
 	alu_or(cpu, cpu->reg.a);
+	DISPATCH();
+
+cp_a_e:
+	alu_cp(cpu, cpu->reg.e);
 	DISPATCH();
 
 pop_bc:
