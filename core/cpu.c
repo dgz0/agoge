@@ -270,6 +270,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_NOP] = &&nop,
 		[CPU_OP_LD_BC_U16] = &&ld_bc_u16,
 		[CPU_OP_INC_BC] = &&inc_bc,
+		[CPU_OP_INC_B] = &&inc_b,
 		[CPU_OP_DEC_B] = &&dec_b,
 		[CPU_OP_LD_B_U8] = &&ld_b_u8,
 		[CPU_OP_DEC_C] = &&dec_c,
@@ -375,6 +376,10 @@ ld_bc_u16:
 
 inc_bc:
 	cpu->reg.bc++;
+	DISPATCH();
+
+inc_b:
+	cpu->reg.b = alu_inc(cpu, cpu->reg.b);
 	DISPATCH();
 
 dec_b:
