@@ -81,6 +81,7 @@
 #define CPU_OP_RET (UINT8_C(0xC9))
 #define CPU_OP_PREFIX_CB (UINT8_C(0xCB))
 #define CPU_OP_CALL_U16 (UINT8_C(0xCD))
+#define CPU_OP_POP_DE (UINT8_C(0xD1))
 #define CPU_OP_PUSH_DE (UINT8_C(0xD5))
 #define CPU_OP_SUB_A_U8 (UINT8_C(0xD6))
 #define CPU_OP_LD_MEM_FF00_U8_A (UINT8_C(0xE0))
