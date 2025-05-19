@@ -67,6 +67,7 @@
 #define CPU_OP_PUSH_BC (UINT8_C(0xC5))
 #define CPU_OP_ADD_A_U8 (UINT8_C(0xC6))
 #define CPU_OP_RET (UINT8_C(0xC9))
+#define CPU_OP_PREFIX_CB (UINT8_C(0xCB))
 #define CPU_OP_CALL_U16 (UINT8_C(0xCD))
 #define CPU_OP_PUSH_DE (UINT8_C(0xD5))
 #define CPU_OP_SUB_A_U8 (UINT8_C(0xD6))
@@ -81,6 +82,8 @@
 #define CPU_OP_PUSH_AF (UINT8_C(0xF5))
 #define CPU_OP_LD_A_MEM_U16 (UINT8_C(0xFA))
 #define CPU_OP_CP_A_U8 (UINT8_C(0xFE))
+
+#define CPU_OP_SRL_B (UINT8_C(0x38))
 
 #define CPU_PWRUP_REG_PC (UINT16_C(0x0100))
 
