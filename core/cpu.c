@@ -312,9 +312,9 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_CP_A_U8] = &&cp_a_u8
 	};
 
-	static const void *const cb_tbl[] = {
-		[CPU_OP_RR_C] = &&rr_c, [CPU_OP_SRL_B] = &&srl_b
-	};
+	static const void *const cb_tbl[] = { [CPU_OP_RR_C] = &&rr_c,
+					      [CPU_OP_RR_D] = &&rr_d,
+					      [CPU_OP_SRL_B] = &&srl_b };
 
 	uint8_t instr;
 	unsigned int steps = run_cycles;
@@ -506,6 +506,10 @@ prefix_cb:
 
 rr_c:
 	cpu->reg.c = alu_rr(cpu, cpu->reg.c);
+	DISPATCH();
+
+rr_d:
+	cpu->reg.d = alu_rr(cpu, cpu->reg.d);
 	DISPATCH();
 
 srl_b:
