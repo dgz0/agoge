@@ -50,6 +50,7 @@
 #define CPU_OP_LD_A_U8 (UINT8_C(0x3E))
 #define CPU_OP_LD_B_MEM_HL (UINT8_C(0x46))
 #define CPU_OP_LD_B_A (UINT8_C(0x47))
+#define CPU_OP_LD_C_MEM_HL (UINT8_C(0x4E))
 #define CPU_OP_LD_MEM_HL_A (UINT8_C(0x77))
 #define CPU_OP_LD_A_B (UINT8_C(0x78))
 #define CPU_OP_LD_A_H (UINT8_C(0x7C))
