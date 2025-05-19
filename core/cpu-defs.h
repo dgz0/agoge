@@ -62,6 +62,7 @@
 #define CPU_OP_LD_A_B (UINT8_C(0x78))
 #define CPU_OP_LD_A_C (UINT8_C(0x79))
 #define CPU_OP_LD_A_D (UINT8_C(0x7A))
+#define CPU_OP_LD_A_E (UINT8_C(0x7B))
 #define CPU_OP_LD_A_H (UINT8_C(0x7C))
 #define CPU_OP_LD_A_L (UINT8_C(0x7D))
 #define CPU_OP_XOR_A_C (UINT8_C(0xA9))
