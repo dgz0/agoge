@@ -167,15 +167,16 @@ void agoge_core_disasm_single(struct agoge_core_disasm *const disasm,
 			      const uint16_t addr)
 {
 	uint8_t instr = agoge_core_bus_peek(disasm->bus, addr);
-	LOG_TRACE(disasm->log, "instr = $%02X", instr);
 
 	const struct disasm_entry *entry;
 
 	if (instr == 0xCB) {
 		instr = agoge_core_bus_peek(disasm->bus, addr + 1);
 		entry = &cb_tbl[instr];
+		LOG_TRACE(disasm->log, "$CB instr = $%02X", instr);
 	} else {
 		entry = &op_tbl[instr];
+		LOG_TRACE(disasm->log, "instr = $%02X", instr);
 	}
 
 	memset(&disasm->res, 0, sizeof(disasm->res));
