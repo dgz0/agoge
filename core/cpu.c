@@ -491,6 +491,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_RST_18]			= &&rst_18,
 		[CPU_OP_LD_MEM_FF00_U8_A]	= &&ld_mem_ff00_u8_a,
 		[CPU_OP_POP_HL]			= &&pop_hl,
+		[CPU_OP_LD_MEM_FF00_C_A]	= &&ld_mem_ff00_c_a,
 		[CPU_OP_PUSH_HL]		= &&push_hl,
 		[CPU_OP_AND_A_U8]		= &&and_a_u8,
 		[CPU_OP_RST_20]			= &&rst_20,
@@ -1192,6 +1193,10 @@ ld_mem_ff00_u8_a:
 
 pop_hl:
 	cpu->reg.hl = stack_pop(cpu);
+	DISPATCH();
+
+ld_mem_ff00_c_a:
+	agoge_core_bus_write(cpu->bus, 0xFF00 + cpu->reg.c, cpu->reg.a);
 	DISPATCH();
 
 push_hl:
