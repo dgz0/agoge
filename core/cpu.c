@@ -346,6 +346,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_INC_SP] = &&inc_sp,
 		[CPU_OP_DEC_MEM_HL] = &&dec_mem_hl,
 		[CPU_OP_JR_C_S8] = &&jr_c_s8,
+		[CPU_OP_DEC_SP] = &&dec_sp,
 		[CPU_OP_INC_A] = &&inc_a,
 		[CPU_OP_DEC_A] = &&dec_a,
 		[CPU_OP_LD_A_U8] = &&ld_a_u8,
@@ -600,6 +601,10 @@ dec_mem_hl:
 
 jr_c_s8:
 	jr_if(cpu, cpu->reg.f & CPU_FLAG_CARRY);
+	DISPATCH();
+
+dec_sp:
+	cpu->reg.sp--;
 	DISPATCH();
 
 inc_a:
