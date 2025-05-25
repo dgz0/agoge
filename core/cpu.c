@@ -462,6 +462,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_ADD_A_U8]		= &&add_a_u8,
 		[CPU_OP_RET_Z]			= &&ret_z,
 		[CPU_OP_RET]			= &&ret,
+		[CPU_OP_JP_Z_U16]		= &&jp_z_u16,
 		[CPU_OP_PREFIX_CB]		= &&prefix_cb,
 		[CPU_OP_CALL_U16]		= &&call_u16,
 		[CPU_OP_ADC_A_U8]		= &&adc_a_u8,
@@ -1056,6 +1057,10 @@ ret_z:
 
 ret:
 	ret_if(cpu, true);
+	DISPATCH();
+
+jp_z_u16:
+	jp_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
 	DISPATCH();
 
 prefix_cb:

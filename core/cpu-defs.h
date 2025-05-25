@@ -160,6 +160,7 @@
 #define CPU_OP_ADD_A_U8		(UINT8_C(0xC6))
 #define CPU_OP_RET_Z		(UINT8_C(0xC8))
 #define CPU_OP_RET		(UINT8_C(0xC9))
+#define CPU_OP_JP_Z_U16		(UINT8_C(0xCA))
 #define CPU_OP_PREFIX_CB	(UINT8_C(0xCB))
 #define CPU_OP_CALL_U16		(UINT8_C(0xCD))
 #define CPU_OP_ADC_A_U8		(UINT8_C(0xCE))
