@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <string.h>
+
 #include "bus.h"
 #include "cart.h"
 #include "log.h"
@@ -28,6 +30,7 @@ void agoge_core_bus_init(struct agoge_core_bus *const bus,
 			 struct agoge_core_log *const log)
 {
 	bus->log = log;
+	memset(&bus->serial, 0, sizeof(bus->serial));
 
 	agoge_core_cart_init(&bus->cart, bus->log);
 	LOG_INFO(bus->log, "initialized");
@@ -65,7 +68,9 @@ void agoge_core_bus_write(struct agoge_core_bus *const bus, const uint16_t addr,
 {
 	static const void *const jmp_tbl[] = { [0x0000 ... 0xBFFF] = &&unknown,
 					       [0xC000 ... 0xDFFF] = &&wram,
-					       [0xE000 ... 0xFFFF] =
+					       [0xE000 ... 0xFF00] = &&unknown,
+					       [0xFF01] = &&serial_write,
+					       [0xFF02 ... 0xFFFF] =
 						       &&unknown };
 
 	goto *jmp_tbl[addr];
@@ -77,6 +82,15 @@ unknown:
 
 wram:
 	bus->wram[addr - 0xC000] = data;
+	return;
+
+serial_write:
+	bus->serial.data[bus->serial.data_size++] = data;
+
+	if (data == '\n') {
+		LOG_TRACE(bus->log, "Serial output: %s", bus->serial.data);
+		memset(&bus->serial, 0, sizeof(bus->serial));
+	}
 	return;
 }
 

@@ -30,6 +30,7 @@ extern "C" {
 #include "log.h"
 
 #define AGOGE_CORE_BUS_WRAM_SIZE (8192)
+#define AGOGE_CORE_BUS_SERIAL_SIZE (128)
 
 /// Defines the system bus contents.
 struct agoge_core_bus {
@@ -40,6 +41,11 @@ struct agoge_core_bus {
 
 	/// The cartridge instance to use for this context.
 	struct agoge_core_cart cart;
+
+	struct {
+		char data[AGOGE_CORE_BUS_SERIAL_SIZE];
+		size_t data_size;
+	} serial;
 };
 
 /// @brief Retrieves a byte from an emulated memory address without interfering

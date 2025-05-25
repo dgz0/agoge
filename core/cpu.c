@@ -745,7 +745,7 @@ ld_a_mem_ff00_u8:
 	DISPATCH();
 
 pop_af:
-	cpu->reg.af = stack_pop(cpu);
+	cpu->reg.af = stack_pop(cpu) & ~0x0F;
 	DISPATCH();
 
 di:
