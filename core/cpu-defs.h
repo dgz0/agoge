@@ -31,6 +31,7 @@
 #define CPU_OP_DEC_B		(UINT8_C(0x05))
 #define CPU_OP_LD_B_U8		(UINT8_C(0x06))
 #define CPU_OP_LD_MEM_U16_SP	(UINT8_C(0x08))
+#define CPU_OP_ADD_HL_BC	(UINT8_C(0x09))
 #define CPU_OP_DEC_BC		(UINT8_C(0x0B))
 #define CPU_OP_INC_C		(UINT8_C(0x0C))
 #define CPU_OP_DEC_C		(UINT8_C(0x0D))
