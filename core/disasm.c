@@ -207,12 +207,14 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_DI] = { .op = OP_NONE, .fmt = "DI" },
 	[CPU_OP_PUSH_AF] = { .op = OP_NONE, .fmt = "PUSH AF" },
 	[CPU_OP_OR_A_U8] = { .op = OP_U8, .fmt = "OR A, $%02X" },
+	[CPU_OP_RST_30] = { .op = OP_NONE, .fmt = "RST $30" },
 	[CPU_OP_LD_HL_SP_S8] = { .op = OP_S8, .fmt = "LD HL, SP+%d" },
 	[CPU_OP_LD_SP_HL] = { .op = OP_NONE, .fmt = "LD SP, HL" },
 	[CPU_OP_LD_A_MEM_U16] = { .op = OP_U16, .fmt = "LD A, ($%04X)" },
 	[CPU_OP_XOR_A_U8] = { .op = OP_U8, .fmt = "XOR A, $%02X" },
 	[CPU_OP_RST_28] = { .op = OP_NONE, .fmt = "RST $28" },
-	[CPU_OP_CP_A_U8] = { .op = OP_U8, .fmt = "CP A, $%02X" }
+	[CPU_OP_CP_A_U8] = { .op = OP_U8, .fmt = "CP A, $%02X" },
+	[CPU_OP_RST_38] = { .op = OP_NONE, .fmt = "RST $38" },
 };
 
 static const struct disasm_entry cb_tbl[] = {

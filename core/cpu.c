@@ -504,10 +504,12 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_DI]			= &&di,
 		[CPU_OP_PUSH_AF]		= &&push_af,
 		[CPU_OP_OR_A_U8]		= &&or_a_u8,
+		[CPU_OP_RST_30]			= &&rst_30,
 		[CPU_OP_LD_HL_SP_S8]		= &&ld_hl_sp_s8,
 		[CPU_OP_LD_SP_HL]		= &&ld_sp_hl,
 		[CPU_OP_LD_A_MEM_U16]		= &&ld_a_mem_u16,
-		[CPU_OP_CP_A_U8]		= &&cp_a_u8
+		[CPU_OP_CP_A_U8]		= &&cp_a_u8,
+		[CPU_OP_RST_38]			= &&rst_38
 
 		// clang-format on
 	};
@@ -1242,6 +1244,10 @@ or_a_u8:
 	alu_or(cpu, read_u8(cpu));
 	DISPATCH();
 
+rst_30:
+	rst(cpu, 0x0030);
+	DISPATCH();
+
 ld_hl_sp_s8:
 	cpu->reg.hl = alu_add_sp(cpu);
 	DISPATCH();
@@ -1256,5 +1262,9 @@ ld_a_mem_u16:
 
 cp_a_u8:
 	alu_cp(cpu, read_u8(cpu));
+	DISPATCH();
+
+rst_38:
+	rst(cpu, 0x0038);
 	DISPATCH();
 }

@@ -196,10 +196,12 @@
 #define CPU_OP_DI		(UINT8_C(0xF3))
 #define CPU_OP_PUSH_AF		(UINT8_C(0xF5))
 #define CPU_OP_OR_A_U8		(UINT8_C(0xF6))
+#define CPU_OP_RST_30		(UINT8_C(0xF7))
 #define CPU_OP_LD_HL_SP_S8	(UINT8_C(0xF8))
 #define CPU_OP_LD_SP_HL		(UINT8_C(0xF9))
 #define CPU_OP_LD_A_MEM_U16	(UINT8_C(0xFA))
 #define CPU_OP_CP_A_U8		(UINT8_C(0xFE))
+#define CPU_OP_RST_38		(UINT8_C(0xFF))
 
 #define CPU_OP_RR_C	(UINT8_C(0x19))
 #define CPU_OP_RR_D	(UINT8_C(0x1A))
