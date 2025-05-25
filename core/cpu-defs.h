@@ -110,6 +110,7 @@
 #define CPU_OP_LD_E_MEM_HL	(UINT8_C(0x5E))
 #define CPU_OP_LD_E_A		(UINT8_C(0x5F))
 #define CPU_OP_LD_H_B		(UINT8_C(0x60))
+#define CPU_OP_LD_H_C		(UINT8_C(0x61))
 #define CPU_OP_LD_H_D		(UINT8_C(0x62))
 #define CPU_OP_LD_H_MEM_HL	(UINT8_C(0x66))
 #define CPU_OP_LD_H_A		(UINT8_C(0x67))
