@@ -498,6 +498,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_JP_HL]			= &&jp_hl,
 		[CPU_OP_LD_MEM_U16_A]		= &&ld_mem_u16_a,
 		[CPU_OP_XOR_A_U8]		= &&xor_a_u8,
+		[CPU_OP_RST_28]			= &&rst_28,
 		[CPU_OP_LD_A_MEM_FF00_U8]	= &&ld_a_mem_ff00_u8,
 		[CPU_OP_POP_AF]			= &&pop_af,
 		[CPU_OP_DI]			= &&di,
@@ -1216,6 +1217,10 @@ ld_mem_u16_a:
 
 xor_a_u8:
 	alu_xor(cpu, read_u8(cpu));
+	DISPATCH();
+
+rst_28:
+	rst(cpu, 0x0028);
 	DISPATCH();
 
 ld_a_mem_ff00_u8:
