@@ -88,6 +88,7 @@
 #define CPU_OP_OR_A_C (UINT8_C(0xB1))
 #define CPU_OP_OR_A_MEM_HL (UINT8_C(0xB6))
 #define CPU_OP_OR_A_A (UINT8_C(0xB7))
+#define CPU_OP_CP_A_C (UINT8_C(0xB9))
 #define CPU_OP_CP_A_D (UINT8_C(0xBA))
 #define CPU_OP_CP_A_E (UINT8_C(0xBB))
 #define CPU_OP_POP_BC (UINT8_C(0xC1))
