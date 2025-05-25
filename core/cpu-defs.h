@@ -180,6 +180,7 @@
 #define CPU_OP_JP_C_U16		(UINT8_C(0xDA))
 #define CPU_OP_CALL_C_U16	(UINT8_C(0xDC))
 #define CPU_OP_SBC_A_U8		(UINT8_C(0xDE))
+#define CPU_OP_RST_18		(UINT8_C(0xDF))
 #define CPU_OP_LD_MEM_FF00_U8_A	(UINT8_C(0xE0))
 #define CPU_OP_POP_HL		(UINT8_C(0xE1))
 #define CPU_OP_PUSH_HL		(UINT8_C(0xE5))
