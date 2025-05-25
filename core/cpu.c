@@ -239,6 +239,37 @@ static void alu_xor(struct agoge_core_cpu *const cpu, const uint8_t val)
 	cpu->reg.f = (!cpu->reg.a) ? CPU_FLAG_ZERO : 0x00;
 }
 
+static void op_daa(struct agoge_core_cpu *const cpu)
+{
+	uint8_t val = 0;
+
+	if (cpu->reg.f & CPU_FLAG_HALF_CARRY) {
+		val |= 0x06;
+	}
+
+	if (cpu->reg.f & CPU_FLAG_CARRY) {
+		val |= 0x60;
+	}
+
+	if (!(cpu->reg.f & CPU_FLAG_SUBTRACT)) {
+		if ((cpu->reg.a & 0x0F) > 0x09) {
+			val |= 0x06;
+		}
+
+		if (cpu->reg.a > 0x99) {
+			val |= 0x60;
+		}
+		cpu->reg.a += val;
+	} else {
+		cpu->reg.a -= val;
+	}
+
+	flag_zero_upd(cpu, cpu->reg.a);
+	flag_upd(cpu, CPU_FLAG_CARRY, val & 0x60);
+
+	cpu->reg.f &= ~CPU_FLAG_HALF_CARRY;
+}
+
 void agoge_core_cpu_init(struct agoge_core_cpu *const cpu,
 			 struct agoge_core_bus *const bus,
 			 struct agoge_core_log *const log)
@@ -292,6 +323,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_INC_H] = &&inc_h,
 		[CPU_OP_DEC_H] = &&dec_h,
 		[CPU_OP_LD_H_U8] = &&ld_h_u8,
+		[CPU_OP_DAA] = &&daa,
 		[CPU_OP_JR_Z_S8] = &&jr_z_s8,
 		[CPU_OP_ADD_HL_HL] = &&add_hl_hl,
 		[CPU_OP_LDI_A_MEM_HL] = &&ldi_a_mem_hl,
@@ -471,6 +503,10 @@ dec_h:
 
 ld_h_u8:
 	cpu->reg.h = read_u8(cpu);
+	DISPATCH();
+
+daa:
+	op_daa(cpu);
 	DISPATCH();
 
 jr_z_s8:
