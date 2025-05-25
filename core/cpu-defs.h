@@ -170,6 +170,7 @@
 #define CPU_OP_PUSH_DE		(UINT8_C(0xD5))
 #define CPU_OP_SUB_A_U8		(UINT8_C(0xD6))
 #define CPU_OP_RET_C		(UINT8_C(0xD8))
+#define CPU_OP_JP_C_U16		(UINT8_C(0xDA))
 #define CPU_OP_SBC_A_U8		(UINT8_C(0xDE))
 #define CPU_OP_LD_MEM_FF00_U8_A	(UINT8_C(0xE0))
 #define CPU_OP_POP_HL		(UINT8_C(0xE1))
