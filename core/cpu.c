@@ -358,6 +358,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LDD_MEM_HL_A] = &&ldd_mem_hl_a,
 		[CPU_OP_INC_SP] = &&inc_sp,
 		[CPU_OP_DEC_MEM_HL] = &&dec_mem_hl,
+		[CPU_OP_LD_MEM_HL_U8] = &&ld_mem_hl_u8,
 		[CPU_OP_JR_C_S8] = &&jr_c_s8,
 		[CPU_OP_ADD_HL_SP] = &&add_hl_sp,
 		[CPU_OP_DEC_SP] = &&dec_sp,
@@ -613,6 +614,10 @@ dec_mem_hl:
 	u8 = alu_dec(cpu, u8);
 	agoge_core_bus_write(cpu->bus, cpu->reg.hl, u8);
 
+	DISPATCH();
+
+ld_mem_hl_u8:
+	agoge_core_bus_write(cpu->bus, cpu->reg.hl, read_u8(cpu));
 	DISPATCH();
 
 jr_c_s8:
