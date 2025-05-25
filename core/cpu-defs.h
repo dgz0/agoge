@@ -85,6 +85,7 @@
 #define CPU_OP_LD_B_L		(UINT8_C(0x45))
 #define CPU_OP_LD_B_MEM_HL	(UINT8_C(0x46))
 #define CPU_OP_LD_B_A		(UINT8_C(0x47))
+#define CPU_OP_LD_C_B		(UINT8_C(0x48))
 #define CPU_OP_LD_C_MEM_HL	(UINT8_C(0x4E))
 #define CPU_OP_LD_C_A		(UINT8_C(0x4F))
 #define CPU_OP_LD_D_MEM_HL	(UINT8_C(0x56))
