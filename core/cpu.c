@@ -412,6 +412,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 
 	static const void *const cb_tbl[] = { [CPU_OP_RR_C] = &&rr_c,
 					      [CPU_OP_RR_D] = &&rr_d,
+					      [CPU_OP_RR_E] = &&rr_e,
 					      [CPU_OP_SWAP_A] = &&swap_a,
 					      [CPU_OP_SRL_B] = &&srl_b };
 
@@ -760,6 +761,10 @@ rr_c:
 
 rr_d:
 	cpu->reg.d = alu_rr(cpu, cpu->reg.d);
+	DISPATCH();
+
+rr_e:
+	cpu->reg.e = alu_rr(cpu, cpu->reg.e);
 	DISPATCH();
 
 swap_a:
