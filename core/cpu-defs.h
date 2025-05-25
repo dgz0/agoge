@@ -59,6 +59,7 @@
 #define CPU_OP_JR_NC_S8 (UINT8_C(0x30))
 #define CPU_OP_LD_SP_U16 (UINT8_C(0x31))
 #define CPU_OP_LDD_MEM_HL_A (UINT8_C(0x32))
+#define CPU_OP_INC_SP (UINT8_C(0x33))
 #define CPU_OP_DEC_MEM_HL (UINT8_C(0x35))
 #define CPU_OP_JR_C_S8 (UINT8_C(0x38))
 #define CPU_OP_INC_A (UINT8_C(0x3C))
