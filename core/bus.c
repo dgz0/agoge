@@ -44,7 +44,9 @@ uint8_t agoge_core_bus_read(struct agoge_core_bus *const bus,
 		[0x4000 ... 0x7FFF] = &&banked_rom_read,
 		[0x8000 ... 0xBFFF] = &&unknown,
 		[0xC000 ... 0xDFFF] = &&wram,
-		[0xE000 ... 0xFFFF] = &&unknown
+		[0xE000 ... 0xFF7F] = &&unknown,
+		[0xFF80 ... 0xFFFE] = &&hram,
+		[0xFFFF] = &&unknown
 	};
 
 	goto *jmp_tbl[addr];
@@ -58,6 +60,9 @@ banked_rom_read:
 wram:
 	return bus->wram[addr - 0xC000];
 
+hram:
+	return bus->hram[addr - 0xFF80];
+
 unknown:
 	LOG_WARN(bus->log, "Unknown memory read: $%04X, returning $FF", addr);
 	return 0xFF;
@@ -70,8 +75,9 @@ void agoge_core_bus_write(struct agoge_core_bus *const bus, const uint16_t addr,
 					       [0xC000 ... 0xDFFF] = &&wram,
 					       [0xE000 ... 0xFF00] = &&unknown,
 					       [0xFF01] = &&serial_write,
-					       [0xFF02 ... 0xFFFF] =
-						       &&unknown };
+					       [0xFF02 ... 0xFF7F] = &&unknown,
+					       [0xFF80 ... 0xFFFE] = &&hram,
+					       [0xFFFF] = &&unknown };
 
 	goto *jmp_tbl[addr];
 
@@ -82,6 +88,10 @@ unknown:
 
 wram:
 	bus->wram[addr - 0xC000] = data;
+	return;
+
+hram:
+	bus->hram[addr - 0xFF80] = data;
 	return;
 
 serial_write:
