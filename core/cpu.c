@@ -312,6 +312,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_INC_B] = &&inc_b,
 		[CPU_OP_DEC_B] = &&dec_b,
 		[CPU_OP_LD_B_U8] = &&ld_b_u8,
+		[CPU_OP_LD_MEM_U16_SP] = &&ld_mem_u16_sp,
 		[CPU_OP_INC_C] = &&inc_c,
 		[CPU_OP_DEC_C] = &&dec_c,
 		[CPU_OP_LD_C_U8] = &&ld_c_u8,
@@ -419,8 +420,9 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 					      [CPU_OP_SRL_B] = &&srl_b };
 
 	uint8_t instr, u8;
-	unsigned int steps = run_cycles;
+	uint16_t u16;
 
+	unsigned int steps = run_cycles;
 	DISPATCH();
 
 nop:
@@ -444,6 +446,14 @@ dec_b:
 
 ld_b_u8:
 	cpu->reg.b = read_u8(cpu);
+	DISPATCH();
+
+ld_mem_u16_sp:
+	u16 = read_u16(cpu);
+
+	agoge_core_bus_write(cpu->bus, u16 + 0, cpu->reg.sp & UINT8_MAX);
+	agoge_core_bus_write(cpu->bus, u16 + 1, cpu->reg.sp >> 8);
+
 	DISPATCH();
 
 inc_c:
