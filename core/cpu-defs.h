@@ -71,6 +71,7 @@
 #define CPU_OP_INC_SP		(UINT8_C(0x33))
 #define CPU_OP_DEC_MEM_HL	(UINT8_C(0x35))
 #define CPU_OP_LD_MEM_HL_U8	(UINT8_C(0x36))
+#define CPU_OP_SCF		(UINT8_C(0x37))
 #define CPU_OP_JR_C_S8		(UINT8_C(0x38))
 #define CPU_OP_ADD_HL_SP	(UINT8_C(0x39))
 #define CPU_OP_DEC_SP		(UINT8_C(0x3B))
