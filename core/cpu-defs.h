@@ -96,6 +96,7 @@
 #define CPU_OP_XOR_A_L (UINT8_C(0xAD))
 #define CPU_OP_XOR_A_MEM_HL (UINT8_C(0xAE))
 #define CPU_OP_XOR_A_A (UINT8_C(0xAF))
+#define CPU_OP_OR_A_B (UINT8_C(0xB0))
 #define CPU_OP_OR_A_C (UINT8_C(0xB1))
 #define CPU_OP_OR_A_MEM_HL (UINT8_C(0xB6))
 #define CPU_OP_OR_A_A (UINT8_C(0xB7))
