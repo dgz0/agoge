@@ -168,6 +168,7 @@
 #define CPU_OP_RET_NC		(UINT8_C(0xD0))
 #define CPU_OP_POP_DE		(UINT8_C(0xD1))
 #define CPU_OP_JP_NC_U16	(UINT8_C(0xD2))
+#define CPU_OP_CALL_NC_U16	(UINT8_C(0xD4))
 #define CPU_OP_PUSH_DE		(UINT8_C(0xD5))
 #define CPU_OP_SUB_A_U8		(UINT8_C(0xD6))
 #define CPU_OP_RET_C		(UINT8_C(0xD8))
