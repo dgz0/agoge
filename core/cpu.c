@@ -407,6 +407,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_LD_E_C]			= &&ld_e_c,
 		[CPU_OP_LD_E_D]			= &&ld_e_d,
 		[CPU_OP_LD_E_E]			= &&ld_e_e,
+		[CPU_OP_LD_E_H]			= &&ld_e_h,
 		[CPU_OP_LD_E_L]			= &&ld_e_l,
 		[CPU_OP_LD_E_MEM_HL]		= &&ld_e_mem_hl,
 		[CPU_OP_LD_E_A]			= &&ld_e_a,
@@ -822,6 +823,10 @@ ld_e_d:
 
 ld_e_e:
 	cpu->reg.e = cpu->reg.e;
+	DISPATCH();
+
+ld_e_h:
+	cpu->reg.e = cpu->reg.h;
 	DISPATCH();
 
 ld_e_l:
