@@ -131,6 +131,19 @@ NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
 	return val;
 }
 
+NODISCARD static uint16_t alu_add_sp(struct agoge_core_cpu *const cpu)
+{
+	cpu->reg.f &= ~(CPU_FLAG_ZERO | CPU_FLAG_SUBTRACT);
+	const int8_t s8 = (int8_t)read_u8(cpu);
+
+	const int sum = cpu->reg.sp + s8;
+
+	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.sp ^ s8 ^ sum) & 0x10);
+	flag_upd(cpu, CPU_FLAG_CARRY, (cpu->reg.sp ^ s8 ^ sum) & 0x100);
+
+	return sum;
+}
+
 static void alu_add_hl(struct agoge_core_cpu *const cpu, const uint16_t val)
 {
 	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
@@ -410,6 +423,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_POP_HL] = &&pop_hl,
 		[CPU_OP_PUSH_HL] = &&push_hl,
 		[CPU_OP_AND_A_U8] = &&and_a_u8,
+		[CPU_OP_ADD_SP_S8] = &&add_sp_s8,
 		[CPU_OP_JP_HL] = &&jp_hl,
 		[CPU_OP_LD_MEM_U16_A] = &&ld_mem_u16_a,
 		[CPU_OP_XOR_A_U8] = &&xor_a_u8,
@@ -878,6 +892,10 @@ push_hl:
 
 and_a_u8:
 	alu_and(cpu, read_u8(cpu));
+	DISPATCH();
+
+add_sp_s8:
+	cpu->reg.sp = alu_add_sp(cpu);
 	DISPATCH();
 
 jp_hl:

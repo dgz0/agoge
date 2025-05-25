@@ -50,12 +50,12 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_LD_MEM_DE_A] = { .op = OP_NONE, .fmt = "LD (DE), A" },
 	[CPU_OP_INC_DE] = { .op = OP_NONE, .fmt = "INC DE" },
 	[CPU_OP_INC_D] = { .op = OP_NONE, .fmt = "INC D" },
-	[CPU_OP_JR_S8] = { .op = OP_S8, .fmt = "JR $%04X" },
+	[CPU_OP_JR_S8] = { .op = OP_BRANCH, .fmt = "JR $%04X" },
 	[CPU_OP_LD_A_MEM_DE] = { .op = OP_NONE, .fmt = "LD A, (DE)" },
 	[CPU_OP_INC_E] = { .op = OP_NONE, .fmt = "INC E" },
 	[CPU_OP_DEC_E] = { .op = OP_NONE, .fmt = "DEC E" },
 	[CPU_OP_RRA] = { .op = OP_NONE, .fmt = "RRA" },
-	[CPU_OP_JR_NZ_S8] = { .op = OP_S8, .fmt = "JR NZ, $%04X" },
+	[CPU_OP_JR_NZ_S8] = { .op = OP_BRANCH, .fmt = "JR NZ, $%04X" },
 	[CPU_OP_LD_HL_U16] = { .op = OP_U16, .fmt = "LD HL, $%04X" },
 	[CPU_OP_LDI_MEM_HL_A] = { .op = OP_NONE, .fmt = "LDI (HL), A" },
 	[CPU_OP_INC_HL] = { .op = OP_NONE, .fmt = "INC HL" },
@@ -63,19 +63,19 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_DEC_H] = { .op = OP_NONE, .fmt = "DEC H" },
 	[CPU_OP_LD_H_U8] = { .op = OP_U8, .fmt = "LD H, $%02X" },
 	[CPU_OP_DAA] = { .op = OP_NONE, .fmt = "DAA" },
-	[CPU_OP_JR_Z_S8] = { .op = OP_S8, .fmt = "JR Z, $%04X" },
+	[CPU_OP_JR_Z_S8] = { .op = OP_BRANCH, .fmt = "JR Z, $%04X" },
 	[CPU_OP_ADD_HL_HL] = { .op = OP_NONE, .fmt = "ADD HL, HL" },
 	[CPU_OP_LDI_A_MEM_HL] = { .op = OP_NONE, .fmt = "LD A, (HL+)" },
 	[CPU_OP_INC_L] = { .op = OP_NONE, .fmt = "INC L" },
 	[CPU_OP_DEC_L] = { .op = OP_NONE, .fmt = "DEC L" },
 	[CPU_OP_LD_L_U8] = { .op = OP_U8, .fmt = "LD L, $%02X" },
 	[CPU_OP_CPL] = { .op = OP_NONE, .fmt = "CPL" },
-	[CPU_OP_JR_NC_S8] = { .op = OP_S8, .fmt = "JR NC, $%04X" },
+	[CPU_OP_JR_NC_S8] = { .op = OP_BRANCH, .fmt = "JR NC, $%04X" },
 	[CPU_OP_LD_SP_U16] = { .op = OP_U16, .fmt = "LD SP, $%04X" },
 	[CPU_OP_LDD_MEM_HL_A] = { .op = OP_NONE, .fmt = "LDD (HL), A" },
 	[CPU_OP_INC_SP] = { .op = OP_NONE, .fmt = "INC SP" },
 	[CPU_OP_DEC_MEM_HL] = { .op = OP_NONE, .fmt = "DEC (HL)" },
-	[CPU_OP_JR_C_S8] = { .op = OP_S8, .fmt = "JR C, $%04X" },
+	[CPU_OP_JR_C_S8] = { .op = OP_BRANCH, .fmt = "JR C, $%04X" },
 	[CPU_OP_ADD_HL_SP] = { .op = OP_NONE, .fmt = "ADD HL, SP" },
 	[CPU_OP_DEC_SP] = { .op = OP_NONE, .fmt = "DEC SP" },
 	[CPU_OP_INC_A] = { .op = OP_NONE, .fmt = "INC A" },
@@ -140,6 +140,7 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_POP_HL] = { .op = OP_NONE, .fmt = "POP HL" },
 	[CPU_OP_PUSH_HL] = { .op = OP_NONE, .fmt = "PUSH HL" },
 	[CPU_OP_AND_A_U8] = { .op = OP_NONE, .fmt = "AND A, $%02X" },
+	[CPU_OP_ADD_SP_S8] = { .op = OP_S8, .fmt = "ADD SP, %d" },
 	[CPU_OP_JP_HL] = { .op = OP_NONE, .fmt = "JP (HL)" },
 	[CPU_OP_LD_MEM_U16_A] = { .op = OP_U16, .fmt = "LD ($%04X), A" },
 	[CPU_OP_LD_A_MEM_FF00_U8] = { .op = OP_U8,
@@ -183,7 +184,8 @@ static void format_instr(struct agoge_core_disasm *const disasm,
 	static const void *const jmp_tbl[] = { [OP_NONE] = &&op_none,
 					       [OP_U8] = &&op_u8,
 					       [OP_U16] = &&op_u16,
-					       [OP_S8] = &&op_s8 };
+					       [OP_S8] = &&op_s8,
+					       [OP_BRANCH] = &&op_branch };
 
 	goto *jmp_tbl[entry->op];
 
@@ -205,6 +207,12 @@ op_u16:
 	return;
 
 op_s8:
+	disasm->res.len =
+		sprintf(disasm->res.str, entry->fmt, (int8_t)read_u8(disasm));
+
+	return;
+
+op_branch:
 	disasm->res.len =
 		sprintf(disasm->res.str, entry->fmt,
 			((int8_t)read_u8(disasm)) + disasm->res.addr + 2);

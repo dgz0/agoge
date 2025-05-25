@@ -126,6 +126,7 @@
 #define CPU_OP_POP_HL (UINT8_C(0xE1))
 #define CPU_OP_PUSH_HL (UINT8_C(0xE5))
 #define CPU_OP_AND_A_U8 (UINT8_C(0xE6))
+#define CPU_OP_ADD_SP_S8 (UINT8_C(0xE8))
 #define CPU_OP_JP_HL (UINT8_C(0xE9))
 #define CPU_OP_LD_MEM_U16_A (UINT8_C(0xEA))
 #define CPU_OP_XOR_A_U8 (UINT8_C(0xEE))
