@@ -151,6 +151,7 @@
 #define CPU_OP_OR_A_D		(UINT8_C(0xB2))
 #define CPU_OP_OR_A_E		(UINT8_C(0xB3))
 #define CPU_OP_OR_A_H		(UINT8_C(0xB4))
+#define CPU_OP_OR_A_L		(UINT8_C(0xB5))
 #define CPU_OP_OR_A_MEM_HL	(UINT8_C(0xB6))
 #define CPU_OP_OR_A_A		(UINT8_C(0xB7))
 #define CPU_OP_CP_A_B		(UINT8_C(0xB8))
