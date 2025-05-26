@@ -146,6 +146,7 @@
 #define CPU_OP_ADD_A_C		(UINT8_C(0x81))
 #define CPU_OP_ADD_A_D		(UINT8_C(0x82))
 #define CPU_OP_ADD_A_E		(UINT8_C(0x83))
+#define CPU_OP_ADD_A_H		(UINT8_C(0x84))
 #define CPU_OP_XOR_A_C		(UINT8_C(0xA9))
 #define CPU_OP_XOR_A_L		(UINT8_C(0xAD))
 #define CPU_OP_XOR_A_MEM_HL	(UINT8_C(0xAE))
