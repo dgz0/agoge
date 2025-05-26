@@ -158,6 +158,7 @@
 #define CPU_OP_CP_A_C		(UINT8_C(0xB9))
 #define CPU_OP_CP_A_D		(UINT8_C(0xBA))
 #define CPU_OP_CP_A_E		(UINT8_C(0xBB))
+#define CPU_OP_CP_A_H		(UINT8_C(0xBC))
 #define CPU_OP_RET_NZ		(UINT8_C(0xC0))
 #define CPU_OP_POP_BC		(UINT8_C(0xC1))
 #define CPU_OP_JP_NZ_U16	(UINT8_C(0xC2))
