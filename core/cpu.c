@@ -107,6 +107,15 @@ NODISCARD static uint8_t alu_rl_op(struct agoge_core_cpu *const cpu,
 	return (val << 1) | carry;
 }
 
+NODISCARD static uint8_t alu_rrc_op(struct agoge_core_cpu *const cpu,
+				    const uint8_t val)
+{
+	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	flag_upd(cpu, CPU_FLAG_CARRY, val & 1);
+
+	return (val >> 1) | (val << 7);
+}
+
 NODISCARD static uint8_t alu_rr_op(struct agoge_core_cpu *const cpu,
 				   uint8_t val)
 {
@@ -364,6 +373,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_INC_C]			= &&inc_c,
 		[CPU_OP_DEC_C]			= &&dec_c,
 		[CPU_OP_LD_C_U8]		= &&ld_c_u8,
+		[CPU_OP_RRCA]			= &&rrca,
 		[CPU_OP_LD_DE_U16]		= &&ld_de_u16,
 		[CPU_OP_LD_MEM_DE_A]		= &&ld_mem_de_a,
 		[CPU_OP_INC_DE]			= &&inc_de,
@@ -653,6 +663,12 @@ dec_c:
 
 ld_c_u8:
 	cpu->reg.c = read_u8(cpu);
+	DISPATCH();
+
+rrca:
+	cpu->reg.a = alu_rrc_op(cpu, cpu->reg.a);
+	cpu->reg.f &= ~CPU_FLAG_ZERO;
+
 	DISPATCH();
 
 ld_de_u16:
