@@ -107,6 +107,14 @@ NODISCARD static uint8_t alu_rl_op(struct agoge_core_cpu *const cpu,
 	return (val << 1) | carry;
 }
 
+NODISCARD static uint8_t alu_rlc(struct agoge_core_cpu *const cpu, uint8_t val)
+{
+	val = alu_rlc_op(cpu, val);
+	flag_zero_upd(cpu, val);
+
+	return val;
+}
+
 NODISCARD static uint8_t alu_rrc_op(struct agoge_core_cpu *const cpu,
 				    const uint8_t val)
 {
@@ -596,11 +604,18 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		// clang-format on
 	};
 
-	static const void *const cb_tbl[] = { [CPU_OP_RR_C] = &&rr_c,
-					      [CPU_OP_RR_D] = &&rr_d,
-					      [CPU_OP_RR_E] = &&rr_e,
-					      [CPU_OP_SWAP_A] = &&swap_a,
-					      [CPU_OP_SRL_B] = &&srl_b };
+	static const void *const cb_tbl[] = {
+		// clang-format off
+
+		[CPU_OP_RLC_B]	= &&rlc_b,
+		[CPU_OP_RR_C]	= &&rr_c,
+		[CPU_OP_RR_D]	= &&rr_d,
+		[CPU_OP_RR_E]	= &&rr_e,
+		[CPU_OP_SWAP_A]	= &&swap_a,
+		[CPU_OP_SRL_B]	= &&srl_b
+
+		// clang-format on
+	};
 
 	uint8_t instr, u8;
 	uint16_t u16;
@@ -1395,6 +1410,10 @@ jp_z_u16:
 prefix_cb:
 	instr = read_u8(cpu);
 	goto *cb_tbl[instr];
+
+rlc_b:
+	cpu->reg.b = alu_rlc(cpu, cpu->reg.b);
+	DISPATCH();
 
 rr_c:
 	cpu->reg.c = alu_rr(cpu, cpu->reg.c);
