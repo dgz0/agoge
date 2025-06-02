@@ -182,6 +182,7 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_SBC_A_H] = { .op = OP_NONE, .fmt = "SBC A, H" },
 	[CPU_OP_SBC_A_L] = { .op = OP_NONE, .fmt = "SBC A, L" },
 	[CPU_OP_SBC_A_A] = { .op = OP_NONE, .fmt = "SBC A, A" },
+	[CPU_OP_XOR_A_B] = { .op = OP_NONE, .fmt = "XOR A, B" },
 	[CPU_OP_XOR_A_C] = { .op = OP_NONE, .fmt = "XOR A, C" },
 	[CPU_OP_XOR_A_L] = { .op = OP_NONE, .fmt = "XOR A, L" },
 	[CPU_OP_XOR_A_MEM_HL] = { .op = OP_NONE, .fmt = "XOR A, (HL)" },
