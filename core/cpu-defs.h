@@ -40,6 +40,7 @@
 #define CPU_OP_LD_MEM_DE_A	(UINT8_C(0x12))
 #define CPU_OP_INC_DE		(UINT8_C(0x13))
 #define CPU_OP_INC_D		(UINT8_C(0x14))
+#define CPU_OP_DEC_D		(UINT8_C(0x15))
 #define CPU_OP_LD_D_U8		(UINT8_C(0x16))
 #define CPU_OP_JR_S8		(UINT8_C(0x18))
 #define CPU_OP_ADD_HL_DE	(UINT8_C(0x19))
