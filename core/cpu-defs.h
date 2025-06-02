@@ -173,6 +173,7 @@
 #define CPU_OP_AND_A_B		(UINT8_C(0xA0))
 #define CPU_OP_AND_A_C		(UINT8_C(0xA1))
 #define CPU_OP_AND_A_D		(UINT8_C(0xA2))
+#define CPU_OP_AND_A_E		(UINT8_C(0xA3))
 #define CPU_OP_XOR_A_C		(UINT8_C(0xA9))
 #define CPU_OP_XOR_A_L		(UINT8_C(0xAD))
 #define CPU_OP_XOR_A_MEM_HL	(UINT8_C(0xAE))
