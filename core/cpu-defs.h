@@ -258,6 +258,7 @@
 #define CPU_OP_RST_38		(UINT8_C(0xFF))
 
 #define CPU_OP_RLC_B	(UINT8_C(0x00))
+#define CPU_OP_RLC_C	(UINT8_C(0x01))
 #define CPU_OP_RR_C	(UINT8_C(0x19))
 #define CPU_OP_RR_D	(UINT8_C(0x1A))
 #define CPU_OP_RR_E	(UINT8_C(0x1B))
