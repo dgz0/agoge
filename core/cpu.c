@@ -611,6 +611,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_RLC_C]	= &&rlc_c,
 		[CPU_OP_RLC_D]	= &&rlc_d,
 		[CPU_OP_RLC_E]	= &&rlc_e,
+		[CPU_OP_RLC_H]	= &&rlc_h,
 		[CPU_OP_RR_C]	= &&rr_c,
 		[CPU_OP_RR_D]	= &&rr_d,
 		[CPU_OP_RR_E]	= &&rr_e,
@@ -1428,6 +1429,10 @@ rlc_d:
 
 rlc_e:
 	cpu->reg.e = alu_rlc(cpu, cpu->reg.e);
+	DISPATCH();
+
+rlc_h:
+	cpu->reg.h = alu_rlc(cpu, cpu->reg.h);
 	DISPATCH();
 
 rr_c:
