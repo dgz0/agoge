@@ -290,6 +290,7 @@
 #define CPU_OP_SLA_D	(UINT8_C(0x22))
 #define CPU_OP_SLA_E	(UINT8_C(0x23))
 #define CPU_OP_SLA_H	(UINT8_C(0x24))
+#define CPU_OP_SLA_L	(UINT8_C(0x25))
 #define CPU_OP_SWAP_A	(UINT8_C(0x37))
 #define CPU_OP_SRL_B	(UINT8_C(0x38))
 

@@ -306,6 +306,7 @@ static const struct disasm_entry cb_tbl[] = {
 	[CPU_OP_SLA_D] = { .op = OP_NONE, .fmt = "SLA D" },
 	[CPU_OP_SLA_E] = { .op = OP_NONE, .fmt = "SLA E" },
 	[CPU_OP_SLA_H] = { .op = OP_NONE, .fmt = "SLA H" },
+	[CPU_OP_SLA_L] = { .op = OP_NONE, .fmt = "SLA L" },
 	[CPU_OP_SRL_B] = { .op = OP_NONE, .fmt = "SRL B" },
 	[CPU_OP_SWAP_A] = { .op = OP_NONE, .fmt = "SWAP A" }
 };
