@@ -63,3 +63,9 @@
 
 #define CLEAR_BITS(n, bits) ((n) &= ~(bits))
 #define CLEAR_BIT(n, bit) (CLEAR_BITS((n), (bit)))
+
+#define SET_VAL_BY_MASK(dst, mask, val)                                  \
+	({                                                               \
+		const int shift = __builtin_ffs((mask)) - 1;             \
+		(dst) = ((dst) & ~(mask)) | (((val) << shift) & (mask)); \
+	})
