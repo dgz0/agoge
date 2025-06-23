@@ -697,6 +697,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SRL_B]	= &&srl_b,
 		[CPU_OP_SRL_C]	= &&srl_c,
 		[CPU_OP_SRL_D]	= &&srl_d,
+		[CPU_OP_SRL_E]	= &&srl_e,
 
 		// clang-format on
 	};
@@ -1701,6 +1702,10 @@ srl_c:
 
 srl_d:
 	cpu->reg.d = alu_srl(cpu, cpu->reg.d);
+	DISPATCH();
+
+srl_e:
+	cpu->reg.e = alu_srl(cpu, cpu->reg.e);
 	DISPATCH();
 
 call_z_u16:
