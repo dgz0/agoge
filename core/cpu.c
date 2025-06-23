@@ -100,7 +100,7 @@ NODISCARD static uint8_t alu_rlc_op(struct agoge_core_cpu *const cpu,
 NODISCARD static uint8_t alu_rl_op(struct agoge_core_cpu *const cpu,
 				   const uint8_t val)
 {
-	cpu->reg.f = ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
 	const bool carry = cpu->reg.f & CPU_FLAG_CARRY;
 
 	flag_upd(cpu, CPU_FLAG_CARRY, val & BIT_7);
