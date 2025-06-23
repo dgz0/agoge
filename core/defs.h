@@ -54,3 +54,12 @@
 #define BIT_29 (1 << 29)
 #define BIT_30 (1 << 30)
 #define BIT_31 (UINT32_C(1) << 31)
+
+#define BIT_IS_SET(n, bits) ((n) & (bits))
+#define BITS_ARE_SET(n, bits) (BIT_IS_SET((n), (bits)))
+
+#define SET_BITS(n, bits) ((n) |= (bits))
+#define SET_BIT(n, bit) (SET_BITS((n), (bit)))
+
+#define CLEAR_BITS(n, bits) ((n) &= ~(bits))
+#define CLEAR_BIT(n, bit) (CLEAR_BITS((n), (bit)))
