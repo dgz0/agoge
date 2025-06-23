@@ -310,6 +310,7 @@
 #define CPU_OP_SRL_C	(UINT8_C(0x39))
 #define CPU_OP_SRL_D	(UINT8_C(0x3A))
 #define CPU_OP_SRL_E	(UINT8_C(0x3B))
+#define CPU_OP_SRL_H	(UINT8_C(0x3C))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
