@@ -309,6 +309,7 @@ static const struct disasm_entry cb_tbl[] = {
 	[CPU_OP_SLA_L] = { .op = OP_NONE, .fmt = "SLA L" },
 	[CPU_OP_SLA_A] = { .op = OP_NONE, .fmt = "SLA A" },
 	[CPU_OP_SRL_B] = { .op = OP_NONE, .fmt = "SRL B" },
+	[CPU_OP_SRL_C] = { .op = OP_NONE, .fmt = "SRL C" },
 	[CPU_OP_SRA_B] = { .op = OP_NONE, .fmt = "SRA B" },
 	[CPU_OP_SRA_C] = { .op = OP_NONE, .fmt = "SRA C" },
 	[CPU_OP_SRA_D] = { .op = OP_NONE, .fmt = "SRA D" },
@@ -322,7 +323,7 @@ static const struct disasm_entry cb_tbl[] = {
 	[CPU_OP_SWAP_E] = { .op = OP_NONE, .fmt = "SWAP E" },
 	[CPU_OP_SWAP_H] = { .op = OP_NONE, .fmt = "SWAP H" },
 	[CPU_OP_SWAP_L] = { .op = OP_NONE, .fmt = "SWAP L" },
-	[CPU_OP_SWAP_A] = { .op = OP_NONE, .fmt = "SWAP A" }
+	[CPU_OP_SWAP_A] = { .op = OP_NONE, .fmt = "SWAP A" },
 };
 
 NODISCARD static uint8_t read_u8(struct agoge_core_disasm *const disasm)
