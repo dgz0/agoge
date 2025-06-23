@@ -298,6 +298,7 @@
 #define CPU_OP_SRA_E	(UINT8_C(0x2B))
 #define CPU_OP_SRA_H	(UINT8_C(0x2C))
 #define CPU_OP_SRA_L	(UINT8_C(0x2D))
+#define CPU_OP_SRA_A	(UINT8_C(0x2F))
 #define CPU_OP_SWAP_A	(UINT8_C(0x37))
 #define CPU_OP_SRL_B	(UINT8_C(0x38))
 
