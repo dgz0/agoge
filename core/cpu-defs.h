@@ -283,6 +283,7 @@
 #define CPU_OP_RR_D	(UINT8_C(0x1A))
 #define CPU_OP_RR_E	(UINT8_C(0x1B))
 #define CPU_OP_RR_H	(UINT8_C(0x1C))
+#define CPU_OP_RR_L	(UINT8_C(0x1D))
 #define CPU_OP_SWAP_A	(UINT8_C(0x37))
 #define CPU_OP_SRL_B	(UINT8_C(0x38))
 
