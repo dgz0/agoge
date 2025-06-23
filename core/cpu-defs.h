@@ -300,6 +300,7 @@
 #define CPU_OP_SRA_L	(UINT8_C(0x2D))
 #define CPU_OP_SRA_A	(UINT8_C(0x2F))
 #define CPU_OP_SWAP_B	(UINT8_C(0x30))
+#define CPU_OP_SWAP_C	(UINT8_C(0x31))
 #define CPU_OP_SWAP_A	(UINT8_C(0x37))
 #define CPU_OP_SRL_B	(UINT8_C(0x38))
 
