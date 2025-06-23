@@ -684,6 +684,8 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SRA_C]	= &&sra_c,
 		[CPU_OP_SRA_D]	= &&sra_d,
 		[CPU_OP_SRA_E]	= &&sra_e,
+		[CPU_OP_SRA_H]	= &&sra_h,
+		[CPU_OP_SRA_L]	= &&sra_l,
 		[CPU_OP_SWAP_A]	= &&swap_a,
 		[CPU_OP_SRL_B]	= &&srl_b
 
@@ -1638,6 +1640,14 @@ sra_d:
 
 sra_e:
 	cpu->reg.e = alu_sra(cpu, cpu->reg.e);
+	DISPATCH();
+
+sra_h:
+	cpu->reg.h = alu_sra(cpu, cpu->reg.h);
+	DISPATCH();
+
+sra_l:
+	cpu->reg.l = alu_sra(cpu, cpu->reg.l);
 	DISPATCH();
 
 swap_a:
