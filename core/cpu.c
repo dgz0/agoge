@@ -401,15 +401,15 @@ void agoge_core_cpu_reset(struct agoge_core_cpu *const cpu)
 }
 
 void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
-			const unsigned int run_cycles)
+			unsigned int run_cycles)
 {
-#define DISPATCH()                            \
-	({                                    \
-		if (unlikely(steps-- == 0)) { \
-			return;               \
-		}                             \
-		instr = read_u8(cpu);         \
-		goto *op_tbl[instr];          \
+#define DISPATCH()                                 \
+	({                                         \
+		if (unlikely(run_cycles-- == 0)) { \
+			return;                    \
+		}                                  \
+		instr = read_u8(cpu);              \
+		goto *op_tbl[instr];               \
 	})
 
 	static const void *const op_tbl[] = {
@@ -717,7 +717,6 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 	uint8_t instr, u8;
 	uint16_t u16;
 
-	unsigned int steps = run_cycles;
 	DISPATCH();
 
 nop:
