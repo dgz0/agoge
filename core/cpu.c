@@ -205,6 +205,15 @@ NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
 	return val;
 }
 
+static void alu_bit(struct agoge_core_cpu *const cpu, const unsigned int b,
+		    const uint8_t val)
+{
+	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
+	cpu->reg.f |= CPU_FLAG_HALF_CARRY;
+
+	flag_zero_upd(cpu, val & (UINT8_C(1) << b));
+}
+
 NODISCARD static uint16_t alu_add_sp(struct agoge_core_cpu *const cpu)
 {
 	cpu->reg.f &= ~(CPU_FLAG_ZERO | CPU_FLAG_SUBTRACT);
@@ -700,8 +709,8 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SRL_E]	= &&srl_e,
 		[CPU_OP_SRL_H]	= &&srl_h,
 		[CPU_OP_SRL_L]	= &&srl_l,
-		[CPU_OP_SRL_A]	= &&srl_a
-
+		[CPU_OP_SRL_A]	= &&srl_a,
+		[CPU_OP_BIT_0_B]	= &&bit_0_b,
 		// clang-format on
 	};
 
@@ -1721,6 +1730,10 @@ srl_l:
 
 srl_a:
 	cpu->reg.a = alu_srl(cpu, cpu->reg.a);
+	DISPATCH();
+
+bit_0_b:
+	alu_bit(cpu, 0, cpu->reg.b);
 	DISPATCH();
 
 call_z_u16:
