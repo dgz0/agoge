@@ -55,8 +55,14 @@
 #define BIT_30 (1 << 30)
 #define BIT_31 (UINT32_C(1) << 31)
 
-#define SET_VAL_BY_MASK(dst, mask, val)                                  \
+#define set_val_by_mask(dst, mask, val)                                  \
 	({                                                               \
 		const int shift = __builtin_ffs((mask)) - 1;             \
 		(dst) = ((dst) & ~(mask)) | (((val) << shift) & (mask)); \
+	})
+
+#define get_val_by_mask(src, mask)                           \
+	({                                                   \
+		const int shift = __builtin_ffs((mask)) - 1; \
+		(src >> shift) & mask;                       \
 	})
