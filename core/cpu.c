@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <assert.h>
 #include <stdbool.h>
 
 #include "comp.h"
@@ -208,6 +209,8 @@ NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
 static void alu_bit(struct agoge_core_cpu *const cpu, const unsigned int b,
 		    const uint8_t val)
 {
+	assert(unlikely(b <= 7));
+
 	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
 	cpu->reg.f |= CPU_FLAG_HALF_CARRY;
 
@@ -717,7 +720,8 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_BIT_0_H]	= &&bit_0_h,
 		[CPU_OP_BIT_0_L]	= &&bit_0_l,
 		[CPU_OP_BIT_0_A]	= &&bit_0_a,
-		[CPU_OP_BIT_1_B]	= &&bit_1_b
+		[CPU_OP_BIT_1_B]	= &&bit_1_b,
+		[CPU_OP_BIT_1_C]	= &&bit_1_c,
 
 		// clang-format on
 	};
@@ -1769,6 +1773,10 @@ bit_0_a:
 
 bit_1_b:
 	alu_bit(cpu, 1, cpu->reg.b);
+	DISPATCH();
+
+bit_1_c:
+	alu_bit(cpu, 1, cpu->reg.c);
 	DISPATCH();
 
 call_z_u16:
