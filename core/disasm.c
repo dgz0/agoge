@@ -339,6 +339,7 @@ static const struct disasm_entry cb_tbl[] = {
 	[CPU_OP_BIT_1_B] = { .op = OP_NONE, .fmt = "BIT 1, B" },
 	[CPU_OP_BIT_1_C] = { .op = OP_NONE, .fmt = "BIT 1, C" },
 	[CPU_OP_BIT_1_D] = { .op = OP_NONE, .fmt = "BIT 1, D" },
+	[CPU_OP_BIT_1_E] = { .op = OP_NONE, .fmt = "BIT 1, E" }
 };
 
 NODISCARD static uint8_t read_u8(struct agoge_core_disasm *const disasm)
