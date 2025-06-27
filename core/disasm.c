@@ -334,6 +334,7 @@ static const struct disasm_entry cb_tbl[] = {
 	[CPU_OP_BIT_0_D] = { .op = OP_NONE, .fmt = "BIT 0, D" },
 	[CPU_OP_BIT_0_E] = { .op = OP_NONE, .fmt = "BIT 0, E" },
 	[CPU_OP_BIT_0_H] = { .op = OP_NONE, .fmt = "BIT 0, H" },
+	[CPU_OP_BIT_0_L] = { .op = OP_NONE, .fmt = "BIT 0, L" },
 };
 
 NODISCARD static uint8_t read_u8(struct agoge_core_disasm *const disasm)
@@ -412,8 +413,8 @@ void agoge_core_disasm_single(struct agoge_core_disasm *const disasm,
 
 	if (instr == 0xCB) {
 		instr = agoge_core_bus_peek(disasm->bus, addr + 1);
-		entry = &cb_tbl[instr];
 		LOG_TRACE(disasm->log, "$CB instr = $%02X", instr);
+		entry = &cb_tbl[instr];
 	} else {
 		entry = &op_tbl[instr];
 		LOG_TRACE(disasm->log, "instr = $%02X", instr);
