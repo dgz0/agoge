@@ -209,7 +209,10 @@ NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
 static void alu_bit(struct agoge_core_cpu *const cpu, const unsigned int b,
 		    const uint8_t val)
 {
-	assert(unlikely(b <= 7));
+	// There are only 8 bits in a byte, indexed from 0 to 7, so, passing any
+	// other value doesn't make sense and is always a bug. Should be a very
+	// trivial fix for you.
+	assert(b <= 7);
 
 	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
 	cpu->reg.f |= CPU_FLAG_HALF_CARRY;
@@ -741,7 +744,8 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_BIT_3_H]	= &&bit_3_h,
 		[CPU_OP_BIT_3_L]	= &&bit_3_l,
 		[CPU_OP_BIT_3_A]	= &&bit_3_a,
-		[CPU_OP_BIT_4_B]	= &&bit_4_b
+		[CPU_OP_BIT_4_B]	= &&bit_4_b,
+		[CPU_OP_BIT_4_C]	= &&bit_4_c
 
 		// clang-format on
 	};
@@ -1877,6 +1881,10 @@ bit_3_a:
 
 bit_4_b:
 	alu_bit(cpu, 4, cpu->reg.b);
+	DISPATCH();
+
+bit_4_c:
+	alu_bit(cpu, 4, cpu->reg.c);
 	DISPATCH();
 
 call_z_u16:
