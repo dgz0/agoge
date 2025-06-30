@@ -338,6 +338,7 @@
 #define CPU_OP_BIT_3_C	(UINT8_C(0x59))
 #define CPU_OP_BIT_3_D	(UINT8_C(0x5A))
 #define CPU_OP_BIT_3_E	(UINT8_C(0x5B))
+#define CPU_OP_BIT_3_H	(UINT8_C(0x5C))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
