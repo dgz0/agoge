@@ -766,7 +766,8 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_BIT_6_L]	= &&bit_6_l,
 		[CPU_OP_BIT_6_A]	= &&bit_6_a,
 		[CPU_OP_BIT_7_B]	= &&bit_7_b,
-		[CPU_OP_BIT_7_C]	= &&bit_7_c
+		[CPU_OP_BIT_7_C]	= &&bit_7_c,
+		[CPU_OP_BIT_7_D]	= &&bit_7_d
 
 		// clang-format on
 	};
