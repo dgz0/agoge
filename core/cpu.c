@@ -1993,6 +1993,10 @@ bit_7_c:
 	alu_bit(cpu, 7, cpu->reg.c);
 	DISPATCH();
 
+bit_7_d:
+	alu_bit(cpu, 7, cpu->reg.d);
+	DISPATCH();
+
 call_z_u16:
 	call_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
 	DISPATCH();
