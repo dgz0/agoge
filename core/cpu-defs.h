@@ -356,6 +356,7 @@
 #define CPU_OP_BIT_5_L	(UINT8_C(0x6D))
 #define CPU_OP_BIT_5_A	(UINT8_C(0x6F))
 #define CPU_OP_BIT_6_B	(UINT8_C(0x70))
+#define CPU_OP_BIT_6_C	(UINT8_C(0x71))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
