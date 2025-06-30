@@ -20,8 +20,11 @@
 
 /// @file ctx.c Defines the implementation of an agoge context.
 
+#include <assert.h>
+
 #include "agogecore/ctx.h"
 #include "bus.h"
+#include "comp.h"
 #include "cpu.h"
 #include "disasm.h"
 #include "log.h"
@@ -46,5 +49,7 @@ void agoge_core_ctx_reset(struct agoge_core_ctx *const ctx)
 void agoge_core_ctx_step(struct agoge_core_ctx *const ctx,
 			 const unsigned int num_cycles)
 {
+	assert(num_cycles > 0);
+
 	agoge_core_cpu_run(&ctx->cpu, num_cycles);
 }
