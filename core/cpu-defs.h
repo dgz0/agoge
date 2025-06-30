@@ -378,6 +378,7 @@
 #define CPU_OP_RES_0_A	(UINT8_C(0x87))
 #define CPU_OP_RES_1_B	(UINT8_C(0x88))
 #define CPU_OP_RES_1_C	(UINT8_C(0x89))
+#define CPU_OP_RES_1_D	(UINT8_C(0x8A))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
