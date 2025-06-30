@@ -368,6 +368,7 @@
 #define CPU_OP_BIT_7_E	(UINT8_C(0x7B))
 #define CPU_OP_BIT_7_H	(UINT8_C(0x7C))
 #define CPU_OP_BIT_7_L	(UINT8_C(0x7D))
+#define CPU_OP_BIT_7_A	(UINT8_C(0x7F))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
