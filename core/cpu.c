@@ -752,6 +752,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_BIT_4_L]	= &&bit_4_l,
 		[CPU_OP_BIT_4_A]	= &&bit_4_a,
 		[CPU_OP_BIT_5_B]	= &&bit_5_b,
+		[CPU_OP_BIT_5_C]	= &&bit_5_c
 
 		// clang-format on
 	};
@@ -1915,6 +1916,10 @@ bit_4_a:
 
 bit_5_b:
 	alu_bit(cpu, 5, cpu->reg.b);
+	DISPATCH();
+
+bit_5_c:
+	alu_bit(cpu, 5, cpu->reg.c);
 	DISPATCH();
 
 call_z_u16:
