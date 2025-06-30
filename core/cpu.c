@@ -2206,4 +2206,6 @@ cp_a_u8:
 rst_38:
 	rst(cpu, 0x0038);
 	DISPATCH();
+
+#undef DISPATCH
 }
