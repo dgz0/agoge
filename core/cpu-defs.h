@@ -404,6 +404,7 @@
 #define CPU_OP_RES_4_H	(UINT8_C(0xA4))
 #define CPU_OP_RES_4_L	(UINT8_C(0xA5))
 #define CPU_OP_RES_4_A	(UINT8_C(0xA7))
+#define CPU_OP_RES_5_B	(UINT8_C(0xA8))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
