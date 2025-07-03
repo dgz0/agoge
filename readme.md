@@ -1,6 +1,20 @@
-# agoge - Game Boy emulator
+<p align="center">
+        <a href="https://github.com/dgz0/agoge">
+        <img
+                alt="project logo"
+                src="./assets/logo.png"
+                height="600" />
+        </a>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+        <a href="https://opensource.org/licenses/MIT">
+        <img
+                alt="License: MIT"
+                src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+        </a>
+</p>
+
+<br />
 
 ## Introduction
 
