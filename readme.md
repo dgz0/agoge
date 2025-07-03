@@ -3,7 +3,7 @@
         <img
                 alt="project logo"
                 src="./assets/logo.png"
-                height="300" />
+                height="500" />
         </a>
 
 <p align="center">
