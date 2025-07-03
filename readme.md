@@ -2,7 +2,8 @@
         <a href="https://github.com/dgz0/agoge">
         <img
                 alt="project logo"
-                src="./assets/logo.png" />
+                src="./assets/logo.png"
+                height="400" />
         </a>
 
 <p align="center">
