@@ -12,6 +12,13 @@
                 alt="License: MIT"
                 src="https://img.shields.io/badge/License-MIT-yellow.svg" />
         </a>
+
+<a href="https://github.com/dgz0/agoge/actions/workflows/linux-build.yml">
+<img
+        alt="Build on Ubuntu 22.04"
+        src="https://github.com/dgz0/agoge/actions/workflows/linux-build.yml/badge.svg?branch=main" />
+</a>
+
 </p>
 
 ---
