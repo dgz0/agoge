@@ -444,6 +444,7 @@
 #define CPU_OP_SET_2_D	(UINT8_C(0xD2))
 #define CPU_OP_SET_2_E	(UINT8_C(0xD3))
 #define CPU_OP_SET_2_H	(UINT8_C(0xD4))
+#define CPU_OP_SET_2_L	(UINT8_C(0xD5))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
