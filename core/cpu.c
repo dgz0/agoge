@@ -409,6 +409,9 @@ void agoge_core_cpu_reset(struct agoge_core_cpu *const cpu)
 void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 			unsigned int run_cycles)
 {
+	// The CPU was requested to run for zero cycles; this is nonsense.
+	assert(run_cycles != 0);
+
 #define DISPATCH()                                 \
 	({                                         \
 		if (unlikely(run_cycles-- == 0)) { \
@@ -862,8 +865,6 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 
 	uint8_t instr, u8;
 	uint16_t u16;
-
-	DISPATCH();
 
 nop:
 	DISPATCH();
