@@ -469,6 +469,7 @@
 #define CPU_OP_SET_5_A	(UINT8_C(0xEF))
 #define CPU_OP_SET_6_B	(UINT8_C(0xF0))
 #define CPU_OP_SET_6_C	(UINT8_C(0xF1))
+#define CPU_OP_SET_6_D	(UINT8_C(0xF2))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))
 
