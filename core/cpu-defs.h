@@ -75,6 +75,7 @@
 #define CPU_OP_LD_SP_U16	(UINT8_C(0x31))
 #define CPU_OP_LDD_MEM_HL_A	(UINT8_C(0x32))
 #define CPU_OP_INC_SP		(UINT8_C(0x33))
+#define CPU_OP_INC_MEM_HL	(UINT8_C(0x34))
 #define CPU_OP_DEC_MEM_HL	(UINT8_C(0x35))
 #define CPU_OP_LD_MEM_HL_U8	(UINT8_C(0x36))
 #define CPU_OP_SCF		(UINT8_C(0x37))
