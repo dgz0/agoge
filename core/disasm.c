@@ -45,6 +45,7 @@ static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_RLCA] = { .op = OP_NONE, .fmt = "RLCA" },
 	[CPU_OP_LD_MEM_U16_SP] = { .op = OP_U16, .fmt = "LD ($%04X), SP" },
 	[CPU_OP_ADD_HL_BC] = { .op = OP_NONE, .fmt = "ADD HL, BC" },
+	[CPU_OP_LD_A_MEM_BC] = { .op = OP_BRANCH, .fmt = "LD A, (BC)" },
 	[CPU_OP_DEC_BC] = { .op = OP_NONE, .fmt = "DEC BC" },
 	[CPU_OP_INC_C] = { .op = OP_NONE, .fmt = "INC C" },
 	[CPU_OP_DEC_C] = { .op = OP_NONE, .fmt = "DEC C" },

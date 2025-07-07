@@ -33,6 +33,7 @@
 #define CPU_OP_RLCA		(UINT8_C(0x07))
 #define CPU_OP_LD_MEM_U16_SP	(UINT8_C(0x08))
 #define CPU_OP_ADD_HL_BC	(UINT8_C(0x09))
+#define CPU_OP_LD_A_MEM_BC	(UINT8_C(0x0A))
 #define CPU_OP_DEC_BC		(UINT8_C(0x0B))
 #define CPU_OP_INC_C		(UINT8_C(0x0C))
 #define CPU_OP_DEC_C		(UINT8_C(0x0D))
