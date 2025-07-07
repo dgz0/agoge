@@ -38,6 +38,7 @@ struct disasm_entry {
 static const struct disasm_entry op_tbl[] = {
 	[CPU_OP_NOP] = { .op = OP_NONE, .fmt = "NOP" },
 	[CPU_OP_LD_BC_U16] = { .op = OP_U16, .fmt = "LD BC, $%04X" },
+	[CPU_OP_LD_MEM_BC_A] = { .op = OP_NONE, .fmt = "LD (BC), A" },
 	[CPU_OP_INC_BC] = { .op = OP_NONE, .fmt = "INC BC" },
 	[CPU_OP_INC_B] = { .op = OP_NONE, .fmt = "INC B" },
 	[CPU_OP_DEC_B] = { .op = OP_NONE, .fmt = "DEC B" },
