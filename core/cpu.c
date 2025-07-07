@@ -563,6 +563,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_ADC_A_E]		= &&adc_a_e,
 		[CPU_OP_ADC_A_H]		= &&adc_a_h,
 		[CPU_OP_ADC_A_L]		= &&adc_a_l,
+		[CPU_OP_ADC_A_MEM_HL]		= &&adc_a_mem_hl,
 		[CPU_OP_ADC_A_A]		= &&adc_a_a,
 		[CPU_OP_SUB_A_B]		= &&sub_a_b,
 		[CPU_OP_SUB_A_C]		= &&sub_a_c,
@@ -1473,6 +1474,10 @@ adc_a_h:
 
 adc_a_l:
 	alu_adc(cpu, cpu->reg.l);
+	DISPATCH();
+
+adc_a_mem_hl:
+	alu_adc(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
 	DISPATCH();
 
 adc_a_a:

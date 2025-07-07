@@ -163,6 +163,7 @@
 #define CPU_OP_ADC_A_E		(UINT8_C(0x8B))
 #define CPU_OP_ADC_A_H		(UINT8_C(0x8C))
 #define CPU_OP_ADC_A_L		(UINT8_C(0x8D))
+#define CPU_OP_ADC_A_MEM_HL	(UINT8_C(0x8E))
 #define CPU_OP_ADC_A_A		(UINT8_C(0x8F))
 #define CPU_OP_SUB_A_B		(UINT8_C(0x90))
 #define CPU_OP_SUB_A_C		(UINT8_C(0x91))
