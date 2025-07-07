@@ -131,6 +131,13 @@ NODISCARD static uint8_t alu_rlc(struct agoge_core_cpu *const cpu, uint8_t val)
 	return val;
 }
 
+static void alu_rlc_mem_hl(struct agoge_core_cpu *const cpu)
+{
+	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	val = alu_rlc(cpu, val);
+	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+}
+
 NODISCARD static uint8_t alu_rrc_op(struct agoge_core_cpu *const cpu,
 				    const uint8_t val)
 {
@@ -686,6 +693,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_RLC_E]		= &&rlc_e,
 		[CPU_OP_RLC_H]		= &&rlc_h,
 		[CPU_OP_RLC_L]		= &&rlc_l,
+		[CPU_OP_RLC_MEM_HL]	= &&rlc_mem_hl,
 		[CPU_OP_RLC_A]		= &&rlc_a,
 		[CPU_OP_RRC_B]		= &&rrc_b,
 		[CPU_OP_RRC_C]		= &&rrc_c,
@@ -1761,6 +1769,10 @@ rlc_h:
 
 rlc_l:
 	cpu->reg.l = alu_rlc(cpu, cpu->reg.l);
+	DISPATCH();
+
+rlc_mem_hl:
+	alu_rlc_mem_hl(cpu);
 	DISPATCH();
 
 rlc_a:
