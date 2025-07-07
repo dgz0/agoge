@@ -80,6 +80,7 @@
 #define CPU_OP_SCF		(UINT8_C(0x37))
 #define CPU_OP_JR_C_S8		(UINT8_C(0x38))
 #define CPU_OP_ADD_HL_SP	(UINT8_C(0x39))
+#define CPU_OP_LDD_A_MEM_HL	(UINT8_C(0x3A))
 #define CPU_OP_DEC_SP		(UINT8_C(0x3B))
 #define CPU_OP_INC_A		(UINT8_C(0x3C))
 #define CPU_OP_DEC_A		(UINT8_C(0x3D))
