@@ -289,6 +289,7 @@
 #define CPU_OP_RL_E		(UINT8_C(0x13))
 #define CPU_OP_RL_H		(UINT8_C(0x14))
 #define CPU_OP_RL_L		(UINT8_C(0x15))
+#define CPU_OP_RL_MEM_HL	(UINT8_C(0x16))
 #define CPU_OP_RL_A		(UINT8_C(0x17))
 #define CPU_OP_RR_B		(UINT8_C(0x18))
 #define CPU_OP_RR_C		(UINT8_C(0x19))
