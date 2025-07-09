@@ -393,6 +393,7 @@
 #define CPU_OP_BIT_7_E		(UINT8_C(0x7B))
 #define CPU_OP_BIT_7_H		(UINT8_C(0x7C))
 #define CPU_OP_BIT_7_L		(UINT8_C(0x7D))
+#define CPU_OP_BIT_7_MEM_HL	(UINT8_C(0x7E))
 #define CPU_OP_BIT_7_A		(UINT8_C(0x7F))
 #define CPU_OP_RES_0_B		(UINT8_C(0x80))
 #define CPU_OP_RES_0_C		(UINT8_C(0x81))
