@@ -329,6 +329,7 @@
 #define CPU_OP_SRL_E		(UINT8_C(0x3B))
 #define CPU_OP_SRL_H		(UINT8_C(0x3C))
 #define CPU_OP_SRL_L		(UINT8_C(0x3D))
+#define CPU_OP_SRL_MEM_HL	(UINT8_C(0x3E))
 #define CPU_OP_SRL_A		(UINT8_C(0x3F))
 #define CPU_OP_BIT_0_B		(UINT8_C(0x40))
 #define CPU_OP_BIT_0_C		(UINT8_C(0x41))
