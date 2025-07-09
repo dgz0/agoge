@@ -305,6 +305,7 @@
 #define CPU_OP_SLA_E		(UINT8_C(0x23))
 #define CPU_OP_SLA_H		(UINT8_C(0x24))
 #define CPU_OP_SLA_L		(UINT8_C(0x25))
+#define CPU_OP_SLA_MEM_HL	(UINT8_C(0x26))
 #define CPU_OP_SLA_A		(UINT8_C(0x27))
 #define CPU_OP_SRA_B		(UINT8_C(0x28))
 #define CPU_OP_SRA_C		(UINT8_C(0x29))
