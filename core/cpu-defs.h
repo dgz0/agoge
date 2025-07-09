@@ -297,6 +297,7 @@
 #define CPU_OP_RR_E		(UINT8_C(0x1B))
 #define CPU_OP_RR_H		(UINT8_C(0x1C))
 #define CPU_OP_RR_L		(UINT8_C(0x1D))
+#define CPU_OP_RR_MEM_HL	(UINT8_C(0x1E))
 #define CPU_OP_RR_A		(UINT8_C(0x1F))
 #define CPU_OP_SLA_B		(UINT8_C(0x20))
 #define CPU_OP_SLA_C		(UINT8_C(0x21))
