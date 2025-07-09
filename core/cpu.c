@@ -830,6 +830,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_BIT_3_E]	= &&bit_3_e,
 		[CPU_OP_BIT_3_H]	= &&bit_3_h,
 		[CPU_OP_BIT_3_L]	= &&bit_3_l,
+		[CPU_OP_BIT_3_MEM_HL]	= &&bit_3_mem_hl,
 		[CPU_OP_BIT_3_A]	= &&bit_3_a,
 		[CPU_OP_BIT_4_B]	= &&bit_4_b,
 		[CPU_OP_BIT_4_C]	= &&bit_4_c,
@@ -2180,6 +2181,10 @@ bit_3_h:
 
 bit_3_l:
 	alu_bit(cpu, 3, cpu->reg.l);
+	DISPATCH();
+
+bit_3_mem_hl:
+	alu_bit(cpu, 3, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
 	DISPATCH();
 
 bit_3_a:

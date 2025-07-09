@@ -361,6 +361,7 @@
 #define CPU_OP_BIT_3_E		(UINT8_C(0x5B))
 #define CPU_OP_BIT_3_H		(UINT8_C(0x5C))
 #define CPU_OP_BIT_3_L		(UINT8_C(0x5D))
+#define CPU_OP_BIT_3_MEM_HL	(UINT8_C(0x5E))
 #define CPU_OP_BIT_3_A		(UINT8_C(0x5F))
 #define CPU_OP_BIT_4_B		(UINT8_C(0x60))
 #define CPU_OP_BIT_4_C		(UINT8_C(0x61))
