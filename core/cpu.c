@@ -242,6 +242,13 @@ NODISCARD static uint8_t alu_swap(struct agoge_core_cpu *const cpu, uint8_t val)
 	return val;
 }
 
+static void alu_swap_mem_hl(struct agoge_core_cpu *const cpu)
+{
+	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	val = alu_swap(cpu, val);
+	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+}
+
 NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
 {
 	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
@@ -776,6 +783,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SWAP_E]		= &&swap_e,
 		[CPU_OP_SWAP_H]		= &&swap_h,
 		[CPU_OP_SWAP_L]		= &&swap_l,
+		[CPU_OP_SWAP_MEM_HL]	= &&swap_mem_hl,
 		[CPU_OP_SWAP_A]		= &&swap_a,
 		[CPU_OP_SRL_B]		= &&srl_b,
 		[CPU_OP_SRL_C]		= &&srl_c,
@@ -2001,6 +2009,10 @@ swap_h:
 
 swap_l:
 	cpu->reg.l = alu_swap(cpu, cpu->reg.l);
+	DISPATCH();
+
+swap_mem_hl:
+	alu_swap_mem_hl(cpu);
 	DISPATCH();
 
 swap_a:

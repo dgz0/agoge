@@ -321,6 +321,7 @@
 #define CPU_OP_SWAP_E		(UINT8_C(0x33))
 #define CPU_OP_SWAP_H		(UINT8_C(0x34))
 #define CPU_OP_SWAP_L		(UINT8_C(0x35))
+#define CPU_OP_SWAP_MEM_HL	(UINT8_C(0x36))
 #define CPU_OP_SWAP_A		(UINT8_C(0x37))
 #define CPU_OP_SRL_B		(UINT8_C(0x38))
 #define CPU_OP_SRL_C		(UINT8_C(0x39))
