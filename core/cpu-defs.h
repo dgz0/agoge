@@ -313,6 +313,7 @@
 #define CPU_OP_SRA_E		(UINT8_C(0x2B))
 #define CPU_OP_SRA_H		(UINT8_C(0x2C))
 #define CPU_OP_SRA_L		(UINT8_C(0x2D))
+#define CPU_OP_SRA_MEM_HL	(UINT8_C(0x2E))
 #define CPU_OP_SRA_A		(UINT8_C(0x2F))
 #define CPU_OP_SWAP_B		(UINT8_C(0x30))
 #define CPU_OP_SWAP_C		(UINT8_C(0x31))
