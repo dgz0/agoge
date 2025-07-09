@@ -385,6 +385,7 @@
 #define CPU_OP_BIT_6_E		(UINT8_C(0x73))
 #define CPU_OP_BIT_6_H		(UINT8_C(0x74))
 #define CPU_OP_BIT_6_L		(UINT8_C(0x75))
+#define CPU_OP_BIT_6_MEM_HL	(UINT8_C(0x76))
 #define CPU_OP_BIT_6_A		(UINT8_C(0x77))
 #define CPU_OP_BIT_7_B		(UINT8_C(0x78))
 #define CPU_OP_BIT_7_C		(UINT8_C(0x79))
