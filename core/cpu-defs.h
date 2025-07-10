@@ -425,6 +425,7 @@
 #define CPU_OP_RES_3_E		(UINT8_C(0x9B))
 #define CPU_OP_RES_3_H		(UINT8_C(0x9C))
 #define CPU_OP_RES_3_L		(UINT8_C(0x9D))
+#define CPU_OP_RES_3_MEM_HL	(UINT8_C(0x9E))
 #define CPU_OP_RES_3_A		(UINT8_C(0x9F))
 #define CPU_OP_RES_4_B		(UINT8_C(0xA0))
 #define CPU_OP_RES_4_C		(UINT8_C(0xA1))
