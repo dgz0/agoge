@@ -1006,6 +1006,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SET_6_E]	= &&set_6_e,
 		[CPU_OP_SET_6_H]	= &&set_6_h,
 		[CPU_OP_SET_6_L]	= &&set_6_l,
+		[CPU_OP_SET_6_MEM_HL]	= &&set_6_mem_hl,
 		[CPU_OP_SET_6_A]	= &&set_6_a,
 		[CPU_OP_SET_7_B]	= &&set_7_b,
 		[CPU_OP_SET_7_C]	= &&set_7_c,
@@ -2831,6 +2832,10 @@ set_6_h:
 
 set_6_l:
 	cpu->reg.l |= BIT_6;
+	DISPATCH();
+
+set_6_mem_hl:
+	alu_set_hl(cpu, 6);
 	DISPATCH();
 
 set_6_a:
