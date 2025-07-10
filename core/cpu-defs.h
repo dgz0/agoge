@@ -521,6 +521,7 @@
 #define CPU_OP_SET_7_E		(UINT8_C(0xFB))
 #define CPU_OP_SET_7_H		(UINT8_C(0xFC))
 #define CPU_OP_SET_7_L		(UINT8_C(0xFD))
+#define CPU_OP_SET_7_MEM_HL	(UINT8_C(0xFE))
 #define CPU_OP_SET_7_A		(UINT8_C(0xFF))
 
 #define CPU_PWRUP_REG_PC	(UINT16_C(0x0100))

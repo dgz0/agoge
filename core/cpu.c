@@ -1014,6 +1014,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SET_7_E]	= &&set_7_e,
 		[CPU_OP_SET_7_H]	= &&set_7_h,
 		[CPU_OP_SET_7_L]	= &&set_7_l,
+		[CPU_OP_SET_7_MEM_HL]	= &&set_7_mem_hl,
 		[CPU_OP_SET_7_A]	= &&set_7_a
 
 		// clang-format on
@@ -2864,6 +2865,10 @@ set_7_h:
 
 set_7_l:
 	cpu->reg.l |= BIT_7;
+	DISPATCH();
+
+set_7_mem_hl:
+	alu_set_hl(cpu, 7);
 	DISPATCH();
 
 set_7_a:
