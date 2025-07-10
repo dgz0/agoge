@@ -264,6 +264,7 @@
 #define CPU_OP_LD_HL_SP_S8	(UINT8_C(0xF8))
 #define CPU_OP_LD_SP_HL		(UINT8_C(0xF9))
 #define CPU_OP_LD_A_MEM_U16	(UINT8_C(0xFA))
+#define CPU_OP_EI		(UINT8_C(0xFB))
 #define CPU_OP_CP_A_U8		(UINT8_C(0xFE))
 #define CPU_OP_RST_38		(UINT8_C(0xFF))
 
