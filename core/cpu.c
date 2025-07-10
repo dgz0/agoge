@@ -375,6 +375,18 @@ static void alu_res_hl(struct agoge_core_cpu *const cpu, const unsigned int b)
 	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
 }
 
+static void alu_set_hl(struct agoge_core_cpu *const cpu, const unsigned int b)
+{
+	// There are only 8 bits in a byte, indexed from 0 to 7, so, passing any
+	// other value doesn't make sense and is always a bug. Should be a very
+	// trivial fix for you.
+	assert(b <= 7);
+
+	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	val |= (UINT8_C(1) << b);
+	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+}
+
 static void jp_if(struct agoge_core_cpu *const cpu, const bool cond_met)
 {
 	const uint16_t addr = read_u16(cpu);
@@ -946,6 +958,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SET_0_E]	= &&set_0_e,
 		[CPU_OP_SET_0_H]	= &&set_0_h,
 		[CPU_OP_SET_0_L]	= &&set_0_l,
+		[CPU_OP_SET_0_MEM_HL]	= &&set_0_mem_hl,
 		[CPU_OP_SET_0_A]	= &&set_0_a,
 		[CPU_OP_SET_1_B]	= &&set_1_b,
 		[CPU_OP_SET_1_C]	= &&set_1_c,
@@ -2621,6 +2634,10 @@ set_0_h:
 
 set_0_l:
 	cpu->reg.l |= BIT_0;
+	DISPATCH();
+
+set_0_mem_hl:
+	alu_set_hl(cpu, 0);
 	DISPATCH();
 
 set_0_a:
