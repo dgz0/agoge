@@ -473,6 +473,7 @@ static const struct disasm_entry cb_tbl[] = {
 	[CPU_OP_RES_7_E] = { .op = OP_NONE, .fmt = "RES 7, E" },
 	[CPU_OP_RES_7_H] = { .op = OP_NONE, .fmt = "RES 7, H" },
 	[CPU_OP_RES_7_L] = { .op = OP_NONE, .fmt = "RES 7, L" },
+	[CPU_OP_RES_7_MEM_HL] = { .op = OP_NONE, .fmt = "RES 7, (HL)" },
 	[CPU_OP_RES_7_A] = { .op = OP_NONE, .fmt = "RES 7, A" },
 	[CPU_OP_SET_0_B] = { .op = OP_NONE, .fmt = "SET 0, B" },
 	[CPU_OP_SET_0_C] = { .op = OP_NONE, .fmt = "SET 0, C" },

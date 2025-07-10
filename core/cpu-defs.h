@@ -457,6 +457,7 @@
 #define CPU_OP_RES_7_E		(UINT8_C(0xBB))
 #define CPU_OP_RES_7_H		(UINT8_C(0xBC))
 #define CPU_OP_RES_7_L		(UINT8_C(0xBD))
+#define CPU_OP_RES_7_MEM_HL	(UINT8_C(0xBE))
 #define CPU_OP_RES_7_A		(UINT8_C(0xBF))
 #define CPU_OP_SET_0_B		(UINT8_C(0xC0))
 #define CPU_OP_SET_0_C		(UINT8_C(0xC1))
