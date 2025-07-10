@@ -505,6 +505,7 @@
 #define CPU_OP_SET_5_E		(UINT8_C(0xEB))
 #define CPU_OP_SET_5_H		(UINT8_C(0xEC))
 #define CPU_OP_SET_5_L		(UINT8_C(0xED))
+#define CPU_OP_SET_5_MEM_HL	(UINT8_C(0xEE))
 #define CPU_OP_SET_5_A		(UINT8_C(0xEF))
 #define CPU_OP_SET_6_B		(UINT8_C(0xF0))
 #define CPU_OP_SET_6_C		(UINT8_C(0xF1))
