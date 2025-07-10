@@ -481,6 +481,7 @@
 #define CPU_OP_SET_2_E		(UINT8_C(0xD3))
 #define CPU_OP_SET_2_H		(UINT8_C(0xD4))
 #define CPU_OP_SET_2_L		(UINT8_C(0xD5))
+#define CPU_OP_SET_2_MEM_HL	(UINT8_C(0xD6))
 #define CPU_OP_SET_2_A		(UINT8_C(0xD7))
 #define CPU_OP_SET_3_B		(UINT8_C(0xD8))
 #define CPU_OP_SET_3_C		(UINT8_C(0xD9))
