@@ -990,6 +990,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		[CPU_OP_SET_4_E]	= &&set_4_e,
 		[CPU_OP_SET_4_H]	= &&set_4_h,
 		[CPU_OP_SET_4_L]	= &&set_4_l,
+		[CPU_OP_SET_4_MEM_HL]	= &&set_4_mem_hl,
 		[CPU_OP_SET_4_A]	= &&set_4_a,
 		[CPU_OP_SET_5_B]	= &&set_5_b,
 		[CPU_OP_SET_5_C]	= &&set_5_c,
@@ -2765,6 +2766,10 @@ set_4_h:
 
 set_4_l:
 	cpu->reg.l |= BIT_4;
+	DISPATCH();
+
+set_4_mem_hl:
+	alu_set_hl(cpu, 4);
 	DISPATCH();
 
 set_4_a:

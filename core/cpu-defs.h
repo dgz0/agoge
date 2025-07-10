@@ -497,6 +497,7 @@
 #define CPU_OP_SET_4_E		(UINT8_C(0xE3))
 #define CPU_OP_SET_4_H		(UINT8_C(0xE4))
 #define CPU_OP_SET_4_L		(UINT8_C(0xE5))
+#define CPU_OP_SET_4_MEM_HL	(UINT8_C(0xE6))
 #define CPU_OP_SET_4_A		(UINT8_C(0xE7))
 #define CPU_OP_SET_5_B		(UINT8_C(0xE8))
 #define CPU_OP_SET_5_C		(UINT8_C(0xE9))
