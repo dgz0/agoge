@@ -26,7 +26,6 @@
 #include "bus.h"
 #include "comp.h"
 #include "cpu.h"
-#include "disasm.h"
 #include "log.h"
 
 LOG_CHANNEL(AGOGE_CORE_LOG_CH_CTX);

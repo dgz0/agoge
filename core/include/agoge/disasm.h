@@ -22,6 +22,8 @@
 
 struct agoge_core_ctx;
 
+/// The maximum length of a disassembly result, not counting the NULL
+/// terminator.
 #define AGOGE_CORE_DISASM_RES_LEN_MAX (256)
 
 struct agoge_core_disasm {
@@ -32,4 +34,8 @@ struct agoge_core_disasm {
 	} res;
 };
 
+/// Disassembles a single instruction.
+///
+/// @param ctx The emulator context.
+/// @param addr The address in the system bus to inspect.
 void agoge_core_disasm_single(struct agoge_core_ctx *ctx, uint16_t addr);

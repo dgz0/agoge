@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 set(SRCS bus.c cart.c cpu.c ctx.c disasm.c log.c)
-set(HDRS bus.h cart.h cpu.h disasm.h log.h)
+set(HDRS bus.h cart.h cpu.h log.h)
 
 set(HDRS_PUBLIC
         ../include/agoge/bus.h
