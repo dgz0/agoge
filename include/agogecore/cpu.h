@@ -24,8 +24,7 @@
 extern "C" {
 #endif // __cplusplus
 
-#include "bus.h"
-#include "log.h"
+#include <stdint.h>
 
 #define AGOGE_CORE_REG_PAIR_DEFINE(hi, lo, pair) \
 	struct {                                 \
@@ -48,9 +47,6 @@ struct agoge_core_cpu {
 		uint16_t pc;
 		uint16_t sp;
 	} reg;
-
-	struct agoge_core_bus *bus;
-	struct agoge_core_log *log;
 };
 
 #ifdef __cplusplus

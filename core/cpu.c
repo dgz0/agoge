@@ -29,247 +29,247 @@
 
 LOG_CHANNEL(AGOGE_CORE_LOG_CH_CPU);
 
-NODISCARD static uint8_t read_u8(struct agoge_core_cpu *const cpu)
+NODISCARD static uint8_t read_u8(struct agoge_core_ctx *const ctx)
 {
-	return agoge_core_bus_read(cpu->bus, cpu->reg.pc++);
+	return agoge_core_bus_read(ctx, ctx->cpu.reg.pc++);
 }
 
-NODISCARD static uint16_t read_u16(struct agoge_core_cpu *const cpu)
+NODISCARD static uint16_t read_u16(struct agoge_core_ctx *const ctx)
 {
-	const uint8_t lo = read_u8(cpu);
-	const uint8_t hi = read_u8(cpu);
+	const uint8_t lo = read_u8(ctx);
+	const uint8_t hi = read_u8(ctx);
 
 	return (hi << 8) | lo;
 }
 
-static void flag_upd(struct agoge_core_cpu *const cpu, const uint8_t flag,
+static void flag_upd(struct agoge_core_ctx *const ctx, const uint8_t flag,
 		     const bool cond_met)
 {
 	if (cond_met) {
-		cpu->reg.f |= flag;
+		ctx->cpu.reg.f |= flag;
 	} else {
-		cpu->reg.f &= ~flag;
+		ctx->cpu.reg.f &= ~flag;
 	}
 }
 
-static void flag_zero_upd(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void flag_zero_upd(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	flag_upd(cpu, CPU_FLAG_ZERO, !val);
+	flag_upd(ctx, CPU_FLAG_ZERO, !val);
 }
 
-NODISCARD static uint8_t alu_inc(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_inc(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
-	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (val & 0x0F) == 0x0F);
-	flag_zero_upd(cpu, ++val);
+	ctx->cpu.reg.f &= ~CPU_FLAG_SUBTRACT;
+	flag_upd(ctx, CPU_FLAG_HALF_CARRY, (val & 0x0F) == 0x0F);
+	flag_zero_upd(ctx, ++val);
 
 	return val;
 }
 
-static void alu_inc_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_inc_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_inc(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_inc(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_dec(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_dec(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	cpu->reg.f |= CPU_FLAG_SUBTRACT;
-	flag_upd(cpu, CPU_FLAG_HALF_CARRY, !(val & 0x0F));
-	flag_zero_upd(cpu, --val);
+	ctx->cpu.reg.f |= CPU_FLAG_SUBTRACT;
+	flag_upd(ctx, CPU_FLAG_HALF_CARRY, !(val & 0x0F));
+	flag_zero_upd(ctx, --val);
 
 	return val;
 }
 
-static void stack_push(struct agoge_core_cpu *const cpu, const uint16_t val)
+static void stack_push(struct agoge_core_ctx *const ctx, const uint16_t val)
 {
-	agoge_core_bus_write(cpu->bus, --cpu->reg.sp, val >> 8);
-	agoge_core_bus_write(cpu->bus, --cpu->reg.sp, val & UINT8_MAX);
+	agoge_core_bus_write(ctx, --ctx->cpu.reg.sp, val >> 8);
+	agoge_core_bus_write(ctx, --ctx->cpu.reg.sp, val & UINT8_MAX);
 }
 
-NODISCARD static uint16_t stack_pop(struct agoge_core_cpu *const cpu)
+NODISCARD static uint16_t stack_pop(struct agoge_core_ctx *const ctx)
 {
-	const uint8_t lo = agoge_core_bus_read(cpu->bus, cpu->reg.sp++);
-	const uint8_t hi = agoge_core_bus_read(cpu->bus, cpu->reg.sp++);
+	const uint8_t lo = agoge_core_bus_read(ctx, ctx->cpu.reg.sp++);
+	const uint8_t hi = agoge_core_bus_read(ctx, ctx->cpu.reg.sp++);
 
 	return (hi << 8) | lo;
 }
 
-NODISCARD static uint8_t alu_rlc_op(struct agoge_core_cpu *const cpu,
+NODISCARD static uint8_t alu_rlc_op(struct agoge_core_ctx *const ctx,
 				    const uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
-	flag_upd(cpu, CPU_FLAG_CARRY, val & BIT_7);
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	flag_upd(ctx, CPU_FLAG_CARRY, val & BIT_7);
 
 	return (val << 1) | (val >> 7);
 }
 
-NODISCARD static uint8_t alu_rl_op(struct agoge_core_cpu *const cpu,
+NODISCARD static uint8_t alu_rl_op(struct agoge_core_ctx *const ctx,
 				   const uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
-	const bool carry = cpu->reg.f & CPU_FLAG_CARRY;
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	const bool carry = ctx->cpu.reg.f & CPU_FLAG_CARRY;
 
-	flag_upd(cpu, CPU_FLAG_CARRY, val & BIT_7);
+	flag_upd(ctx, CPU_FLAG_CARRY, val & BIT_7);
 	return (val << 1) | carry;
 }
 
-NODISCARD static uint8_t alu_rl(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_rl(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	val = alu_rl_op(cpu, val);
-	flag_zero_upd(cpu, val);
+	val = alu_rl_op(ctx, val);
+	flag_zero_upd(ctx, val);
 
 	return val;
 }
 
-static void alu_rl_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_rl_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_rl(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_rl(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_rlc(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_rlc(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	val = alu_rlc_op(cpu, val);
-	flag_zero_upd(cpu, val);
+	val = alu_rlc_op(ctx, val);
+	flag_zero_upd(ctx, val);
 
 	return val;
 }
 
-static void alu_rlc_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_rlc_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_rlc(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_rlc(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_rrc_op(struct agoge_core_cpu *const cpu,
+NODISCARD static uint8_t alu_rrc_op(struct agoge_core_ctx *const ctx,
 				    const uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
-	flag_upd(cpu, CPU_FLAG_CARRY, val & 1);
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	flag_upd(ctx, CPU_FLAG_CARRY, val & 1);
 
 	return (val >> 1) | (val << 7);
 }
 
-NODISCARD static uint8_t alu_rrc(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_rrc(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	val = alu_rrc_op(cpu, val);
-	flag_zero_upd(cpu, val);
+	val = alu_rrc_op(ctx, val);
+	flag_zero_upd(ctx, val);
 
 	return val;
 }
 
-static void alu_rrc_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_rrc_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_rrc(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_rrc(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_rr_op(struct agoge_core_cpu *const cpu,
+NODISCARD static uint8_t alu_rr_op(struct agoge_core_ctx *const ctx,
 				   uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
 
-	const bool old_carry = val & 1;
-	const bool carry = cpu->reg.f & CPU_FLAG_CARRY;
+	const bool old_carry = val & BIT_0;
+	const bool carry = ctx->cpu.reg.f & CPU_FLAG_CARRY;
 
 	val = (val >> 1) | (carry << 7);
-	flag_upd(cpu, CPU_FLAG_CARRY, old_carry);
+	flag_upd(ctx, CPU_FLAG_CARRY, old_carry);
 
 	return val;
 }
 
-NODISCARD static uint8_t alu_rr(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_rr(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	val = alu_rr_op(cpu, val);
-	flag_zero_upd(cpu, val);
+	val = alu_rr_op(ctx, val);
+	flag_zero_upd(ctx, val);
 
 	return val;
 }
 
-static void alu_rr_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_rr_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_rr(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_rr(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_sla(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_sla(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
 
-	flag_upd(cpu, CPU_FLAG_CARRY, val & BIT_7);
+	flag_upd(ctx, CPU_FLAG_CARRY, val & BIT_7);
 	val <<= 1;
-	flag_zero_upd(cpu, val);
+	flag_zero_upd(ctx, val);
 
 	return val;
 }
 
-static void alu_sla_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_sla_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_sla(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_sla(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_sra(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_sra(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
 
-	flag_upd(cpu, CPU_FLAG_CARRY, val & BIT_0);
+	flag_upd(ctx, CPU_FLAG_CARRY, val & BIT_0);
 	val = (val >> 1) | (val & BIT_7);
-	flag_zero_upd(cpu, val);
+	flag_zero_upd(ctx, val);
 
 	return val;
 }
 
-static void alu_sra_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_sra_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_sra(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_sra(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_swap(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_swap(struct agoge_core_ctx *const ctx, uint8_t val)
 {
 	val = ((val & 0x0F) << 4) | (val >> 4);
-	cpu->reg.f = (!val) ? CPU_FLAG_ZERO : 0x00;
+	ctx->cpu.reg.f = (!val) ? CPU_FLAG_ZERO : 0x00;
 
 	return val;
 }
 
-static void alu_swap_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_swap_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_swap(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_swap(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-NODISCARD static uint8_t alu_srl(struct agoge_core_cpu *const cpu, uint8_t val)
+NODISCARD static uint8_t alu_srl(struct agoge_core_ctx *const ctx, uint8_t val)
 {
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
-	const bool carry = val & 1;
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	const bool carry = val & BIT_0;
 
 	val >>= 1;
 
-	flag_zero_upd(cpu, val);
-	flag_upd(cpu, CPU_FLAG_CARRY, carry);
+	flag_zero_upd(ctx, val);
+	flag_upd(ctx, CPU_FLAG_CARRY, carry);
 
 	return val;
 }
 
-static void alu_srl_mem_hl(struct agoge_core_cpu *const cpu)
+static void alu_srl_mem_hl(struct agoge_core_ctx *const ctx)
 {
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	val = alu_srl(cpu, val);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	val = alu_srl(ctx, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-static void alu_bit(struct agoge_core_cpu *const cpu, const unsigned int b,
+static void alu_bit(struct agoge_core_ctx *const ctx, const unsigned int b,
 		    const uint8_t val)
 {
 	// There are only 8 bits in a byte, indexed from 0 to 7, so, passing any
@@ -277,223 +277,216 @@ static void alu_bit(struct agoge_core_cpu *const cpu, const unsigned int b,
 	// trivial fix for you.
 	assert(b <= 7);
 
-	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
-	cpu->reg.f |= CPU_FLAG_HALF_CARRY;
+	ctx->cpu.reg.f &= ~CPU_FLAG_SUBTRACT;
+	ctx->cpu.reg.f |= CPU_FLAG_HALF_CARRY;
 
-	flag_zero_upd(cpu, val & (UINT8_C(1) << b));
+	flag_zero_upd(ctx, val & (UINT8_C(1) << b));
 }
 
-NODISCARD static uint16_t alu_add_sp(struct agoge_core_cpu *const cpu)
+NODISCARD static uint16_t alu_add_sp(struct agoge_core_ctx *const ctx)
 {
-	cpu->reg.f &= ~(CPU_FLAG_ZERO | CPU_FLAG_SUBTRACT);
-	const int8_t s8 = (int8_t)read_u8(cpu);
+	ctx->cpu.reg.f &= ~(CPU_FLAG_ZERO | CPU_FLAG_SUBTRACT);
+	const int8_t s8 = (int8_t)read_u8(ctx);
 
-	const int sum = cpu->reg.sp + s8;
+	const int sum = ctx->cpu.reg.sp + s8;
 
-	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.sp ^ s8 ^ sum) & 0x10);
-	flag_upd(cpu, CPU_FLAG_CARRY, (cpu->reg.sp ^ s8 ^ sum) & 0x100);
+	flag_upd(ctx, CPU_FLAG_HALF_CARRY, (ctx->cpu.reg.sp ^ s8 ^ sum) & 0x10);
+	flag_upd(ctx, CPU_FLAG_CARRY, (ctx->cpu.reg.sp ^ s8 ^ sum) & 0x100);
 
 	return sum;
 }
 
-static void alu_add_hl(struct agoge_core_cpu *const cpu, const uint16_t val)
+static void alu_add_hl(struct agoge_core_ctx *const ctx, const uint16_t val)
 {
-	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
+	ctx->cpu.reg.f &= ~CPU_FLAG_SUBTRACT;
 
-	const unsigned int sum = cpu->reg.hl + val;
+	const unsigned int sum = ctx->cpu.reg.hl + val;
 
-	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.hl ^ val ^ sum) & 0x1000);
-	flag_upd(cpu, CPU_FLAG_CARRY, sum > UINT16_MAX);
+	flag_upd(ctx, CPU_FLAG_HALF_CARRY,
+		 (ctx->cpu.reg.hl ^ val ^ sum) & 0x1000);
 
-	cpu->reg.hl = sum;
+	flag_upd(ctx, CPU_FLAG_CARRY, sum > UINT16_MAX);
+
+	ctx->cpu.reg.hl = sum;
 }
 
-static void alu_add_op(struct agoge_core_cpu *const cpu, const uint8_t val,
+static void alu_add_op(struct agoge_core_ctx *const ctx, const uint8_t val,
 		       const bool carry)
 {
-	cpu->reg.f &= ~CPU_FLAG_SUBTRACT;
+	ctx->cpu.reg.f &= ~CPU_FLAG_SUBTRACT;
 
-	const unsigned int res = cpu->reg.a + val + carry;
+	const unsigned int res = ctx->cpu.reg.a + val + carry;
 	const uint8_t sum = res;
 
-	flag_zero_upd(cpu, sum);
-	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.a ^ val ^ res) & 0x10);
-	flag_upd(cpu, CPU_FLAG_CARRY, res > UINT8_MAX);
+	flag_zero_upd(ctx, sum);
+	flag_upd(ctx, CPU_FLAG_HALF_CARRY, (ctx->cpu.reg.a ^ val ^ res) & 0x10);
+	flag_upd(ctx, CPU_FLAG_CARRY, res > UINT8_MAX);
 
-	cpu->reg.a = sum;
+	ctx->cpu.reg.a = sum;
 }
 
-static uint8_t alu_sub_op(struct agoge_core_cpu *const cpu, const uint8_t val,
+static uint8_t alu_sub_op(struct agoge_core_ctx *const ctx, const uint8_t val,
 			  const bool carry)
 {
-	cpu->reg.f |= CPU_FLAG_SUBTRACT;
+	ctx->cpu.reg.f |= CPU_FLAG_SUBTRACT;
 
-	const int res = cpu->reg.a - val - carry;
+	const int res = ctx->cpu.reg.a - val - carry;
 	const uint8_t diff = res;
 
-	flag_zero_upd(cpu, diff);
-	flag_upd(cpu, CPU_FLAG_HALF_CARRY, (cpu->reg.a ^ val ^ res) & 0x10);
-	flag_upd(cpu, CPU_FLAG_CARRY, res < 0);
+	flag_zero_upd(ctx, diff);
+	flag_upd(ctx, CPU_FLAG_HALF_CARRY, (ctx->cpu.reg.a ^ val ^ res) & 0x10);
+	flag_upd(ctx, CPU_FLAG_CARRY, res < 0);
 
 	return diff;
 }
 
-static void alu_add(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_add(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	alu_add_op(cpu, val, 0);
+	alu_add_op(ctx, val, 0);
 }
 
-static void alu_adc(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_adc(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	alu_add_op(cpu, val, cpu->reg.f & CPU_FLAG_CARRY);
+	alu_add_op(ctx, val, ctx->cpu.reg.f & CPU_FLAG_CARRY);
 }
 
-static void alu_sub(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_sub(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	cpu->reg.a = alu_sub_op(cpu, val, 0);
+	ctx->cpu.reg.a = alu_sub_op(ctx, val, 0);
 }
 
-static void alu_sbc(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_sbc(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	cpu->reg.a = alu_sub_op(cpu, val, cpu->reg.f & CPU_FLAG_CARRY);
+	ctx->cpu.reg.a = alu_sub_op(ctx, val, ctx->cpu.reg.f & CPU_FLAG_CARRY);
 }
 
-static void alu_cp(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_cp(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	(void)alu_sub_op(cpu, val, 0);
+	(void)alu_sub_op(ctx, val, 0);
 }
 
-static void alu_res_hl(struct agoge_core_cpu *const cpu, const unsigned int b)
+static void alu_res_hl(struct agoge_core_ctx *const ctx, const unsigned int b)
 {
 	// There are only 8 bits in a byte, indexed from 0 to 7, so, passing any
 	// other value doesn't make sense and is always a bug. Should be a very
 	// trivial fix for you.
 	assert(b <= 7);
 
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	val &= ~(UINT8_C(1) << b);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-static void alu_set_hl(struct agoge_core_cpu *const cpu, const unsigned int b)
+static void alu_set_hl(struct agoge_core_ctx *const ctx, const unsigned int b)
 {
 	// There are only 8 bits in a byte, indexed from 0 to 7, so, passing any
 	// other value doesn't make sense and is always a bug. Should be a very
 	// trivial fix for you.
 	assert(b <= 7);
 
-	uint8_t val = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	uint8_t val = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	val |= (UINT8_C(1) << b);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, val);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, val);
 }
 
-static void jp_if(struct agoge_core_cpu *const cpu, const bool cond_met)
+static void jp_if(struct agoge_core_ctx *const ctx, const bool cond_met)
 {
-	const uint16_t addr = read_u16(cpu);
+	const uint16_t addr = read_u16(ctx);
 
 	if (cond_met) {
-		cpu->reg.pc = addr;
+		ctx->cpu.reg.pc = addr;
 	}
 }
 
-static void ret_if(struct agoge_core_cpu *const cpu, const bool cond_met)
+static void ret_if(struct agoge_core_ctx *const ctx, const bool cond_met)
 {
 	if (cond_met) {
-		cpu->reg.pc = stack_pop(cpu);
+		ctx->cpu.reg.pc = stack_pop(ctx);
 	}
 }
 
-static void call_if(struct agoge_core_cpu *const cpu, const bool cond_met)
+static void call_if(struct agoge_core_ctx *const ctx, const bool cond_met)
 {
-	const uint16_t addr = read_u16(cpu);
+	const uint16_t addr = read_u16(ctx);
 
 	if (cond_met) {
-		stack_push(cpu, cpu->reg.pc);
-		cpu->reg.pc = addr;
+		stack_push(ctx, ctx->cpu.reg.pc);
+		ctx->cpu.reg.pc = addr;
 	}
 }
 
-static void jr_if(struct agoge_core_cpu *const cpu, const bool cond_met)
+static void jr_if(struct agoge_core_ctx *const ctx, const bool cond_met)
 {
-	const int8_t off = (int8_t)read_u8(cpu);
+	const int8_t off = (int8_t)read_u8(ctx);
 
 	if (cond_met) {
-		cpu->reg.pc += off;
+		ctx->cpu.reg.pc += off;
 	}
 }
 
-static void alu_or(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_or(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	cpu->reg.a |= val;
-	cpu->reg.f = (!cpu->reg.a) ? CPU_FLAG_ZERO : 0x00;
+	ctx->cpu.reg.a |= val;
+	ctx->cpu.reg.f = (!ctx->cpu.reg.a) ? CPU_FLAG_ZERO : 0x00;
 }
 
-static void alu_and(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_and(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	cpu->reg.a &= val;
-	cpu->reg.f = (!cpu->reg.a) ? (CPU_FLAG_ZERO | CPU_FLAG_HALF_CARRY) :
-				     CPU_FLAG_HALF_CARRY;
+	ctx->cpu.reg.a &= val;
+	ctx->cpu.reg.f = (!ctx->cpu.reg.a) ?
+				 (CPU_FLAG_ZERO | CPU_FLAG_HALF_CARRY) :
+				 CPU_FLAG_HALF_CARRY;
 }
 
-static void alu_xor(struct agoge_core_cpu *const cpu, const uint8_t val)
+static void alu_xor(struct agoge_core_ctx *const ctx, const uint8_t val)
 {
-	cpu->reg.a ^= val;
-	cpu->reg.f = (!cpu->reg.a) ? CPU_FLAG_ZERO : 0x00;
+	ctx->cpu.reg.a ^= val;
+	ctx->cpu.reg.f = (!ctx->cpu.reg.a) ? CPU_FLAG_ZERO : 0x00;
 }
 
-static void op_daa(struct agoge_core_cpu *const cpu)
+static void op_daa(struct agoge_core_ctx *const ctx)
 {
 	uint8_t val = 0;
 
-	if (cpu->reg.f & CPU_FLAG_HALF_CARRY) {
+	if (ctx->cpu.reg.f & CPU_FLAG_HALF_CARRY) {
 		val |= 0x06;
 	}
 
-	if (cpu->reg.f & CPU_FLAG_CARRY) {
+	if (ctx->cpu.reg.f & CPU_FLAG_CARRY) {
 		val |= 0x60;
 	}
 
-	if (!(cpu->reg.f & CPU_FLAG_SUBTRACT)) {
-		if ((cpu->reg.a & 0x0F) > 0x09) {
+	if (!(ctx->cpu.reg.f & CPU_FLAG_SUBTRACT)) {
+		if ((ctx->cpu.reg.a & 0x0F) > 0x09) {
 			val |= 0x06;
 		}
 
-		if (cpu->reg.a > 0x99) {
+		if (ctx->cpu.reg.a > 0x99) {
 			val |= 0x60;
 		}
-		cpu->reg.a += val;
+		ctx->cpu.reg.a += val;
 	} else {
-		cpu->reg.a -= val;
+		ctx->cpu.reg.a -= val;
 	}
 
-	flag_zero_upd(cpu, cpu->reg.a);
-	flag_upd(cpu, CPU_FLAG_CARRY, val & 0x60);
+	flag_zero_upd(ctx, ctx->cpu.reg.a);
+	flag_upd(ctx, CPU_FLAG_CARRY, val & 0x60);
 
-	cpu->reg.f &= ~CPU_FLAG_HALF_CARRY;
+	ctx->cpu.reg.f &= ~CPU_FLAG_HALF_CARRY;
 }
 
-static void rst(struct agoge_core_cpu *const cpu, const uint16_t vec)
+static void rst(struct agoge_core_ctx *const ctx, const uint16_t vec)
 {
-	stack_push(cpu, cpu->reg.pc);
-	cpu->reg.pc = vec;
+	stack_push(ctx, ctx->cpu.reg.pc);
+	ctx->cpu.reg.pc = vec;
 }
 
-void agoge_core_cpu_init(struct agoge_core_cpu *const cpu,
-			 struct agoge_core_bus *const bus,
-			 struct agoge_core_log *const log)
+void agoge_core_cpu_reset(struct agoge_core_ctx *const ctx)
 {
-	cpu->bus = bus;
-	cpu->log = log;
-
-	LOG_INFO(cpu->log, "initialized");
+	ctx->cpu.reg.pc = CPU_PWRUP_REG_PC;
 }
 
-void agoge_core_cpu_reset(struct agoge_core_cpu *const cpu)
-{
-	cpu->reg.pc = CPU_PWRUP_REG_PC;
-}
-
-void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
+void agoge_core_cpu_run(struct agoge_core_ctx *const ctx,
 			unsigned int run_cycles)
 {
 	// The CPU was requested to run for zero cycles; this is nonsense.
@@ -504,7 +497,7 @@ void agoge_core_cpu_run(struct agoge_core_cpu *const cpu,
 		if (unlikely(run_cycles-- == 0)) { \
 			return;                    \
 		}                                  \
-		instr = read_u8(cpu);              \
+		instr = read_u8(ctx);              \
 		goto *op_tbl[instr];               \
 	})
 
@@ -1028,2015 +1021,2015 @@ nop:
 	DISPATCH();
 
 ld_bc_u16:
-	cpu->reg.bc = read_u16(cpu);
+	ctx->cpu.reg.bc = read_u16(ctx);
 	DISPATCH();
 
 ld_mem_bc_a:
-	agoge_core_bus_write(cpu->bus, cpu->reg.bc, cpu->reg.a);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.bc, ctx->cpu.reg.a);
 	DISPATCH();
 
 inc_bc:
-	cpu->reg.bc++;
+	ctx->cpu.reg.bc++;
 	DISPATCH();
 
 inc_b:
-	cpu->reg.b = alu_inc(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_inc(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 dec_b:
-	cpu->reg.b = alu_dec(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_dec(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 ld_b_u8:
-	cpu->reg.b = read_u8(cpu);
+	ctx->cpu.reg.b = read_u8(ctx);
 	DISPATCH();
 
 rlca:
-	cpu->reg.a = alu_rlc_op(cpu, cpu->reg.a);
-	cpu->reg.f &= ~CPU_FLAG_ZERO;
+	ctx->cpu.reg.a = alu_rlc_op(ctx, ctx->cpu.reg.a);
+	ctx->cpu.reg.f &= ~CPU_FLAG_ZERO;
 
 	DISPATCH();
 
 ld_mem_u16_sp:
-	u16 = read_u16(cpu);
+	u16 = read_u16(ctx);
 
-	agoge_core_bus_write(cpu->bus, u16 + 0, cpu->reg.sp & UINT8_MAX);
-	agoge_core_bus_write(cpu->bus, u16 + 1, cpu->reg.sp >> 8);
+	agoge_core_bus_write(ctx, u16 + 0, ctx->cpu.reg.sp & UINT8_MAX);
+	agoge_core_bus_write(ctx, u16 + 1, ctx->cpu.reg.sp >> 8);
 
 	DISPATCH();
 
 add_hl_bc:
-	alu_add_hl(cpu, cpu->reg.bc);
+	alu_add_hl(ctx, ctx->cpu.reg.bc);
 	DISPATCH();
 
 ld_a_mem_bc:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, cpu->reg.bc);
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, ctx->cpu.reg.bc);
 	DISPATCH();
 
 dec_bc:
-	cpu->reg.bc--;
+	ctx->cpu.reg.bc--;
 	DISPATCH();
 
 inc_c:
-	cpu->reg.c = alu_inc(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_inc(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 dec_c:
-	cpu->reg.c = alu_dec(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_dec(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 ld_c_u8:
-	cpu->reg.c = read_u8(cpu);
+	ctx->cpu.reg.c = read_u8(ctx);
 	DISPATCH();
 
 rrca:
-	cpu->reg.a = alu_rrc_op(cpu, cpu->reg.a);
-	cpu->reg.f &= ~CPU_FLAG_ZERO;
+	ctx->cpu.reg.a = alu_rrc_op(ctx, ctx->cpu.reg.a);
+	ctx->cpu.reg.f &= ~CPU_FLAG_ZERO;
 
 	DISPATCH();
 
 ld_de_u16:
-	cpu->reg.de = read_u16(cpu);
+	ctx->cpu.reg.de = read_u16(ctx);
 	DISPATCH();
 
 ld_mem_de_a:
-	agoge_core_bus_write(cpu->bus, cpu->reg.de, cpu->reg.a);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.de, ctx->cpu.reg.a);
 	DISPATCH();
 
 inc_de:
-	cpu->reg.de++;
+	ctx->cpu.reg.de++;
 	DISPATCH();
 
 inc_d:
-	cpu->reg.d = alu_inc(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_inc(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 dec_d:
-	cpu->reg.d = alu_dec(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_dec(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 ld_d_u8:
-	cpu->reg.d = read_u8(cpu);
+	ctx->cpu.reg.d = read_u8(ctx);
 	DISPATCH();
 
 rla:
-	cpu->reg.a = alu_rl_op(cpu, cpu->reg.a);
-	cpu->reg.f &= ~CPU_FLAG_ZERO;
+	ctx->cpu.reg.a = alu_rl_op(ctx, ctx->cpu.reg.a);
+	ctx->cpu.reg.f &= ~CPU_FLAG_ZERO;
 
 	DISPATCH();
 
 jr_s8:
-	jr_if(cpu, true);
+	jr_if(ctx, true);
 	DISPATCH();
 
 add_hl_de:
-	alu_add_hl(cpu, cpu->reg.de);
+	alu_add_hl(ctx, ctx->cpu.reg.de);
 	DISPATCH();
 
 ld_a_mem_de:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, cpu->reg.de);
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, ctx->cpu.reg.de);
 	DISPATCH();
 
 dec_de:
-	cpu->reg.de--;
+	ctx->cpu.reg.de--;
 	DISPATCH();
 
 inc_e:
-	cpu->reg.e = alu_inc(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_inc(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 dec_e:
-	cpu->reg.e = alu_dec(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_dec(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 ld_e_u8:
-	cpu->reg.e = read_u8(cpu);
+	ctx->cpu.reg.e = read_u8(ctx);
 	DISPATCH();
 
 rra:
-	cpu->reg.a = alu_rr(cpu, cpu->reg.a);
-	cpu->reg.f &= ~CPU_FLAG_ZERO;
+	ctx->cpu.reg.a = alu_rr(ctx, ctx->cpu.reg.a);
+	ctx->cpu.reg.f &= ~CPU_FLAG_ZERO;
 
 	DISPATCH();
 
 jr_nz_s8:
-	jr_if(cpu, !(cpu->reg.f & CPU_FLAG_ZERO));
+	jr_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_ZERO));
 	DISPATCH();
 
 ld_hl_u16:
-	cpu->reg.hl = read_u16(cpu);
+	ctx->cpu.reg.hl = read_u16(ctx);
 	DISPATCH();
 
 ldi_mem_hl_a:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl++, cpu->reg.a);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl++, ctx->cpu.reg.a);
 	DISPATCH();
 
 inc_hl:
-	cpu->reg.hl++;
+	ctx->cpu.reg.hl++;
 	DISPATCH();
 
 inc_h:
-	cpu->reg.h = alu_inc(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_inc(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 dec_h:
-	cpu->reg.h = alu_dec(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_dec(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 ld_h_u8:
-	cpu->reg.h = read_u8(cpu);
+	ctx->cpu.reg.h = read_u8(ctx);
 	DISPATCH();
 
 daa:
-	op_daa(cpu);
+	op_daa(ctx);
 	DISPATCH();
 
 jr_z_s8:
-	jr_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
+	jr_if(ctx, ctx->cpu.reg.f & CPU_FLAG_ZERO);
 	DISPATCH();
 
 add_hl_hl:
-	alu_add_hl(cpu, cpu->reg.hl);
+	alu_add_hl(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ldi_a_mem_hl:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, cpu->reg.hl++);
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, ctx->cpu.reg.hl++);
 	DISPATCH();
 
 dec_hl:
-	cpu->reg.hl--;
+	ctx->cpu.reg.hl--;
 	DISPATCH();
 
 inc_l:
-	cpu->reg.l = alu_inc(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_inc(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 dec_l:
-	cpu->reg.l = alu_dec(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_dec(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 ld_l_u8:
-	cpu->reg.l = read_u8(cpu);
+	ctx->cpu.reg.l = read_u8(ctx);
 	DISPATCH();
 
 cpl:
-	cpu->reg.a = ~cpu->reg.a;
-	cpu->reg.f |= (CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	ctx->cpu.reg.a = ~ctx->cpu.reg.a;
+	ctx->cpu.reg.f |= (CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
 
 	DISPATCH();
 
 jr_nc_s8:
-	jr_if(cpu, !(cpu->reg.f & CPU_FLAG_CARRY));
+	jr_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_CARRY));
 	DISPATCH();
 
 ld_sp_u16:
-	cpu->reg.sp = read_u16(cpu);
+	ctx->cpu.reg.sp = read_u16(ctx);
 	DISPATCH();
 
 ldd_mem_hl_a:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl--, cpu->reg.a);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl--, ctx->cpu.reg.a);
 	DISPATCH();
 
 inc_sp:
-	cpu->reg.sp++;
+	ctx->cpu.reg.sp++;
 	DISPATCH();
 
 inc_mem_hl:
-	alu_inc_mem_hl(cpu);
+	alu_inc_mem_hl(ctx);
 	DISPATCH();
 
 dec_mem_hl:
-	u8 = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
-	u8 = alu_dec(cpu, u8);
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, u8);
+	u8 = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
+	u8 = alu_dec(ctx, u8);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, u8);
 
 	DISPATCH();
 
 ld_mem_hl_u8:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, read_u8(cpu));
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, read_u8(ctx));
 	DISPATCH();
 
 scf:
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
-	cpu->reg.f |= CPU_FLAG_CARRY;
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	ctx->cpu.reg.f |= CPU_FLAG_CARRY;
 
 	DISPATCH();
 
 jr_c_s8:
-	jr_if(cpu, cpu->reg.f & CPU_FLAG_CARRY);
+	jr_if(ctx, ctx->cpu.reg.f & CPU_FLAG_CARRY);
 	DISPATCH();
 
 add_hl_sp:
-	alu_add_hl(cpu, cpu->reg.sp);
+	alu_add_hl(ctx, ctx->cpu.reg.sp);
 	DISPATCH();
 
 ldd_a_mem_hl:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, cpu->reg.hl--);
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, ctx->cpu.reg.hl--);
 	DISPATCH();
 
 dec_sp:
-	cpu->reg.sp--;
+	ctx->cpu.reg.sp--;
 	DISPATCH();
 
 inc_a:
-	cpu->reg.a = alu_inc(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_inc(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 dec_a:
-	cpu->reg.a = alu_dec(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_dec(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 ld_a_u8:
-	cpu->reg.a = read_u8(cpu);
+	ctx->cpu.reg.a = read_u8(ctx);
 	DISPATCH();
 
 ccf:
-	cpu->reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
-	cpu->reg.f ^= CPU_FLAG_CARRY;
+	ctx->cpu.reg.f &= ~(CPU_FLAG_SUBTRACT | CPU_FLAG_HALF_CARRY);
+	ctx->cpu.reg.f ^= CPU_FLAG_CARRY;
 
 	DISPATCH();
 
 ld_b_b:
-	cpu->reg.b = cpu->reg.b;
+	ctx->cpu.reg.b = ctx->cpu.reg.b;
 	DISPATCH();
 
 ld_b_c:
-	cpu->reg.b = cpu->reg.c;
+	ctx->cpu.reg.b = ctx->cpu.reg.c;
 	DISPATCH();
 
 ld_b_d:
-	cpu->reg.b = cpu->reg.d;
+	ctx->cpu.reg.b = ctx->cpu.reg.d;
 	DISPATCH();
 
 ld_b_e:
-	cpu->reg.b = cpu->reg.e;
+	ctx->cpu.reg.b = ctx->cpu.reg.e;
 	DISPATCH();
 
 ld_b_h:
-	cpu->reg.b = cpu->reg.h;
+	ctx->cpu.reg.b = ctx->cpu.reg.h;
 	DISPATCH();
 
 ld_b_l:
-	cpu->reg.b = cpu->reg.l;
+	ctx->cpu.reg.b = ctx->cpu.reg.l;
 	DISPATCH();
 
 ld_b_mem_hl:
-	cpu->reg.b = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	ctx->cpu.reg.b = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ld_b_a:
-	cpu->reg.b = cpu->reg.a;
+	ctx->cpu.reg.b = ctx->cpu.reg.a;
 	DISPATCH();
 
 ld_c_b:
-	cpu->reg.c = cpu->reg.b;
+	ctx->cpu.reg.c = ctx->cpu.reg.b;
 	DISPATCH();
 
 ld_c_c:
-	cpu->reg.c = cpu->reg.c;
+	ctx->cpu.reg.c = ctx->cpu.reg.c;
 	DISPATCH();
 
 ld_c_d:
-	cpu->reg.c = cpu->reg.d;
+	ctx->cpu.reg.c = ctx->cpu.reg.d;
 	DISPATCH();
 
 ld_c_e:
-	cpu->reg.c = cpu->reg.e;
+	ctx->cpu.reg.c = ctx->cpu.reg.e;
 	DISPATCH();
 
 ld_c_h:
-	cpu->reg.c = cpu->reg.h;
+	ctx->cpu.reg.c = ctx->cpu.reg.h;
 	DISPATCH();
 
 ld_c_l:
-	cpu->reg.c = cpu->reg.l;
+	ctx->cpu.reg.c = ctx->cpu.reg.l;
 	DISPATCH();
 
 ld_c_mem_hl:
-	cpu->reg.c = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	ctx->cpu.reg.c = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ld_c_a:
-	cpu->reg.c = cpu->reg.a;
+	ctx->cpu.reg.c = ctx->cpu.reg.a;
 	DISPATCH();
 
 ld_d_b:
-	cpu->reg.d = cpu->reg.b;
+	ctx->cpu.reg.d = ctx->cpu.reg.b;
 	DISPATCH();
 
 ld_d_c:
-	cpu->reg.d = cpu->reg.c;
+	ctx->cpu.reg.d = ctx->cpu.reg.c;
 	DISPATCH();
 
 ld_d_d:
-	cpu->reg.d = cpu->reg.d;
+	ctx->cpu.reg.d = ctx->cpu.reg.d;
 	DISPATCH();
 
 ld_d_e:
-	cpu->reg.d = cpu->reg.e;
+	ctx->cpu.reg.d = ctx->cpu.reg.e;
 	DISPATCH();
 
 ld_d_h:
-	cpu->reg.d = cpu->reg.h;
+	ctx->cpu.reg.d = ctx->cpu.reg.h;
 	DISPATCH();
 
 ld_d_l:
-	cpu->reg.d = cpu->reg.l;
+	ctx->cpu.reg.d = ctx->cpu.reg.l;
 	DISPATCH();
 
 ld_d_mem_hl:
-	cpu->reg.d = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	ctx->cpu.reg.d = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ld_d_a:
-	cpu->reg.d = cpu->reg.a;
+	ctx->cpu.reg.d = ctx->cpu.reg.a;
 	DISPATCH();
 
 ld_e_b:
-	cpu->reg.e = cpu->reg.b;
+	ctx->cpu.reg.e = ctx->cpu.reg.b;
 	DISPATCH();
 
 ld_e_c:
-	cpu->reg.e = cpu->reg.c;
+	ctx->cpu.reg.e = ctx->cpu.reg.c;
 	DISPATCH();
 
 ld_e_d:
-	cpu->reg.e = cpu->reg.d;
+	ctx->cpu.reg.e = ctx->cpu.reg.d;
 	DISPATCH();
 
 ld_e_e:
-	cpu->reg.e = cpu->reg.e;
+	ctx->cpu.reg.e = ctx->cpu.reg.e;
 	DISPATCH();
 
 ld_e_h:
-	cpu->reg.e = cpu->reg.h;
+	ctx->cpu.reg.e = ctx->cpu.reg.h;
 	DISPATCH();
 
 ld_e_l:
-	cpu->reg.e = cpu->reg.l;
+	ctx->cpu.reg.e = ctx->cpu.reg.l;
 	DISPATCH();
 
 ld_e_mem_hl:
-	cpu->reg.e = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	ctx->cpu.reg.e = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ld_e_a:
-	cpu->reg.e = cpu->reg.a;
+	ctx->cpu.reg.e = ctx->cpu.reg.a;
 	DISPATCH();
 
 ld_h_b:
-	cpu->reg.h = cpu->reg.b;
+	ctx->cpu.reg.h = ctx->cpu.reg.b;
 	DISPATCH();
 
 ld_h_c:
-	cpu->reg.h = cpu->reg.c;
+	ctx->cpu.reg.h = ctx->cpu.reg.c;
 	DISPATCH();
 
 ld_h_d:
-	cpu->reg.h = cpu->reg.d;
+	ctx->cpu.reg.h = ctx->cpu.reg.d;
 	DISPATCH();
 
 ld_h_e:
-	cpu->reg.h = cpu->reg.e;
+	ctx->cpu.reg.h = ctx->cpu.reg.e;
 	DISPATCH();
 
 ld_h_h:
-	cpu->reg.h = cpu->reg.h;
+	ctx->cpu.reg.h = ctx->cpu.reg.h;
 	DISPATCH();
 
 ld_h_l:
-	cpu->reg.h = cpu->reg.l;
+	ctx->cpu.reg.h = ctx->cpu.reg.l;
 	DISPATCH();
 
 ld_h_mem_hl:
-	cpu->reg.h = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	ctx->cpu.reg.h = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ld_h_a:
-	cpu->reg.h = cpu->reg.a;
+	ctx->cpu.reg.h = ctx->cpu.reg.a;
 	DISPATCH();
 
 ld_l_b:
-	cpu->reg.l = cpu->reg.b;
+	ctx->cpu.reg.l = ctx->cpu.reg.b;
 	DISPATCH();
 
 ld_l_c:
-	cpu->reg.l = cpu->reg.c;
+	ctx->cpu.reg.l = ctx->cpu.reg.c;
 	DISPATCH();
 
 ld_l_d:
-	cpu->reg.l = cpu->reg.d;
+	ctx->cpu.reg.l = ctx->cpu.reg.d;
 	DISPATCH();
 
 ld_l_e:
-	cpu->reg.l = cpu->reg.e;
+	ctx->cpu.reg.l = ctx->cpu.reg.e;
 	DISPATCH();
 
 ld_l_h:
-	cpu->reg.l = cpu->reg.h;
+	ctx->cpu.reg.l = ctx->cpu.reg.h;
 	DISPATCH();
 
 ld_l_l:
-	cpu->reg.l = cpu->reg.l;
+	ctx->cpu.reg.l = ctx->cpu.reg.l;
 	DISPATCH();
 
 ld_l_mem_hl:
-	cpu->reg.l = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	ctx->cpu.reg.l = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ld_l_a:
-	cpu->reg.l = cpu->reg.a;
+	ctx->cpu.reg.l = ctx->cpu.reg.a;
 	DISPATCH();
 
 ld_mem_hl_b:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.b);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, ctx->cpu.reg.b);
 	DISPATCH();
 
 ld_mem_hl_c:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.c);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, ctx->cpu.reg.c);
 	DISPATCH();
 
 ld_mem_hl_d:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.d);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, ctx->cpu.reg.d);
 	DISPATCH();
 
 ld_mem_hl_e:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.e);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, ctx->cpu.reg.e);
 	DISPATCH();
 
 ld_mem_hl_h:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.h);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, ctx->cpu.reg.h);
 	DISPATCH();
 
 ld_mem_hl_l:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.l);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, ctx->cpu.reg.l);
 	DISPATCH();
 
 ld_mem_hl_a:
-	agoge_core_bus_write(cpu->bus, cpu->reg.hl, cpu->reg.a);
+	agoge_core_bus_write(ctx, ctx->cpu.reg.hl, ctx->cpu.reg.a);
 	DISPATCH();
 
 ld_a_b:
-	cpu->reg.a = cpu->reg.b;
+	ctx->cpu.reg.a = ctx->cpu.reg.b;
 	DISPATCH();
 
 ld_a_c:
-	cpu->reg.a = cpu->reg.c;
+	ctx->cpu.reg.a = ctx->cpu.reg.c;
 	DISPATCH();
 
 ld_a_d:
-	cpu->reg.a = cpu->reg.d;
+	ctx->cpu.reg.a = ctx->cpu.reg.d;
 	DISPATCH();
 
 ld_a_e:
-	cpu->reg.a = cpu->reg.e;
+	ctx->cpu.reg.a = ctx->cpu.reg.e;
 	DISPATCH();
 
 ld_a_h:
-	cpu->reg.a = cpu->reg.h;
+	ctx->cpu.reg.a = ctx->cpu.reg.h;
 	DISPATCH();
 
 ld_a_l:
-	cpu->reg.a = cpu->reg.l;
+	ctx->cpu.reg.a = ctx->cpu.reg.l;
 	DISPATCH();
 
 ld_a_mem_hl:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, cpu->reg.hl);
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 ld_a_a:
-	cpu->reg.a = cpu->reg.a;
+	ctx->cpu.reg.a = ctx->cpu.reg.a;
 	DISPATCH();
 
 add_a_b:
-	alu_add(cpu, cpu->reg.b);
+	alu_add(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 add_a_c:
-	alu_add(cpu, cpu->reg.c);
+	alu_add(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 add_a_d:
-	alu_add(cpu, cpu->reg.d);
+	alu_add(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 add_a_e:
-	alu_add(cpu, cpu->reg.e);
+	alu_add(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 add_a_h:
-	alu_add(cpu, cpu->reg.h);
+	alu_add(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 add_a_l:
-	alu_add(cpu, cpu->reg.l);
+	alu_add(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 add_a_mem_hl:
-	alu_add(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_add(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 add_a_a:
-	alu_add(cpu, cpu->reg.a);
+	alu_add(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 adc_a_b:
-	alu_adc(cpu, cpu->reg.b);
+	alu_adc(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 adc_a_c:
-	alu_adc(cpu, cpu->reg.c);
+	alu_adc(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 adc_a_d:
-	alu_adc(cpu, cpu->reg.d);
+	alu_adc(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 adc_a_e:
-	alu_adc(cpu, cpu->reg.e);
+	alu_adc(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 adc_a_h:
-	alu_adc(cpu, cpu->reg.h);
+	alu_adc(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 adc_a_l:
-	alu_adc(cpu, cpu->reg.l);
+	alu_adc(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 adc_a_mem_hl:
-	alu_adc(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_adc(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 adc_a_a:
-	alu_adc(cpu, cpu->reg.a);
+	alu_adc(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 sub_a_b:
-	alu_sub(cpu, cpu->reg.b);
+	alu_sub(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 sub_a_c:
-	alu_sub(cpu, cpu->reg.c);
+	alu_sub(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 sub_a_d:
-	alu_sub(cpu, cpu->reg.d);
+	alu_sub(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 sub_a_e:
-	alu_sub(cpu, cpu->reg.e);
+	alu_sub(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 sub_a_h:
-	alu_sub(cpu, cpu->reg.h);
+	alu_sub(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 sub_a_l:
-	alu_sub(cpu, cpu->reg.l);
+	alu_sub(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 sub_a_mem_hl:
-	alu_sub(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_sub(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 sub_a_a:
-	alu_sub(cpu, cpu->reg.a);
+	alu_sub(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 sbc_a_b:
-	alu_sbc(cpu, cpu->reg.b);
+	alu_sbc(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 sbc_a_c:
-	alu_sbc(cpu, cpu->reg.c);
+	alu_sbc(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 sbc_a_d:
-	alu_sbc(cpu, cpu->reg.d);
+	alu_sbc(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 sbc_a_e:
-	alu_sbc(cpu, cpu->reg.e);
+	alu_sbc(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 sbc_a_h:
-	alu_sbc(cpu, cpu->reg.h);
+	alu_sbc(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 sbc_a_l:
-	alu_sbc(cpu, cpu->reg.l);
+	alu_sbc(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 sbc_a_mem_hl:
-	alu_sbc(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_sbc(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 sbc_a_a:
-	alu_sbc(cpu, cpu->reg.a);
+	alu_sbc(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 and_a_b:
-	alu_and(cpu, cpu->reg.b);
+	alu_and(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 and_a_c:
-	alu_and(cpu, cpu->reg.c);
+	alu_and(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 and_a_d:
-	alu_and(cpu, cpu->reg.d);
+	alu_and(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 and_a_e:
-	alu_and(cpu, cpu->reg.e);
+	alu_and(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 and_a_h:
-	alu_and(cpu, cpu->reg.h);
+	alu_and(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 and_a_l:
-	alu_and(cpu, cpu->reg.l);
+	alu_and(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 and_a_mem_hl:
-	alu_and(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_and(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 and_a_a:
-	alu_and(cpu, cpu->reg.a);
+	alu_and(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 xor_a_b:
-	alu_xor(cpu, cpu->reg.b);
+	alu_xor(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 xor_a_c:
-	alu_xor(cpu, cpu->reg.c);
+	alu_xor(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 xor_a_d:
-	alu_xor(cpu, cpu->reg.d);
+	alu_xor(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 xor_a_e:
-	alu_xor(cpu, cpu->reg.e);
+	alu_xor(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 xor_a_h:
-	alu_xor(cpu, cpu->reg.h);
+	alu_xor(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 xor_a_l:
-	alu_xor(cpu, cpu->reg.l);
+	alu_xor(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 xor_a_mem_hl:
-	alu_xor(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_xor(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 xor_a_a:
-	alu_xor(cpu, cpu->reg.a);
+	alu_xor(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 or_a_b:
-	alu_or(cpu, cpu->reg.b);
+	alu_or(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 or_a_c:
-	alu_or(cpu, cpu->reg.c);
+	alu_or(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 or_a_d:
-	alu_or(cpu, cpu->reg.d);
+	alu_or(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 or_a_e:
-	alu_or(cpu, cpu->reg.e);
+	alu_or(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 or_a_h:
-	alu_or(cpu, cpu->reg.h);
+	alu_or(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 or_a_l:
-	alu_or(cpu, cpu->reg.l);
+	alu_or(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 or_a_mem_hl:
-	alu_or(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_or(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 or_a_a:
-	alu_or(cpu, cpu->reg.a);
+	alu_or(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 cp_a_b:
-	alu_cp(cpu, cpu->reg.b);
+	alu_cp(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 cp_a_c:
-	alu_cp(cpu, cpu->reg.c);
+	alu_cp(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 cp_a_d:
-	alu_cp(cpu, cpu->reg.d);
+	alu_cp(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 cp_a_e:
-	alu_cp(cpu, cpu->reg.e);
+	alu_cp(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 cp_a_h:
-	alu_cp(cpu, cpu->reg.h);
+	alu_cp(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 cp_a_l:
-	alu_cp(cpu, cpu->reg.l);
+	alu_cp(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 cp_a_mem_hl:
-	alu_cp(cpu, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_cp(ctx, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 cp_a_a:
-	alu_cp(cpu, cpu->reg.a);
+	alu_cp(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 ret_nz:
-	ret_if(cpu, !(cpu->reg.f & CPU_FLAG_ZERO));
+	ret_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_ZERO));
 	DISPATCH();
 
 pop_bc:
-	cpu->reg.bc = stack_pop(cpu);
+	ctx->cpu.reg.bc = stack_pop(ctx);
 	DISPATCH();
 
 jp_nz_u16:
-	jp_if(cpu, !(cpu->reg.f & CPU_FLAG_ZERO));
+	jp_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_ZERO));
 	DISPATCH();
 
 jp_u16:
-	jp_if(cpu, true);
+	jp_if(ctx, true);
 	DISPATCH();
 
 call_nz_u16:
-	call_if(cpu, !(cpu->reg.f & CPU_FLAG_ZERO));
+	call_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_ZERO));
 	DISPATCH();
 
 push_bc:
-	stack_push(cpu, cpu->reg.bc);
+	stack_push(ctx, ctx->cpu.reg.bc);
 	DISPATCH();
 
 add_a_u8:
-	alu_add(cpu, read_u8(cpu));
+	alu_add(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_00:
-	rst(cpu, 0x0000);
+	rst(ctx, 0x0000);
 	DISPATCH();
 
 ret_z:
-	ret_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
+	ret_if(ctx, ctx->cpu.reg.f & CPU_FLAG_ZERO);
 	DISPATCH();
 
 ret:
-	ret_if(cpu, true);
+	ret_if(ctx, true);
 	DISPATCH();
 
 jp_z_u16:
-	jp_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
+	jp_if(ctx, ctx->cpu.reg.f & CPU_FLAG_ZERO);
 	DISPATCH();
 
 prefix_cb:
-	instr = read_u8(cpu);
+	instr = read_u8(ctx);
 	goto *cb_tbl[instr];
 
 rlc_b:
-	cpu->reg.b = alu_rlc(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_rlc(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 rlc_c:
-	cpu->reg.c = alu_rlc(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_rlc(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 rlc_d:
-	cpu->reg.d = alu_rlc(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_rlc(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 rlc_e:
-	cpu->reg.e = alu_rlc(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_rlc(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 rlc_h:
-	cpu->reg.h = alu_rlc(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_rlc(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 rlc_l:
-	cpu->reg.l = alu_rlc(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_rlc(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 rlc_mem_hl:
-	alu_rlc_mem_hl(cpu);
+	alu_rlc_mem_hl(ctx);
 	DISPATCH();
 
 rlc_a:
-	cpu->reg.a = alu_rlc(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_rlc(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 rrc_b:
-	cpu->reg.b = alu_rrc(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_rrc(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 rrc_c:
-	cpu->reg.c = alu_rrc(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_rrc(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 rrc_d:
-	cpu->reg.d = alu_rrc(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_rrc(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 rrc_e:
-	cpu->reg.e = alu_rrc(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_rrc(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 rrc_h:
-	cpu->reg.h = alu_rrc(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_rrc(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 rrc_l:
-	cpu->reg.l = alu_rrc(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_rrc(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 rrc_mem_hl:
-	alu_rrc_mem_hl(cpu);
+	alu_rrc_mem_hl(ctx);
 	DISPATCH();
 
 rrc_a:
-	cpu->reg.a = alu_rrc(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_rrc(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 rl_b:
-	cpu->reg.b = alu_rl(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_rl(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 rl_c:
-	cpu->reg.c = alu_rl(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_rl(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 rl_d:
-	cpu->reg.d = alu_rl(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_rl(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 rl_e:
-	cpu->reg.e = alu_rl(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_rl(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 rl_h:
-	cpu->reg.h = alu_rl(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_rl(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 rl_l:
-	cpu->reg.l = alu_rl(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_rl(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 rl_mem_hl:
-	alu_rl_mem_hl(cpu);
+	alu_rl_mem_hl(ctx);
 	DISPATCH();
 
 rl_a:
-	cpu->reg.a = alu_rl(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_rl(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 rr_b:
-	cpu->reg.b = alu_rr(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_rr(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 rr_c:
-	cpu->reg.c = alu_rr(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_rr(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 rr_d:
-	cpu->reg.d = alu_rr(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_rr(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 rr_e:
-	cpu->reg.e = alu_rr(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_rr(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 rr_h:
-	cpu->reg.h = alu_rr(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_rr(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 rr_l:
-	cpu->reg.l = alu_rr(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_rr(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 rr_mem_hl:
-	alu_rr_mem_hl(cpu);
+	alu_rr_mem_hl(ctx);
 	DISPATCH();
 
 rr_a:
-	cpu->reg.a = alu_rr(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_rr(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 sla_b:
-	cpu->reg.b = alu_sla(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_sla(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 sla_c:
-	cpu->reg.c = alu_sla(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_sla(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 sla_d:
-	cpu->reg.d = alu_sla(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_sla(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 sla_e:
-	cpu->reg.e = alu_sla(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_sla(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 sla_h:
-	cpu->reg.h = alu_sla(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_sla(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 sla_l:
-	cpu->reg.l = alu_sla(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_sla(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 sla_mem_hl:
-	alu_sla_mem_hl(cpu);
+	alu_sla_mem_hl(ctx);
 	DISPATCH();
 
 sla_a:
-	cpu->reg.a = alu_sla(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_sla(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 sra_b:
-	cpu->reg.b = alu_sra(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_sra(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 sra_c:
-	cpu->reg.c = alu_sra(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_sra(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 sra_d:
-	cpu->reg.d = alu_sra(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_sra(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 sra_e:
-	cpu->reg.e = alu_sra(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_sra(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 sra_h:
-	cpu->reg.h = alu_sra(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_sra(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 sra_l:
-	cpu->reg.l = alu_sra(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_sra(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 sra_mem_hl:
-	alu_sra_mem_hl(cpu);
+	alu_sra_mem_hl(ctx);
 	DISPATCH();
 
 sra_a:
-	cpu->reg.a = alu_sra(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_sra(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 swap_b:
-	cpu->reg.b = alu_swap(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_swap(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 swap_c:
-	cpu->reg.c = alu_swap(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_swap(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 swap_d:
-	cpu->reg.d = alu_swap(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_swap(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 swap_e:
-	cpu->reg.e = alu_swap(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_swap(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 swap_h:
-	cpu->reg.h = alu_swap(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_swap(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 swap_l:
-	cpu->reg.l = alu_swap(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_swap(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 swap_mem_hl:
-	alu_swap_mem_hl(cpu);
+	alu_swap_mem_hl(ctx);
 	DISPATCH();
 
 swap_a:
-	cpu->reg.a = alu_swap(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_swap(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 srl_b:
-	cpu->reg.b = alu_srl(cpu, cpu->reg.b);
+	ctx->cpu.reg.b = alu_srl(ctx, ctx->cpu.reg.b);
 	DISPATCH();
 
 srl_c:
-	cpu->reg.c = alu_srl(cpu, cpu->reg.c);
+	ctx->cpu.reg.c = alu_srl(ctx, ctx->cpu.reg.c);
 	DISPATCH();
 
 srl_d:
-	cpu->reg.d = alu_srl(cpu, cpu->reg.d);
+	ctx->cpu.reg.d = alu_srl(ctx, ctx->cpu.reg.d);
 	DISPATCH();
 
 srl_e:
-	cpu->reg.e = alu_srl(cpu, cpu->reg.e);
+	ctx->cpu.reg.e = alu_srl(ctx, ctx->cpu.reg.e);
 	DISPATCH();
 
 srl_h:
-	cpu->reg.h = alu_srl(cpu, cpu->reg.h);
+	ctx->cpu.reg.h = alu_srl(ctx, ctx->cpu.reg.h);
 	DISPATCH();
 
 srl_l:
-	cpu->reg.l = alu_srl(cpu, cpu->reg.l);
+	ctx->cpu.reg.l = alu_srl(ctx, ctx->cpu.reg.l);
 	DISPATCH();
 
 srl_mem_hl:
-	alu_srl_mem_hl(cpu);
+	alu_srl_mem_hl(ctx);
 	DISPATCH();
 
 srl_a:
-	cpu->reg.a = alu_srl(cpu, cpu->reg.a);
+	ctx->cpu.reg.a = alu_srl(ctx, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_0_b:
-	alu_bit(cpu, 0, cpu->reg.b);
+	alu_bit(ctx, 0, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_0_c:
-	alu_bit(cpu, 0, cpu->reg.c);
+	alu_bit(ctx, 0, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_0_d:
-	alu_bit(cpu, 0, cpu->reg.d);
+	alu_bit(ctx, 0, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_0_e:
-	alu_bit(cpu, 0, cpu->reg.e);
+	alu_bit(ctx, 0, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_0_h:
-	alu_bit(cpu, 0, cpu->reg.h);
+	alu_bit(ctx, 0, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_0_l:
-	alu_bit(cpu, 0, cpu->reg.l);
+	alu_bit(ctx, 0, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_0_mem_hl:
-	alu_bit(cpu, 0, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 0, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_0_a:
-	alu_bit(cpu, 0, cpu->reg.a);
+	alu_bit(ctx, 0, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_1_b:
-	alu_bit(cpu, 1, cpu->reg.b);
+	alu_bit(ctx, 1, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_1_c:
-	alu_bit(cpu, 1, cpu->reg.c);
+	alu_bit(ctx, 1, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_1_d:
-	alu_bit(cpu, 1, cpu->reg.d);
+	alu_bit(ctx, 1, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_1_e:
-	alu_bit(cpu, 1, cpu->reg.e);
+	alu_bit(ctx, 1, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_1_h:
-	alu_bit(cpu, 1, cpu->reg.h);
+	alu_bit(ctx, 1, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_1_l:
-	alu_bit(cpu, 1, cpu->reg.l);
+	alu_bit(ctx, 1, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_1_mem_hl:
-	alu_bit(cpu, 1, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 1, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_1_a:
-	alu_bit(cpu, 1, cpu->reg.a);
+	alu_bit(ctx, 1, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_2_b:
-	alu_bit(cpu, 2, cpu->reg.b);
+	alu_bit(ctx, 2, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_2_c:
-	alu_bit(cpu, 2, cpu->reg.c);
+	alu_bit(ctx, 2, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_2_d:
-	alu_bit(cpu, 2, cpu->reg.d);
+	alu_bit(ctx, 2, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_2_e:
-	alu_bit(cpu, 2, cpu->reg.e);
+	alu_bit(ctx, 2, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_2_h:
-	alu_bit(cpu, 2, cpu->reg.h);
+	alu_bit(ctx, 2, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_2_l:
-	alu_bit(cpu, 2, cpu->reg.l);
+	alu_bit(ctx, 2, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_2_mem_hl:
-	alu_bit(cpu, 2, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 2, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_2_a:
-	alu_bit(cpu, 2, cpu->reg.a);
+	alu_bit(ctx, 2, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_3_b:
-	alu_bit(cpu, 3, cpu->reg.b);
+	alu_bit(ctx, 3, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_3_c:
-	alu_bit(cpu, 3, cpu->reg.c);
+	alu_bit(ctx, 3, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_3_d:
-	alu_bit(cpu, 3, cpu->reg.d);
+	alu_bit(ctx, 3, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_3_e:
-	alu_bit(cpu, 3, cpu->reg.e);
+	alu_bit(ctx, 3, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_3_h:
-	alu_bit(cpu, 3, cpu->reg.h);
+	alu_bit(ctx, 3, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_3_l:
-	alu_bit(cpu, 3, cpu->reg.l);
+	alu_bit(ctx, 3, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_3_mem_hl:
-	alu_bit(cpu, 3, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 3, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_3_a:
-	alu_bit(cpu, 3, cpu->reg.a);
+	alu_bit(ctx, 3, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_4_b:
-	alu_bit(cpu, 4, cpu->reg.b);
+	alu_bit(ctx, 4, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_4_c:
-	alu_bit(cpu, 4, cpu->reg.c);
+	alu_bit(ctx, 4, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_4_d:
-	alu_bit(cpu, 4, cpu->reg.d);
+	alu_bit(ctx, 4, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_4_e:
-	alu_bit(cpu, 4, cpu->reg.e);
+	alu_bit(ctx, 4, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_4_h:
-	alu_bit(cpu, 4, cpu->reg.h);
+	alu_bit(ctx, 4, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_4_l:
-	alu_bit(cpu, 4, cpu->reg.l);
+	alu_bit(ctx, 4, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_4_mem_hl:
-	alu_bit(cpu, 4, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 4, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_4_a:
-	alu_bit(cpu, 4, cpu->reg.a);
+	alu_bit(ctx, 4, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_5_b:
-	alu_bit(cpu, 5, cpu->reg.b);
+	alu_bit(ctx, 5, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_5_c:
-	alu_bit(cpu, 5, cpu->reg.c);
+	alu_bit(ctx, 5, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_5_d:
-	alu_bit(cpu, 5, cpu->reg.d);
+	alu_bit(ctx, 5, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_5_e:
-	alu_bit(cpu, 5, cpu->reg.e);
+	alu_bit(ctx, 5, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_5_h:
-	alu_bit(cpu, 5, cpu->reg.h);
+	alu_bit(ctx, 5, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_5_l:
-	alu_bit(cpu, 5, cpu->reg.l);
+	alu_bit(ctx, 5, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_5_mem_hl:
-	alu_bit(cpu, 5, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 5, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_5_a:
-	alu_bit(cpu, 5, cpu->reg.a);
+	alu_bit(ctx, 5, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_6_b:
-	alu_bit(cpu, 6, cpu->reg.b);
+	alu_bit(ctx, 6, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_6_c:
-	alu_bit(cpu, 6, cpu->reg.c);
+	alu_bit(ctx, 6, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_6_d:
-	alu_bit(cpu, 6, cpu->reg.d);
+	alu_bit(ctx, 6, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_6_e:
-	alu_bit(cpu, 6, cpu->reg.e);
+	alu_bit(ctx, 6, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_6_h:
-	alu_bit(cpu, 6, cpu->reg.h);
+	alu_bit(ctx, 6, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_6_l:
-	alu_bit(cpu, 6, cpu->reg.l);
+	alu_bit(ctx, 6, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_6_mem_hl:
-	alu_bit(cpu, 6, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 6, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_6_a:
-	alu_bit(cpu, 6, cpu->reg.a);
+	alu_bit(ctx, 6, ctx->cpu.reg.a);
 	DISPATCH();
 
 bit_7_b:
-	alu_bit(cpu, 7, cpu->reg.b);
+	alu_bit(ctx, 7, ctx->cpu.reg.b);
 	DISPATCH();
 
 bit_7_c:
-	alu_bit(cpu, 7, cpu->reg.c);
+	alu_bit(ctx, 7, ctx->cpu.reg.c);
 	DISPATCH();
 
 bit_7_d:
-	alu_bit(cpu, 7, cpu->reg.d);
+	alu_bit(ctx, 7, ctx->cpu.reg.d);
 	DISPATCH();
 
 bit_7_e:
-	alu_bit(cpu, 7, cpu->reg.e);
+	alu_bit(ctx, 7, ctx->cpu.reg.e);
 	DISPATCH();
 
 bit_7_h:
-	alu_bit(cpu, 7, cpu->reg.h);
+	alu_bit(ctx, 7, ctx->cpu.reg.h);
 	DISPATCH();
 
 bit_7_l:
-	alu_bit(cpu, 7, cpu->reg.l);
+	alu_bit(ctx, 7, ctx->cpu.reg.l);
 	DISPATCH();
 
 bit_7_mem_hl:
-	alu_bit(cpu, 7, agoge_core_bus_read(cpu->bus, cpu->reg.hl));
+	alu_bit(ctx, 7, agoge_core_bus_read(ctx, ctx->cpu.reg.hl));
 	DISPATCH();
 
 bit_7_a:
-	alu_bit(cpu, 7, cpu->reg.a);
+	alu_bit(ctx, 7, ctx->cpu.reg.a);
 	DISPATCH();
 
 res_0_b:
-	cpu->reg.b &= ~BIT_0;
+	ctx->cpu.reg.b &= ~BIT_0;
 	DISPATCH();
 
 res_0_c:
-	cpu->reg.c &= ~BIT_0;
+	ctx->cpu.reg.c &= ~BIT_0;
 	DISPATCH();
 
 res_0_d:
-	cpu->reg.d &= ~BIT_0;
+	ctx->cpu.reg.d &= ~BIT_0;
 	DISPATCH();
 
 res_0_e:
-	cpu->reg.e &= ~BIT_0;
+	ctx->cpu.reg.e &= ~BIT_0;
 	DISPATCH();
 
 res_0_h:
-	cpu->reg.h &= ~BIT_0;
+	ctx->cpu.reg.h &= ~BIT_0;
 	DISPATCH();
 
 res_0_l:
-	cpu->reg.l &= ~BIT_0;
+	ctx->cpu.reg.l &= ~BIT_0;
 	DISPATCH();
 
 res_0_mem_hl:
-	alu_res_hl(cpu, 0);
+	alu_res_hl(ctx, 0);
 	DISPATCH();
 
 res_0_a:
-	cpu->reg.a &= ~BIT_0;
+	ctx->cpu.reg.a &= ~BIT_0;
 	DISPATCH();
 
 res_1_b:
-	cpu->reg.b &= ~BIT_1;
+	ctx->cpu.reg.b &= ~BIT_1;
 	DISPATCH();
 
 res_1_c:
-	cpu->reg.c &= ~BIT_1;
+	ctx->cpu.reg.c &= ~BIT_1;
 	DISPATCH();
 
 res_1_d:
-	cpu->reg.d &= ~BIT_1;
+	ctx->cpu.reg.d &= ~BIT_1;
 	DISPATCH();
 
 res_1_e:
-	cpu->reg.e &= ~BIT_1;
+	ctx->cpu.reg.e &= ~BIT_1;
 	DISPATCH();
 
 res_1_h:
-	cpu->reg.h &= ~BIT_1;
+	ctx->cpu.reg.h &= ~BIT_1;
 	DISPATCH();
 
 res_1_l:
-	cpu->reg.l &= ~BIT_1;
+	ctx->cpu.reg.l &= ~BIT_1;
 	DISPATCH();
 
 res_1_mem_hl:
-	alu_res_hl(cpu, 1);
+	alu_res_hl(ctx, 1);
 	DISPATCH();
 
 res_1_a:
-	cpu->reg.a &= ~BIT_1;
+	ctx->cpu.reg.a &= ~BIT_1;
 	DISPATCH();
 
 res_2_b:
-	cpu->reg.b &= ~BIT_2;
+	ctx->cpu.reg.b &= ~BIT_2;
 	DISPATCH();
 
 res_2_c:
-	cpu->reg.c &= ~BIT_2;
+	ctx->cpu.reg.c &= ~BIT_2;
 	DISPATCH();
 
 res_2_d:
-	cpu->reg.d &= ~BIT_2;
+	ctx->cpu.reg.d &= ~BIT_2;
 	DISPATCH();
 
 res_2_e:
-	cpu->reg.e &= ~BIT_2;
+	ctx->cpu.reg.e &= ~BIT_2;
 	DISPATCH();
 
 res_2_h:
-	cpu->reg.h &= ~BIT_2;
+	ctx->cpu.reg.h &= ~BIT_2;
 	DISPATCH();
 
 res_2_l:
-	cpu->reg.l &= ~BIT_2;
+	ctx->cpu.reg.l &= ~BIT_2;
 	DISPATCH();
 
 res_2_mem_hl:
-	alu_res_hl(cpu, 2);
+	alu_res_hl(ctx, 2);
 	DISPATCH();
 
 res_2_a:
-	cpu->reg.a &= ~BIT_2;
+	ctx->cpu.reg.a &= ~BIT_2;
 	DISPATCH();
 
 res_3_b:
-	cpu->reg.b &= ~BIT_3;
+	ctx->cpu.reg.b &= ~BIT_3;
 	DISPATCH();
 
 res_3_c:
-	cpu->reg.c &= ~BIT_3;
+	ctx->cpu.reg.c &= ~BIT_3;
 	DISPATCH();
 
 res_3_d:
-	cpu->reg.d &= ~BIT_3;
+	ctx->cpu.reg.d &= ~BIT_3;
 	DISPATCH();
 
 res_3_e:
-	cpu->reg.e &= ~BIT_3;
+	ctx->cpu.reg.e &= ~BIT_3;
 	DISPATCH();
 
 res_3_h:
-	cpu->reg.h &= ~BIT_3;
+	ctx->cpu.reg.h &= ~BIT_3;
 	DISPATCH();
 
 res_3_l:
-	cpu->reg.l &= ~BIT_3;
+	ctx->cpu.reg.l &= ~BIT_3;
 	DISPATCH();
 
 res_3_mem_hl:
-	alu_res_hl(cpu, 3);
+	alu_res_hl(ctx, 3);
 	DISPATCH();
 
 res_3_a:
-	cpu->reg.a &= ~BIT_3;
+	ctx->cpu.reg.a &= ~BIT_3;
 	DISPATCH();
 
 res_4_b:
-	cpu->reg.b &= ~BIT_4;
+	ctx->cpu.reg.b &= ~BIT_4;
 	DISPATCH();
 
 res_4_c:
-	cpu->reg.c &= ~BIT_4;
+	ctx->cpu.reg.c &= ~BIT_4;
 	DISPATCH();
 
 res_4_d:
-	cpu->reg.d &= ~BIT_4;
+	ctx->cpu.reg.d &= ~BIT_4;
 	DISPATCH();
 
 res_4_e:
-	cpu->reg.e &= ~BIT_4;
+	ctx->cpu.reg.e &= ~BIT_4;
 	DISPATCH();
 
 res_4_h:
-	cpu->reg.h &= ~BIT_4;
+	ctx->cpu.reg.h &= ~BIT_4;
 	DISPATCH();
 
 res_4_l:
-	cpu->reg.l &= ~BIT_4;
+	ctx->cpu.reg.l &= ~BIT_4;
 	DISPATCH();
 
 res_4_mem_hl:
-	alu_res_hl(cpu, 4);
+	alu_res_hl(ctx, 4);
 	DISPATCH();
 
 res_4_a:
-	cpu->reg.a &= ~BIT_4;
+	ctx->cpu.reg.a &= ~BIT_4;
 	DISPATCH();
 
 res_5_b:
-	cpu->reg.b &= ~BIT_5;
+	ctx->cpu.reg.b &= ~BIT_5;
 	DISPATCH();
 
 res_5_c:
-	cpu->reg.c &= ~BIT_5;
+	ctx->cpu.reg.c &= ~BIT_5;
 	DISPATCH();
 
 res_5_d:
-	cpu->reg.d &= ~BIT_5;
+	ctx->cpu.reg.d &= ~BIT_5;
 	DISPATCH();
 
 res_5_e:
-	cpu->reg.e &= ~BIT_5;
+	ctx->cpu.reg.e &= ~BIT_5;
 	DISPATCH();
 
 res_5_h:
-	cpu->reg.h &= ~BIT_5;
+	ctx->cpu.reg.h &= ~BIT_5;
 	DISPATCH();
 
 res_5_l:
-	cpu->reg.l &= ~BIT_5;
+	ctx->cpu.reg.l &= ~BIT_5;
 	DISPATCH();
 
 res_5_mem_hl:
-	alu_res_hl(cpu, 5);
+	alu_res_hl(ctx, 5);
 	DISPATCH();
 
 res_5_a:
-	cpu->reg.a &= ~BIT_5;
+	ctx->cpu.reg.a &= ~BIT_5;
 	DISPATCH();
 
 res_6_b:
-	cpu->reg.b &= ~BIT_6;
+	ctx->cpu.reg.b &= ~BIT_6;
 	DISPATCH();
 
 res_6_c:
-	cpu->reg.c &= ~BIT_6;
+	ctx->cpu.reg.c &= ~BIT_6;
 	DISPATCH();
 
 res_6_d:
-	cpu->reg.d &= ~BIT_6;
+	ctx->cpu.reg.d &= ~BIT_6;
 	DISPATCH();
 
 res_6_e:
-	cpu->reg.e &= ~BIT_6;
+	ctx->cpu.reg.e &= ~BIT_6;
 	DISPATCH();
 
 res_6_h:
-	cpu->reg.h &= ~BIT_6;
+	ctx->cpu.reg.h &= ~BIT_6;
 	DISPATCH();
 
 res_6_l:
-	cpu->reg.l &= ~BIT_6;
+	ctx->cpu.reg.l &= ~BIT_6;
 	DISPATCH();
 
 res_6_mem_hl:
-	alu_res_hl(cpu, 6);
+	alu_res_hl(ctx, 6);
 	DISPATCH();
 
 res_6_a:
-	cpu->reg.a &= ~BIT_6;
+	ctx->cpu.reg.a &= ~BIT_6;
 	DISPATCH();
 
 res_7_b:
-	cpu->reg.b &= ~BIT_7;
+	ctx->cpu.reg.b &= ~BIT_7;
 	DISPATCH();
 
 res_7_c:
-	cpu->reg.c &= ~BIT_7;
+	ctx->cpu.reg.c &= ~BIT_7;
 	DISPATCH();
 
 res_7_d:
-	cpu->reg.d &= ~BIT_7;
+	ctx->cpu.reg.d &= ~BIT_7;
 	DISPATCH();
 
 res_7_e:
-	cpu->reg.e &= ~BIT_7;
+	ctx->cpu.reg.e &= ~BIT_7;
 	DISPATCH();
 
 res_7_h:
-	cpu->reg.h &= ~BIT_7;
+	ctx->cpu.reg.h &= ~BIT_7;
 	DISPATCH();
 
 res_7_l:
-	cpu->reg.l &= ~BIT_7;
+	ctx->cpu.reg.l &= ~BIT_7;
 	DISPATCH();
 
 res_7_mem_hl:
-	alu_res_hl(cpu, 7);
+	alu_res_hl(ctx, 7);
 	DISPATCH();
 
 res_7_a:
-	cpu->reg.a &= ~BIT_7;
+	ctx->cpu.reg.a &= ~BIT_7;
 	DISPATCH();
 
 set_0_b:
-	cpu->reg.b |= BIT_0;
+	ctx->cpu.reg.b |= BIT_0;
 	DISPATCH();
 
 set_0_c:
-	cpu->reg.c |= BIT_0;
+	ctx->cpu.reg.c |= BIT_0;
 	DISPATCH();
 
 set_0_d:
-	cpu->reg.d |= BIT_0;
+	ctx->cpu.reg.d |= BIT_0;
 	DISPATCH();
 
 set_0_e:
-	cpu->reg.e |= BIT_0;
+	ctx->cpu.reg.e |= BIT_0;
 	DISPATCH();
 
 set_0_h:
-	cpu->reg.h |= BIT_0;
+	ctx->cpu.reg.h |= BIT_0;
 	DISPATCH();
 
 set_0_l:
-	cpu->reg.l |= BIT_0;
+	ctx->cpu.reg.l |= BIT_0;
 	DISPATCH();
 
 set_0_mem_hl:
-	alu_set_hl(cpu, 0);
+	alu_set_hl(ctx, 0);
 	DISPATCH();
 
 set_0_a:
-	cpu->reg.a |= BIT_0;
+	ctx->cpu.reg.a |= BIT_0;
 	DISPATCH();
 
 set_1_b:
-	cpu->reg.b |= BIT_1;
+	ctx->cpu.reg.b |= BIT_1;
 	DISPATCH();
 
 set_1_c:
-	cpu->reg.c |= BIT_1;
+	ctx->cpu.reg.c |= BIT_1;
 	DISPATCH();
 
 set_1_d:
-	cpu->reg.d |= BIT_1;
+	ctx->cpu.reg.d |= BIT_1;
 	DISPATCH();
 
 set_1_e:
-	cpu->reg.e |= BIT_1;
+	ctx->cpu.reg.e |= BIT_1;
 	DISPATCH();
 
 set_1_h:
-	cpu->reg.h |= BIT_1;
+	ctx->cpu.reg.h |= BIT_1;
 	DISPATCH();
 
 set_1_l:
-	cpu->reg.l |= BIT_1;
+	ctx->cpu.reg.l |= BIT_1;
 	DISPATCH();
 
 set_1_mem_hl:
-	alu_set_hl(cpu, 1);
+	alu_set_hl(ctx, 1);
 	DISPATCH();
 
 set_1_a:
-	cpu->reg.a |= BIT_1;
+	ctx->cpu.reg.a |= BIT_1;
 	DISPATCH();
 
 set_2_b:
-	cpu->reg.b |= BIT_2;
+	ctx->cpu.reg.b |= BIT_2;
 	DISPATCH();
 
 set_2_c:
-	cpu->reg.c |= BIT_2;
+	ctx->cpu.reg.c |= BIT_2;
 	DISPATCH();
 
 set_2_d:
-	cpu->reg.d |= BIT_2;
+	ctx->cpu.reg.d |= BIT_2;
 	DISPATCH();
 
 set_2_e:
-	cpu->reg.e |= BIT_2;
+	ctx->cpu.reg.e |= BIT_2;
 	DISPATCH();
 
 set_2_h:
-	cpu->reg.h |= BIT_2;
+	ctx->cpu.reg.h |= BIT_2;
 	DISPATCH();
 
 set_2_l:
-	cpu->reg.l |= BIT_2;
+	ctx->cpu.reg.l |= BIT_2;
 	DISPATCH();
 
 set_2_mem_hl:
-	alu_set_hl(cpu, 2);
+	alu_set_hl(ctx, 2);
 	DISPATCH();
 
 set_2_a:
-	cpu->reg.a |= BIT_2;
+	ctx->cpu.reg.a |= BIT_2;
 	DISPATCH();
 
 set_3_b:
-	cpu->reg.b |= BIT_3;
+	ctx->cpu.reg.b |= BIT_3;
 	DISPATCH();
 
 set_3_c:
-	cpu->reg.c |= BIT_3;
+	ctx->cpu.reg.c |= BIT_3;
 	DISPATCH();
 
 set_3_d:
-	cpu->reg.d |= BIT_3;
+	ctx->cpu.reg.d |= BIT_3;
 	DISPATCH();
 
 set_3_e:
-	cpu->reg.e |= BIT_3;
+	ctx->cpu.reg.e |= BIT_3;
 	DISPATCH();
 
 set_3_h:
-	cpu->reg.h |= BIT_3;
+	ctx->cpu.reg.h |= BIT_3;
 	DISPATCH();
 
 set_3_l:
-	cpu->reg.l |= BIT_3;
+	ctx->cpu.reg.l |= BIT_3;
 	DISPATCH();
 
 set_3_mem_hl:
-	alu_set_hl(cpu, 3);
+	alu_set_hl(ctx, 3);
 	DISPATCH();
 
 set_3_a:
-	cpu->reg.a |= BIT_3;
+	ctx->cpu.reg.a |= BIT_3;
 	DISPATCH();
 
 set_4_b:
-	cpu->reg.b |= BIT_4;
+	ctx->cpu.reg.b |= BIT_4;
 	DISPATCH();
 
 set_4_c:
-	cpu->reg.c |= BIT_4;
+	ctx->cpu.reg.c |= BIT_4;
 	DISPATCH();
 
 set_4_d:
-	cpu->reg.d |= BIT_4;
+	ctx->cpu.reg.d |= BIT_4;
 	DISPATCH();
 
 set_4_e:
-	cpu->reg.e |= BIT_4;
+	ctx->cpu.reg.e |= BIT_4;
 	DISPATCH();
 
 set_4_h:
-	cpu->reg.h |= BIT_4;
+	ctx->cpu.reg.h |= BIT_4;
 	DISPATCH();
 
 set_4_l:
-	cpu->reg.l |= BIT_4;
+	ctx->cpu.reg.l |= BIT_4;
 	DISPATCH();
 
 set_4_mem_hl:
-	alu_set_hl(cpu, 4);
+	alu_set_hl(ctx, 4);
 	DISPATCH();
 
 set_4_a:
-	cpu->reg.a |= BIT_4;
+	ctx->cpu.reg.a |= BIT_4;
 	DISPATCH();
 
 set_5_b:
-	cpu->reg.b |= BIT_5;
+	ctx->cpu.reg.b |= BIT_5;
 	DISPATCH();
 
 set_5_c:
-	cpu->reg.c |= BIT_5;
+	ctx->cpu.reg.c |= BIT_5;
 	DISPATCH();
 
 set_5_d:
-	cpu->reg.d |= BIT_5;
+	ctx->cpu.reg.d |= BIT_5;
 	DISPATCH();
 
 set_5_e:
-	cpu->reg.e |= BIT_5;
+	ctx->cpu.reg.e |= BIT_5;
 	DISPATCH();
 
 set_5_h:
-	cpu->reg.h |= BIT_5;
+	ctx->cpu.reg.h |= BIT_5;
 	DISPATCH();
 
 set_5_l:
-	cpu->reg.l |= BIT_5;
+	ctx->cpu.reg.l |= BIT_5;
 	DISPATCH();
 
 set_5_mem_hl:
-	alu_set_hl(cpu, 5);
+	alu_set_hl(ctx, 5);
 	DISPATCH();
 
 set_5_a:
-	cpu->reg.a |= BIT_5;
+	ctx->cpu.reg.a |= BIT_5;
 	DISPATCH();
 
 set_6_b:
-	cpu->reg.b |= BIT_6;
+	ctx->cpu.reg.b |= BIT_6;
 	DISPATCH();
 
 set_6_c:
-	cpu->reg.c |= BIT_6;
+	ctx->cpu.reg.c |= BIT_6;
 	DISPATCH();
 
 set_6_d:
-	cpu->reg.d |= BIT_6;
+	ctx->cpu.reg.d |= BIT_6;
 	DISPATCH();
 
 set_6_e:
-	cpu->reg.e |= BIT_6;
+	ctx->cpu.reg.e |= BIT_6;
 	DISPATCH();
 
 set_6_h:
-	cpu->reg.h |= BIT_6;
+	ctx->cpu.reg.h |= BIT_6;
 	DISPATCH();
 
 set_6_l:
-	cpu->reg.l |= BIT_6;
+	ctx->cpu.reg.l |= BIT_6;
 	DISPATCH();
 
 set_6_mem_hl:
-	alu_set_hl(cpu, 6);
+	alu_set_hl(ctx, 6);
 	DISPATCH();
 
 set_6_a:
-	cpu->reg.a |= BIT_6;
+	ctx->cpu.reg.a |= BIT_6;
 	DISPATCH();
 
 set_7_b:
-	cpu->reg.b |= BIT_7;
+	ctx->cpu.reg.b |= BIT_7;
 	DISPATCH();
 
 set_7_c:
-	cpu->reg.c |= BIT_7;
+	ctx->cpu.reg.c |= BIT_7;
 	DISPATCH();
 
 set_7_d:
-	cpu->reg.d |= BIT_7;
+	ctx->cpu.reg.d |= BIT_7;
 	DISPATCH();
 
 set_7_e:
-	cpu->reg.e |= BIT_7;
+	ctx->cpu.reg.e |= BIT_7;
 	DISPATCH();
 
 set_7_h:
-	cpu->reg.h |= BIT_7;
+	ctx->cpu.reg.h |= BIT_7;
 	DISPATCH();
 
 set_7_l:
-	cpu->reg.l |= BIT_7;
+	ctx->cpu.reg.l |= BIT_7;
 	DISPATCH();
 
 set_7_mem_hl:
-	alu_set_hl(cpu, 7);
+	alu_set_hl(ctx, 7);
 	DISPATCH();
 
 set_7_a:
-	cpu->reg.a |= BIT_7;
+	ctx->cpu.reg.a |= BIT_7;
 	DISPATCH();
 
 call_z_u16:
-	call_if(cpu, cpu->reg.f & CPU_FLAG_ZERO);
+	call_if(ctx, ctx->cpu.reg.f & CPU_FLAG_ZERO);
 	DISPATCH();
 
 call_u16:
-	call_if(cpu, true);
+	call_if(ctx, true);
 	DISPATCH();
 
 adc_a_u8:
-	alu_adc(cpu, read_u8(cpu));
+	alu_adc(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_08:
-	rst(cpu, 0x0008);
+	rst(ctx, 0x0008);
 	DISPATCH();
 
 ret_nc:
-	ret_if(cpu, !(cpu->reg.f & CPU_FLAG_CARRY));
+	ret_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_CARRY));
 	DISPATCH();
 
 pop_de:
-	cpu->reg.de = stack_pop(cpu);
+	ctx->cpu.reg.de = stack_pop(ctx);
 	DISPATCH();
 
 jp_nc_u16:
-	jp_if(cpu, !(cpu->reg.f & CPU_FLAG_CARRY));
+	jp_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_CARRY));
 	DISPATCH();
 
 call_nc_u16:
-	call_if(cpu, !(cpu->reg.f & CPU_FLAG_CARRY));
+	call_if(ctx, !(ctx->cpu.reg.f & CPU_FLAG_CARRY));
 	DISPATCH();
 
 push_de:
-	stack_push(cpu, cpu->reg.de);
+	stack_push(ctx, ctx->cpu.reg.de);
 	DISPATCH();
 
 sub_a_u8:
-	alu_sub(cpu, read_u8(cpu));
+	alu_sub(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_10:
-	rst(cpu, 0x0010);
+	rst(ctx, 0x0010);
 	DISPATCH();
 
 ret_c:
-	ret_if(cpu, cpu->reg.f & CPU_FLAG_CARRY);
+	ret_if(ctx, ctx->cpu.reg.f & CPU_FLAG_CARRY);
 	DISPATCH();
 
 reti:
 	// Handle interrupt stuff here
-	ret_if(cpu, true);
+	ret_if(ctx, true);
 	DISPATCH();
 
 jp_c_u16:
-	jp_if(cpu, cpu->reg.f & CPU_FLAG_CARRY);
+	jp_if(ctx, ctx->cpu.reg.f & CPU_FLAG_CARRY);
 	DISPATCH();
 
 call_c_u16:
-	call_if(cpu, cpu->reg.f & CPU_FLAG_CARRY);
+	call_if(ctx, ctx->cpu.reg.f & CPU_FLAG_CARRY);
 	DISPATCH();
 
 sbc_a_u8:
-	alu_sbc(cpu, read_u8(cpu));
+	alu_sbc(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_18:
-	rst(cpu, 0x0018);
+	rst(ctx, 0x0018);
 	DISPATCH();
 
 ld_mem_ff00_u8_a:
-	agoge_core_bus_write(cpu->bus, 0xFF00 + read_u8(cpu), cpu->reg.a);
+	agoge_core_bus_write(ctx, 0xFF00 + read_u8(ctx), ctx->cpu.reg.a);
 	DISPATCH();
 
 pop_hl:
-	cpu->reg.hl = stack_pop(cpu);
+	ctx->cpu.reg.hl = stack_pop(ctx);
 	DISPATCH();
 
 ld_mem_ff00_c_a:
-	agoge_core_bus_write(cpu->bus, 0xFF00 + cpu->reg.c, cpu->reg.a);
+	agoge_core_bus_write(ctx, 0xFF00 + ctx->cpu.reg.c, ctx->cpu.reg.a);
 	DISPATCH();
 
 push_hl:
-	stack_push(cpu, cpu->reg.hl);
+	stack_push(ctx, ctx->cpu.reg.hl);
 	DISPATCH();
 
 and_a_u8:
-	alu_and(cpu, read_u8(cpu));
+	alu_and(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_20:
-	rst(cpu, 0x0020);
+	rst(ctx, 0x0020);
 	DISPATCH();
 
 add_sp_s8:
-	cpu->reg.sp = alu_add_sp(cpu);
+	ctx->cpu.reg.sp = alu_add_sp(ctx);
 	DISPATCH();
 
 jp_hl:
-	cpu->reg.pc = cpu->reg.hl;
+	ctx->cpu.reg.pc = ctx->cpu.reg.hl;
 	DISPATCH();
 
 ld_mem_u16_a:
-	agoge_core_bus_write(cpu->bus, read_u16(cpu), cpu->reg.a);
+	agoge_core_bus_write(ctx, read_u16(ctx), ctx->cpu.reg.a);
 	DISPATCH();
 
 xor_a_u8:
-	alu_xor(cpu, read_u8(cpu));
+	alu_xor(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_28:
-	rst(cpu, 0x0028);
+	rst(ctx, 0x0028);
 	DISPATCH();
 
 ld_a_mem_ff00_u8:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, 0xFF00 + read_u8(cpu));
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, 0xFF00 + read_u8(ctx));
 	DISPATCH();
 
 ld_a_mem_ff00_c:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, 0xFF00 + cpu->reg.c);
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, 0xFF00 + ctx->cpu.reg.c);
 	DISPATCH();
 
 pop_af:
-	cpu->reg.af = stack_pop(cpu) & ~0x0F;
+	ctx->cpu.reg.af = stack_pop(ctx) & ~0x0F;
 	DISPATCH();
 
 di:
 	DISPATCH();
 
 push_af:
-	stack_push(cpu, cpu->reg.af);
+	stack_push(ctx, ctx->cpu.reg.af);
 	DISPATCH();
 
 or_a_u8:
-	alu_or(cpu, read_u8(cpu));
+	alu_or(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_30:
-	rst(cpu, 0x0030);
+	rst(ctx, 0x0030);
 	DISPATCH();
 
 ld_hl_sp_s8:
-	cpu->reg.hl = alu_add_sp(cpu);
+	ctx->cpu.reg.hl = alu_add_sp(ctx);
 	DISPATCH();
 
 ld_sp_hl:
-	cpu->reg.sp = cpu->reg.hl;
+	ctx->cpu.reg.sp = ctx->cpu.reg.hl;
 	DISPATCH();
 
 ld_a_mem_u16:
-	cpu->reg.a = agoge_core_bus_read(cpu->bus, read_u16(cpu));
+	ctx->cpu.reg.a = agoge_core_bus_read(ctx, read_u16(ctx));
 	DISPATCH();
 
 ei:
 	DISPATCH();
 
 cp_a_u8:
-	alu_cp(cpu, read_u8(cpu));
+	alu_cp(ctx, read_u8(ctx));
 	DISPATCH();
 
 rst_38:
-	rst(cpu, 0x0038);
+	rst(ctx, 0x0038);
 	DISPATCH();
 
 #undef DISPATCH

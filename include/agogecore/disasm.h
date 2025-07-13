@@ -20,8 +20,7 @@
 
 #pragma once
 
-#include "bus.h"
-#include "log.h"
+struct agoge_core_ctx;
 
 #define AGOGE_CORE_DISASM_RES_LEN_MAX (256)
 
@@ -31,9 +30,6 @@ struct agoge_core_disasm {
 		size_t len;
 		uint16_t addr;
 	} res;
-
-	struct agoge_core_bus *bus;
-	struct agoge_core_log *log;
 };
 
-void agoge_core_disasm_single(struct agoge_core_disasm *disasm, uint16_t addr);
+void agoge_core_disasm_single(struct agoge_core_ctx *ctx, uint16_t addr);

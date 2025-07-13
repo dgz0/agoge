@@ -20,8 +20,4 @@
 
 #pragma once
 
-#include "agogecore/disasm.h"
-
-void agoge_core_disasm_init(struct agoge_core_disasm *disasm,
-			    struct agoge_core_bus *bus,
-			    struct agoge_core_log *log);
+#include "agogecore/ctx.h"

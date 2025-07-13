@@ -31,15 +31,16 @@ LOG_CHANNEL(AGOGE_CORE_LOG_CH_CART);
 #define HDR_ADDR_CSUM (UINT16_C(0x014D))
 
 NODISCARD static uint8_t
-mbc_banked_read_cb_none(struct agoge_core_cart *const cart, const uint16_t addr)
+mbc_banked_read_cb_none(struct agoge_core_ctx *const ctx, const uint16_t addr)
 {
-	return cart->data[addr];
+	return ctx->bus.cart.data[addr];
 }
 
 NODISCARD static uint8_t
-mbc_banked_read_cb_mbc1(struct agoge_core_cart *const cart, const uint16_t addr)
+mbc_banked_read_cb_mbc1(struct agoge_core_ctx *const ctx, const uint16_t addr)
 {
-	return cart->data[(addr - 0x4000) + (cart->rom_bank * 0x4000)];
+	return ctx->bus.cart
+		.data[(addr - 0x4000) + (ctx->bus.cart.rom_bank * 0x4000)];
 }
 
 NODISCARD static bool valid_csum(const uint8_t *const data)
@@ -53,19 +54,19 @@ NODISCARD static bool valid_csum(const uint8_t *const data)
 	return data[HDR_ADDR_CSUM] == csum;
 }
 
-NODISCARD static bool mbc_set(struct agoge_core_cart *const cart,
+NODISCARD static bool mbc_set(struct agoge_core_ctx *const ctx,
 			      const uint8_t *const data)
 {
 	const enum agoge_core_cart_mbc_type type = data[HDR_ADDR_CART_TYPE];
 
 	switch (type) {
 	case AGOGE_CORE_CART_MBC_ROM_ONLY:
-		cart->banked_read_cb = &mbc_banked_read_cb_none;
+		ctx->bus.cart.banked_read_cb = &mbc_banked_read_cb_none;
 		return true;
 
 	case AGOGE_CORE_CART_MBC_MBC1:
-		cart->banked_read_cb = &mbc_banked_read_cb_mbc1;
-		cart->rom_bank = 1;
+		ctx->bus.cart.banked_read_cb = &mbc_banked_read_cb_mbc1;
+		ctx->bus.cart.rom_bank = 1;
 
 		return true;
 
@@ -74,20 +75,13 @@ NODISCARD static bool mbc_set(struct agoge_core_cart *const cart,
 	}
 }
 
-void agoge_core_cart_init(struct agoge_core_cart *const cart,
-			  struct agoge_core_log *const log)
-{
-	cart->log = log;
-	LOG_INFO(cart->log, "initialized");
-}
-
 NODISCARD enum agoge_core_cart_retval
-agoge_core_cart_set(struct agoge_core_cart *const cart, uint8_t *const data,
+agoge_core_cart_set(struct agoge_core_ctx *const ctx, uint8_t *const data,
 		    const size_t data_size)
 {
 	if (unlikely((data_size < AGOGE_CORE_CART_SIZE_MIN) ||
 		     (data_size > AGOGE_CORE_CART_SIZE_MAX))) {
-		LOG_ERR(cart->log,
+		LOG_ERR(&ctx->log,
 			"failed to set cart: bad size - got size %zu",
 			data_size);
 		return AGOGE_CORE_CART_RETVAL_BAD_SIZE;
@@ -97,10 +91,10 @@ agoge_core_cart_set(struct agoge_core_cart *const cart, uint8_t *const data,
 		return AGOGE_CORE_CART_RETVAL_INVALID_CHECKSUM;
 	}
 
-	if (unlikely(!mbc_set(cart, data))) {
+	if (unlikely(!mbc_set(ctx, data))) {
 		return AGOGE_CORE_CART_RETVAL_UNSUPPORTED_MBC;
 	}
 
-	cart->data = data;
+	ctx->bus.cart.data = data;
 	return AGOGE_CORE_CART_RETVAL_OK;
 }

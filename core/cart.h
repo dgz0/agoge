@@ -20,7 +20,4 @@
 
 #pragma once
 
-#include "agogecore/cart.h"
-
-void agoge_core_cart_init(struct agoge_core_cart *cart,
-			  struct agoge_core_log *log);
+#include "agogecore/ctx.h"

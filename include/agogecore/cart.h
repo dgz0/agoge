@@ -24,8 +24,10 @@
 extern "C" {
 #endif // __cplusplus
 
+#include <stddef.h>
 #include <stdint.h>
-#include "log.h"
+
+struct agoge_core_ctx;
 
 /// The minimum size of a valid cartridge in bytes (32 KiB).
 #define AGOGE_CORE_CART_SIZE_MIN (32768)
@@ -39,7 +41,7 @@ struct agoge_core_cart {
 	uint8_t *data;
 	struct agoge_core_log *log;
 
-	uint8_t (*banked_read_cb)(struct agoge_core_cart *cart, uint16_t addr);
+	uint8_t (*banked_read_cb)(struct agoge_core_ctx *ctx, uint16_t addr);
 	unsigned int rom_bank;
 };
 
@@ -55,7 +57,7 @@ enum agoge_core_cart_mbc_type {
 	AGOGE_CORE_CART_MBC_MBC1 = 0x01,
 };
 
-enum agoge_core_cart_retval agoge_core_cart_set(struct agoge_core_cart *cart,
+enum agoge_core_cart_retval agoge_core_cart_set(struct agoge_core_ctx *ctx,
 						uint8_t *data,
 						size_t data_size);
 

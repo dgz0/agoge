@@ -108,7 +108,7 @@ static void setup_ctx(void)
 		AGOGE_CORE_LOG_CH_CTX_BIT | AGOGE_CORE_LOG_CH_BUS_BIT |
 		AGOGE_CORE_LOG_CH_CART_BIT | AGOGE_CORE_LOG_CH_DISASM_BIT;
 
-	agoge_core_ctx_init(&ctx);
+	agoge_core_ctx_reset(&ctx);
 }
 
 int main(int argc, char *argv[])
@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	}
 
 	const enum agoge_core_cart_retval ret =
-		agoge_core_cart_set(&ctx.bus.cart, rom, rom_size);
+		agoge_core_cart_set(&ctx, rom, rom_size);
 
 	if (ret != AGOGE_CORE_CART_RETVAL_OK) {
 		fprintf(stderr, "agoge_core_cart_set error, see log\n");
@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 	}
 
 	for (;;) {
-		agoge_core_disasm_single(&ctx.disasm, ctx.cpu.reg.pc);
+		//agoge_core_disasm_single(&ctx, ctx.cpu.reg.pc);
 		agoge_core_ctx_step(&ctx, 1);
 	}
 	return EXIT_SUCCESS;

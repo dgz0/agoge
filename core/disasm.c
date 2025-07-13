@@ -542,23 +542,20 @@ static const struct disasm_entry cb_tbl[] = {
 	[CPU_OP_SET_7_A] = { .op = OP_NONE, .fmt = "SET 7, A" }
 };
 
-NODISCARD static uint8_t read_u8(struct agoge_core_disasm *const disasm)
+NODISCARD static uint8_t read_u8(struct agoge_core_ctx *const ctx)
 {
-	return agoge_core_bus_peek(disasm->bus, disasm->res.addr + 1);
+	return agoge_core_bus_peek(ctx, ctx->disasm.res.addr + 1);
 }
 
-NODISCARD static uint16_t read_u16(struct agoge_core_disasm *const disasm)
+NODISCARD static uint16_t read_u16(struct agoge_core_ctx *const ctx)
 {
-	const uint8_t lo =
-		agoge_core_bus_peek(disasm->bus, disasm->res.addr + 1);
-
-	const uint8_t hi =
-		agoge_core_bus_peek(disasm->bus, disasm->res.addr + 2);
+	const uint8_t lo = agoge_core_bus_peek(ctx, ctx->disasm.res.addr + 1);
+	const uint8_t hi = agoge_core_bus_peek(ctx, ctx->disasm.res.addr + 2);
 
 	return (hi << 8) | lo;
 }
 
-static void format_instr(struct agoge_core_disasm *const disasm,
+static void format_instr(struct agoge_core_ctx *const ctx,
 			 const struct disasm_entry *const entry)
 {
 	static const void *const jmp_tbl[] = { [OP_NONE] = &&op_none,
@@ -574,60 +571,54 @@ static void format_instr(struct agoge_core_disasm *const disasm,
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
 op_none:
-	disasm->res.len = sprintf(disasm->res.str, entry->fmt);
+	ctx->disasm.res.len = sprintf(ctx->disasm.res.str, entry->fmt);
 	return;
 
 op_u8:
-	disasm->res.len = sprintf(disasm->res.str, entry->fmt, read_u8(disasm));
+	ctx->disasm.res.len =
+		sprintf(ctx->disasm.res.str, entry->fmt, read_u8(ctx));
 	return;
 
 op_u16:
-	disasm->res.len =
-		sprintf(disasm->res.str, entry->fmt, read_u16(disasm));
+	ctx->disasm.res.len =
+		sprintf(ctx->disasm.res.str, entry->fmt, read_u16(ctx));
 	return;
 
 op_s8:
-	disasm->res.len =
-		sprintf(disasm->res.str, entry->fmt, (int8_t)read_u8(disasm));
+	ctx->disasm.res.len =
+		sprintf(ctx->disasm.res.str, entry->fmt, (int8_t)read_u8(ctx));
 
 	return;
 
 op_branch:
-	disasm->res.len =
-		sprintf(disasm->res.str, entry->fmt,
-			((int8_t)read_u8(disasm)) + disasm->res.addr + 2);
+	ctx->disasm.res.len =
+		sprintf(ctx->disasm.res.str, entry->fmt,
+			((int8_t)read_u8(ctx)) + ctx->disasm.res.addr + 2);
 	return;
 
 #pragma GCC diagnostic pop
 }
 
-void agoge_core_disasm_init(struct agoge_core_disasm *const disasm,
-			    struct agoge_core_bus *const bus,
-			    struct agoge_core_log *const log)
-{
-	disasm->bus = bus;
-	disasm->log = log;
-}
-
-void agoge_core_disasm_single(struct agoge_core_disasm *const disasm,
+void agoge_core_disasm_single(struct agoge_core_ctx *const ctx,
 			      const uint16_t addr)
 {
-	uint8_t instr = agoge_core_bus_peek(disasm->bus, addr);
+	uint8_t instr = agoge_core_bus_peek(ctx, addr);
 
 	const struct disasm_entry *entry;
 
 	if (instr == 0xCB) {
-		instr = agoge_core_bus_peek(disasm->bus, addr + 1);
-		LOG_TRACE(disasm->log, "$CB instr = $%02X", instr);
+		instr = agoge_core_bus_peek(ctx, addr + 1);
+		LOG_TRACE(&ctx->log, "$CB instr = $%02X", instr);
 		entry = &cb_tbl[instr];
 	} else {
 		entry = &op_tbl[instr];
-		LOG_TRACE(disasm->log, "instr = $%02X", instr);
+		LOG_TRACE(&ctx->log, "instr = $%02X", instr);
 	}
 
-	memset(&disasm->res, 0, sizeof(disasm->res));
-	disasm->res.addr = addr;
+	memset(&ctx->disasm.res, 0, sizeof(ctx->disasm.res));
+	ctx->disasm.res.addr = addr;
 
-	format_instr(disasm, entry);
-	LOG_TRACE(disasm->log, "$%04X: %s", disasm->res.addr, disasm->res.str);
+	format_instr(ctx, entry);
+	LOG_TRACE(&ctx->log, "$%04X: %s", ctx->disasm.res.addr,
+		  ctx->disasm.res.str);
 }

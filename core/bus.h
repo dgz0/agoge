@@ -20,12 +20,9 @@
 
 #pragma once
 
-#include "agogecore/bus.h"
+#include "agogecore/ctx.h"
 
-void agoge_core_bus_init(struct agoge_core_bus *bus,
-			 struct agoge_core_log *log);
+uint8_t agoge_core_bus_read(struct agoge_core_ctx *ctx, uint16_t addr);
 
-uint8_t agoge_core_bus_read(struct agoge_core_bus *bus, uint16_t addr);
-
-void agoge_core_bus_write(struct agoge_core_bus *bus, uint16_t addr,
+void agoge_core_bus_write(struct agoge_core_ctx *ctx, uint16_t addr,
 			  uint8_t data);

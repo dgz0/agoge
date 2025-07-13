@@ -50,14 +50,6 @@ struct agoge_core_ctx {
 	struct agoge_core_disasm disasm;
 };
 
-/// @brief Initializes an agoge emulator context.
-///
-/// It is highly recommended to create the context somewhere, set it to zero,
-/// and set some initial parameters for logging.
-///
-/// @param ctx The context to initialize.
-void agoge_core_ctx_init(struct agoge_core_ctx *ctx);
-
 void agoge_core_ctx_reset(struct agoge_core_ctx *ctx);
 
 void agoge_core_ctx_step(struct agoge_core_ctx *ctx, unsigned int num_cycles);

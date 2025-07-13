@@ -20,11 +20,8 @@
 
 #pragma once
 
-#include "agogecore/cpu.h"
+#include "agogecore/ctx.h"
 
-void agoge_core_cpu_init(struct agoge_core_cpu *cpu, struct agoge_core_bus *bus,
-			 struct agoge_core_log *log);
+void agoge_core_cpu_reset(struct agoge_core_ctx *ctx);
 
-void agoge_core_cpu_reset(struct agoge_core_cpu *cpu);
-
-void agoge_core_cpu_run(struct agoge_core_cpu *cpu, unsigned int run_cycles);
+void agoge_core_cpu_run(struct agoge_core_ctx *ctx, unsigned int run_cycles);

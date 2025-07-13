@@ -27,7 +27,8 @@ extern "C" {
 #endif // __cplusplus
 
 #include "cart.h"
-#include "log.h"
+
+struct agoge_core_ctx;
 
 #define AGOGE_CORE_BUS_HRAM_SIZE (127)
 #define AGOGE_CORE_BUS_WRAM_SIZE (8192)
@@ -37,9 +38,6 @@ extern "C" {
 struct agoge_core_bus {
 	uint8_t wram[AGOGE_CORE_BUS_WRAM_SIZE];
 	uint8_t hram[AGOGE_CORE_BUS_HRAM_SIZE];
-
-	/// Pointer to the agoge context's log instance.
-	struct agoge_core_log *log;
 
 	/// The cartridge instance to use for this context.
 	struct agoge_core_cart cart;
@@ -53,10 +51,10 @@ struct agoge_core_bus {
 /// @brief Retrieves a byte from an emulated memory address without interfering
 /// with emulation operations.
 ///
-/// @param bus The system bus instance.
+/// @param ctx The system bus instance.
 /// @param addr The address to retrieve a byte from.
 /// @returns The byte retrieved from the emulated memory map.
-uint8_t agoge_core_bus_peek(struct agoge_core_bus *bus, uint16_t addr);
+uint8_t agoge_core_bus_peek(struct agoge_core_ctx *ctx, uint16_t addr);
 
 #ifdef __cplusplus
 }

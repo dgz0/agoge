@@ -26,17 +26,7 @@
 
 LOG_CHANNEL(AGOGE_CORE_LOG_CH_BUS);
 
-void agoge_core_bus_init(struct agoge_core_bus *const bus,
-			 struct agoge_core_log *const log)
-{
-	bus->log = log;
-	memset(&bus->serial, 0, sizeof(bus->serial));
-
-	agoge_core_cart_init(&bus->cart, bus->log);
-	LOG_INFO(bus->log, "initialized");
-}
-
-uint8_t agoge_core_bus_read(struct agoge_core_bus *const bus,
+uint8_t agoge_core_bus_read(struct agoge_core_ctx *const ctx,
 			    const uint16_t addr)
 {
 	static const void *jmp_tbl[] = {
@@ -52,23 +42,23 @@ uint8_t agoge_core_bus_read(struct agoge_core_bus *const bus,
 	goto *jmp_tbl[addr];
 
 unbanked_rom_read:
-	return bus->cart.data[addr];
+	return ctx->bus.cart.data[addr];
 
 banked_rom_read:
-	return bus->cart.banked_read_cb(&bus->cart, addr);
+	return ctx->bus.cart.banked_read_cb(ctx, addr);
 
 wram:
-	return bus->wram[addr - 0xC000];
+	return ctx->bus.wram[addr - 0xC000];
 
 hram:
-	return bus->hram[addr - 0xFF80];
+	return ctx->bus.hram[addr - 0xFF80];
 
 unknown:
-	LOG_WARN(bus->log, "Unknown memory read: $%04X, returning $FF", addr);
+	LOG_WARN(&ctx->log, "Unknown memory read: $%04X, returning $FF", addr);
 	return 0xFF;
 }
 
-void agoge_core_bus_write(struct agoge_core_bus *const bus, const uint16_t addr,
+void agoge_core_bus_write(struct agoge_core_ctx *const ctx, const uint16_t addr,
 			  const uint8_t data)
 {
 	static const void *const jmp_tbl[] = { [0x0000 ... 0xBFFF] = &&unknown,
@@ -82,30 +72,30 @@ void agoge_core_bus_write(struct agoge_core_bus *const bus, const uint16_t addr,
 	goto *jmp_tbl[addr];
 
 unknown:
-	LOG_WARN(bus->log, "Unknown memory write: $%04X <- $%02X; ignoring",
+	LOG_WARN(&ctx->log, "Unknown memory write: $%04X <- $%02X; ignoring",
 		 addr, data);
 	return;
 
 wram:
-	bus->wram[addr - 0xC000] = data;
+	ctx->bus.wram[addr - 0xC000] = data;
 	return;
 
 hram:
-	bus->hram[addr - 0xFF80] = data;
+	ctx->bus.hram[addr - 0xFF80] = data;
 	return;
 
 serial_write:
-	bus->serial.data[bus->serial.data_size++] = data;
+	ctx->bus.serial.data[ctx->bus.serial.data_size++] = data;
 
 	if (data == '\n') {
-		LOG_TRACE(bus->log, "Serial output: %s", bus->serial.data);
-		memset(&bus->serial, 0, sizeof(bus->serial));
+		LOG_TRACE(&ctx->log, "Serial output: %s", ctx->bus.serial.data);
+		memset(&ctx->bus.serial, 0, sizeof(ctx->bus.serial));
 	}
 	return;
 }
 
-uint8_t agoge_core_bus_peek(struct agoge_core_bus *const bus,
+uint8_t agoge_core_bus_peek(struct agoge_core_ctx *const ctx,
 			    const uint16_t addr)
 {
-	return agoge_core_bus_read(bus, addr);
+	return agoge_core_bus_read(ctx, addr);
 }
