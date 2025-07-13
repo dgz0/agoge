@@ -56,12 +56,12 @@ static void log_cb(struct agoge_core_ctx *const m_ctx,
 		printf(RED "%s\n" RESET, msg->msg);
 		return;
 
+	case AGOGE_CORE_LOG_LVL_DBG:
 	case AGOGE_CORE_LOG_LVL_TRACE:
 		printf(PURPLE "%s\n" RESET, msg->msg);
 		return;
 
 	case AGOGE_CORE_LOG_LVL_OFF:
-	case AGOGE_CORE_LOG_LVL_DBG:
 	default:
 		__builtin_unreachable();
 	}
