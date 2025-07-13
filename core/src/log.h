@@ -20,33 +20,32 @@
 
 #pragma once
 
-#include <stdint.h>
-#include "agoge/log.h"
+#include "agoge/ctx.h"
 
-void agoge_core_log_handle(struct agoge_core_log *log,
+void agoge_core_log_handle(struct agoge_core_ctx *ctx,
 			   enum agoge_core_log_lvl lvl,
 			   enum agoge_core_log_ch ch, const char *fmt, ...);
 
 #define LOG_CHANNEL(x) static const enum agoge_core_log_ch __LOG_CHANNEL__ = (x)
 
-#define LOG_HANDLE(log, ch, level, args...)                                     \
-	({                                                                      \
-		struct agoge_core_log *const m_log = (log);                     \
-                                                                                \
-		if ((m_log->cb) && ((m_log->curr_lvl) >= (level)) &&            \
-		    ((m_log->ch_enabled & (UINT32_C(1) << __LOG_CHANNEL__)))) { \
-			agoge_core_log_handle(m_log, (level), ch, args);        \
-		}                                                               \
+#define LOG_HANDLE(ctx, ch, level, args...)                                  \
+	({                                                                   \
+		struct agoge_core_ctx *const m_ctx = (ctx);                  \
+                                                                             \
+		if ((m_ctx->log.cb) && ((m_ctx->log.curr_lvl) >= (level)) && \
+		    ((m_ctx->log.ch_enabled & (1 << __LOG_CHANNEL__)))) {    \
+			agoge_core_log_handle(m_ctx, (level), ch, args);     \
+		}                                                            \
 	})
 
-#define LOG_INFO(log, args...) \
-	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_INFO, args)
+#define LOG_INFO(ctx, args...) \
+	LOG_HANDLE((ctx), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_INFO, args)
 
-#define LOG_WARN(log, args...) \
-	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_WARN, args)
+#define LOG_WARN(ctx, args...) \
+	LOG_HANDLE((ctx), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_WARN, args)
 
-#define LOG_ERR(log, args...) \
-	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_ERR, args)
+#define LOG_ERR(ctx, args...) \
+	LOG_HANDLE((ctx), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_ERR, args)
 
-#define LOG_TRACE(log, args...) \
-	LOG_HANDLE((log), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_TRACE, args)
+#define LOG_TRACE(ctx, args...) \
+	LOG_HANDLE((ctx), __LOG_CHANNEL__, AGOGE_CORE_LOG_LVL_TRACE, args)

@@ -54,7 +54,7 @@ hram:
 	return ctx->bus.hram[addr - 0xFF80];
 
 unknown:
-	LOG_WARN(&ctx->log, "Unknown memory read: $%04X, returning $FF", addr);
+	LOG_WARN(ctx, "Unknown memory read: $%04X, returning $FF", addr);
 	return 0xFF;
 }
 
@@ -72,8 +72,8 @@ void agoge_core_bus_write(struct agoge_core_ctx *const ctx, const uint16_t addr,
 	goto *jmp_tbl[addr];
 
 unknown:
-	LOG_WARN(&ctx->log, "Unknown memory write: $%04X <- $%02X; ignoring",
-		 addr, data);
+	LOG_WARN(ctx, "Unknown memory write: $%04X <- $%02X; ignoring", addr,
+		 data);
 	return;
 
 wram:
@@ -88,7 +88,7 @@ serial_write:
 	ctx->bus.serial.data[ctx->bus.serial.data_size++] = data;
 
 	if (data == '\n') {
-		LOG_TRACE(&ctx->log, "Serial output: %s", ctx->bus.serial.data);
+		LOG_TRACE(ctx, "Serial output: %s", ctx->bus.serial.data);
 		memset(&ctx->bus.serial, 0, sizeof(ctx->bus.serial));
 	}
 	return;

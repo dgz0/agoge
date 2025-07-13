@@ -608,17 +608,16 @@ void agoge_core_disasm_single(struct agoge_core_ctx *const ctx,
 
 	if (instr == 0xCB) {
 		instr = agoge_core_bus_peek(ctx, addr + 1);
-		LOG_TRACE(&ctx->log, "$CB instr = $%02X", instr);
+		LOG_TRACE(ctx, "$CB instr = $%02X", instr);
 		entry = &cb_tbl[instr];
 	} else {
 		entry = &op_tbl[instr];
-		LOG_TRACE(&ctx->log, "instr = $%02X", instr);
+		LOG_TRACE(ctx, "instr = $%02X", instr);
 	}
 
 	memset(&ctx->disasm.res, 0, sizeof(ctx->disasm.res));
 	ctx->disasm.res.addr = addr;
 
 	format_instr(ctx, entry);
-	LOG_TRACE(&ctx->log, "$%04X: %s", ctx->disasm.res.addr,
-		  ctx->disasm.res.str);
+	LOG_TRACE(ctx, "$%04X: %s", ctx->disasm.res.addr, ctx->disasm.res.str);
 }

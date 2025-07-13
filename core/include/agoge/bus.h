@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/// @file bus.h Defines the interface for the system bus.
+/// @file bus.h Defines the public interface for the system bus.
 
 #pragma once
 
@@ -30,8 +30,12 @@ extern "C" {
 
 struct agoge_core_ctx;
 
+/// The size of the High RAM (HRAM) in bytes.
 #define AGOGE_CORE_BUS_HRAM_SIZE (127)
+
+/// The size of the work RAM (WRAM) in bytes.
 #define AGOGE_CORE_BUS_WRAM_SIZE (8192)
+
 #define AGOGE_CORE_BUS_SERIAL_SIZE (128)
 
 /// Defines the system bus contents.
@@ -39,7 +43,7 @@ struct agoge_core_bus {
 	uint8_t wram[AGOGE_CORE_BUS_WRAM_SIZE];
 	uint8_t hram[AGOGE_CORE_BUS_HRAM_SIZE];
 
-	/// The cartridge instance to use for this context.
+	/// The cartridge instance to use for the system bus.
 	struct agoge_core_cart cart;
 
 	struct {

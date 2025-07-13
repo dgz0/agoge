@@ -38,10 +38,10 @@ static size_t rom_size;
 static uint8_t rom[AGOGE_CORE_CART_SIZE_MAX];
 static struct agoge_core_ctx ctx;
 
-static void log_cb(void *const udata,
+static void log_cb(struct agoge_core_ctx *const m_ctx,
 		   const struct agoge_core_log_msg *const msg)
 {
-	(void)udata;
+	(void)m_ctx;
 
 	switch (msg->lvl) {
 	case AGOGE_CORE_LOG_LVL_INFO:

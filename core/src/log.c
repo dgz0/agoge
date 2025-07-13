@@ -32,7 +32,7 @@ struct str_data {
 };
 
 __attribute__((format(printf, 4, 5))) void agoge_core_log_handle(
-	struct agoge_core_log *const log, const enum agoge_core_log_lvl lvl,
+	struct agoge_core_ctx *const ctx, const enum agoge_core_log_lvl lvl,
 	const enum agoge_core_log_ch ch, const char *const fmt, ...)
 {
 #define STR_DEFINE(str) { (str), sizeof((str)) - 1 }
@@ -76,5 +76,5 @@ __attribute__((format(printf, 4, 5))) void agoge_core_log_handle(
 	};
 	// clang-format on
 
-	log->cb(log->udata, &msg_data);
+	ctx->log.cb(ctx, &msg_data);
 }

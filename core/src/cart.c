@@ -81,8 +81,7 @@ agoge_core_cart_set(struct agoge_core_ctx *const ctx, uint8_t *const data,
 {
 	if (unlikely((data_size < AGOGE_CORE_CART_SIZE_MIN) ||
 		     (data_size > AGOGE_CORE_CART_SIZE_MAX))) {
-		LOG_ERR(&ctx->log,
-			"failed to set cart: bad size - got size %zu",
+		LOG_ERR(ctx, "failed to set cart: bad size - got size %zu",
 			data_size);
 		return AGOGE_CORE_CART_RETVAL_BAD_SIZE;
 	}

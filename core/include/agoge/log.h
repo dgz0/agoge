@@ -26,6 +26,8 @@ extern "C" {
 
 #include <stddef.h>
 
+struct agoge_core_ctx;
+
 #define AGOGE_CORE_LOG_CH_CTX_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_CTX)
 #define AGOGE_CORE_LOG_CH_BUS_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_BUS)
 #define AGOGE_CORE_LOG_CH_CPU_BIT (UINT32_C(1) << AGOGE_CORE_LOG_CH_CPU)
@@ -57,8 +59,8 @@ struct agoge_core_log_msg {
 };
 
 struct agoge_core_log {
-	void *udata;
-	void (*cb)(void *udata, const struct agoge_core_log_msg *msg);
+	void (*cb)(struct agoge_core_ctx *ctx,
+		   const struct agoge_core_log_msg *msg);
 
 	enum agoge_core_log_lvl curr_lvl;
 	unsigned int ch_enabled;
