@@ -20,16 +20,4 @@
 
 #pragma once
 
-struct agoge_core_ctx;
-
-#define AGOGE_CORE_DISASM_RES_LEN_MAX (256)
-
-struct agoge_core_disasm {
-	struct {
-		char str[AGOGE_CORE_DISASM_RES_LEN_MAX + 1];
-		size_t len;
-		uint16_t addr;
-	} res;
-};
-
-void agoge_core_disasm_single(struct agoge_core_ctx *ctx, uint16_t addr);
+#include "agoge/ctx.h"

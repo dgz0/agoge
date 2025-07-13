@@ -79,4 +79,4 @@ _deps
 CMakeUserPresets.json
 
 # Doxygen
-doc/html/**
+core/doc/html/**

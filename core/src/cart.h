@@ -20,35 +20,4 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
-
-#include <stdint.h>
-
-#define AGOGE_CORE_REG_PAIR_DEFINE(hi, lo, pair) \
-	struct {                                 \
-		union {                          \
-			struct {                 \
-				uint8_t lo;      \
-				uint8_t hi;      \
-			};                       \
-			uint16_t pair;           \
-		};                               \
-	}
-
-struct agoge_core_cpu {
-	struct {
-		AGOGE_CORE_REG_PAIR_DEFINE(b, c, bc);
-		AGOGE_CORE_REG_PAIR_DEFINE(d, e, de);
-		AGOGE_CORE_REG_PAIR_DEFINE(h, l, hl);
-		AGOGE_CORE_REG_PAIR_DEFINE(a, f, af);
-
-		uint16_t pc;
-		uint16_t sp;
-	} reg;
-};
-
-#ifdef __cplusplus
-}
-#endif // __cplusplus
+#include "agoge/ctx.h"

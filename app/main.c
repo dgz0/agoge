@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "agogecore/ctx.h"
+#include "agoge/ctx.h"
 
 #define RED "\e[1;91m"
 #define YEL "\e[1;93m"

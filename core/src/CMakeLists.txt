@@ -18,7 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-set(SRCS main.c)
+set(SRCS bus.c cart.c cpu.c ctx.c disasm.c log.c)
+set(HDRS bus.h cart.h cpu.h disasm.h log.h)
 
-add_executable(agoge_app ${SRCS})
-target_link_libraries(agoge_app PRIVATE agoge agoge_base_c)
+set(HDRS_PUBLIC
+        ../include/agoge/bus.h
+        ../include/agoge/cart.h
+        ../include/agoge/cpu.h
+        ../include/agoge/ctx.h
+        ../include/agoge/disasm.h
+        ../include/agoge/log.h
+)
+
+add_library(agoge STATIC ${SRCS} ${HDRS} ${HDRS_PUBLIC})
+
+target_link_libraries(agoge PRIVATE agoge_base_c)
+
+target_include_directories(
+        agoge PUBLIC ../include
+)

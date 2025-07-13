@@ -21,7 +21,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "agogecore/log.h"
+#include "agoge/log.h"
 
 void agoge_core_log_handle(struct agoge_core_log *log,
 			   enum agoge_core_log_lvl lvl,
