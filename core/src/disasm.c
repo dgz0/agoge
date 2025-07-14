@@ -534,279 +534,1251 @@ static const struct agoge_core_disasm_entry op_tbl[] = {
 		.num_traces	= 1
 	},
 
-	[CPU_OP_LD_B_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, C" },
-	[CPU_OP_LD_B_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, D" },
-	[CPU_OP_LD_B_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, E" },
-	[CPU_OP_LD_B_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, H" },
-	[CPU_OP_LD_B_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, L" },
-	[CPU_OP_LD_B_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD B, (HL)" },
-	[CPU_OP_LD_B_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, A" },
-	[CPU_OP_LD_C_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, B" },
-	[CPU_OP_LD_C_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, C" },
-	[CPU_OP_LD_C_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, D" },
-	[CPU_OP_LD_C_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, E" },
-	[CPU_OP_LD_C_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, H" },
-	[CPU_OP_LD_C_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, L" },
-	[CPU_OP_LD_C_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD C, (HL)" },
-	[CPU_OP_LD_C_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, A" },
-	[CPU_OP_LD_D_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, B" },
-	[CPU_OP_LD_D_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, C" },
-	[CPU_OP_LD_D_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, D" },
-	[CPU_OP_LD_D_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, E" },
-	[CPU_OP_LD_D_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, H" },
-	[CPU_OP_LD_D_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, L" },
-	[CPU_OP_LD_D_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD D, (HL)" },
-	[CPU_OP_LD_D_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, A" },
-	[CPU_OP_LD_E_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, B" },
-	[CPU_OP_LD_E_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, C" },
-	[CPU_OP_LD_E_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, D" },
-	[CPU_OP_LD_E_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, E" },
-	[CPU_OP_LD_E_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, H" },
-	[CPU_OP_LD_E_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, L" },
-	[CPU_OP_LD_E_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD E, (HL)" },
-	[CPU_OP_LD_E_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, A" },
-	[CPU_OP_LD_H_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, B" },
-	[CPU_OP_LD_H_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, C" },
-	[CPU_OP_LD_H_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, D" },
-	[CPU_OP_LD_H_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, E" },
-	[CPU_OP_LD_H_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, H" },
-	[CPU_OP_LD_H_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, L" },
-	[CPU_OP_LD_H_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD H, (HL)" },
-	[CPU_OP_LD_H_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, A" },
-	[CPU_OP_LD_L_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, B" },
-	[CPU_OP_LD_L_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, C" },
-	[CPU_OP_LD_L_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, D" },
-	[CPU_OP_LD_L_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, E" },
-	[CPU_OP_LD_L_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, H" },
-	[CPU_OP_LD_L_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, L" },
-	[CPU_OP_LD_L_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD L, (HL)" },
-	[CPU_OP_LD_L_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, A" },
-	[CPU_OP_LD_MEM_HL_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD (HL), B" },
-	[CPU_OP_LD_MEM_HL_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD (HL), C" },
-	[CPU_OP_LD_MEM_HL_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD (HL), D" },
-	[CPU_OP_LD_MEM_HL_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD (HL), E" },
-	[CPU_OP_LD_MEM_HL_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD (HL), H" },
-	[CPU_OP_LD_MEM_HL_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD (HL), L" },
-	[CPU_OP_LD_MEM_HL_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD (HL), A" },
-	[CPU_OP_LD_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, B" },
-	[CPU_OP_LD_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, C" },
-	[CPU_OP_LD_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, D" },
-	[CPU_OP_LD_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, E" },
-	[CPU_OP_LD_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, H" },
-	[CPU_OP_LD_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, L" },
-	[CPU_OP_LD_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "LD A, (HL)" },
-	[CPU_OP_LD_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, A" },
-	[CPU_OP_ADD_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADD A, B" },
-	[CPU_OP_ADD_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADD A, C" },
-	[CPU_OP_ADD_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADD A, D" },
-	[CPU_OP_ADD_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADD A, E" },
-	[CPU_OP_ADD_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADD A, H" },
-	[CPU_OP_ADD_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADD A, L" },
-	[CPU_OP_ADD_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				  .fmt = "ADD A, (HL)" },
-	[CPU_OP_ADD_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADD A, A" },
-	[CPU_OP_ADC_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADC A, B" },
-	[CPU_OP_ADC_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADC A, C" },
-	[CPU_OP_ADC_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADC A, D" },
-	[CPU_OP_ADC_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADC A, E" },
-	[CPU_OP_ADC_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADC A, H" },
-	[CPU_OP_ADC_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADC A, L" },
-	[CPU_OP_ADC_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				  .fmt = "ADC A, (HL)" },
-	[CPU_OP_ADC_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "ADC A, A" },
-	[CPU_OP_SUB_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SUB A, B" },
-	[CPU_OP_SUB_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SUB A, C" },
-	[CPU_OP_SUB_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SUB A, D" },
-	[CPU_OP_SUB_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SUB A, E" },
-	[CPU_OP_SUB_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SUB A, H" },
-	[CPU_OP_SUB_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SUB A, L" },
-	[CPU_OP_SUB_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				  .fmt = "SUB A, (HL)" },
-	[CPU_OP_SUB_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SUB A, A" },
-	[CPU_OP_SBC_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SBC A, B" },
-	[CPU_OP_SBC_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SBC A, C" },
-	[CPU_OP_SBC_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SBC A, D" },
-	[CPU_OP_SBC_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SBC A, E" },
-	[CPU_OP_SBC_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SBC A, H" },
-	[CPU_OP_SBC_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SBC A, L" },
-	[CPU_OP_SBC_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				  .fmt = "SBC A, (HL)" },
-	[CPU_OP_SBC_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "SBC A, A" },
-	[CPU_OP_AND_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "AND A, B" },
-	[CPU_OP_AND_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "AND A, C" },
-	[CPU_OP_AND_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "AND A, D" },
-	[CPU_OP_AND_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "AND A, E" },
-	[CPU_OP_AND_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "AND A, H" },
-	[CPU_OP_AND_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "AND A, L" },
-	[CPU_OP_AND_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				  .fmt = "AND A, (HL)" },
-	[CPU_OP_AND_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "AND A, A" },
-	[CPU_OP_XOR_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "XOR A, B" },
-	[CPU_OP_XOR_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "XOR A, C" },
-	[CPU_OP_XOR_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "XOR A, D" },
-	[CPU_OP_XOR_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "XOR A, E" },
-	[CPU_OP_XOR_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "XOR A, H" },
-	[CPU_OP_XOR_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "XOR A, L" },
-	[CPU_OP_XOR_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				  .fmt = "XOR A, (HL)" },
-	[CPU_OP_XOR_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "XOR A, A" },
-	[CPU_OP_OR_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, B" },
-	[CPU_OP_OR_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, C" },
-	[CPU_OP_OR_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, D" },
-	[CPU_OP_OR_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, E" },
-	[CPU_OP_OR_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, H" },
-	[CPU_OP_OR_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "OR A, (HL)" },
-	[CPU_OP_OR_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, L" },
-	[CPU_OP_OR_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, A" },
-	[CPU_OP_CP_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, B" },
-	[CPU_OP_CP_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, C" },
-	[CPU_OP_CP_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, D" },
-	[CPU_OP_CP_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, E" },
-	[CPU_OP_CP_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, H" },
-	[CPU_OP_CP_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, L" },
-	[CPU_OP_CP_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				 .fmt = "CP A, (HL)" },
-	[CPU_OP_CP_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, A" },
-	[CPU_OP_RET_NZ] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET NZ" },
-	[CPU_OP_POP_BC] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP BC" },
-	[CPU_OP_JP_NZ_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-			       .fmt = "JP NZ, $%04X" },
-	[CPU_OP_JP_U16] = { .op = AGOGE_CORE_DISASM_OP_U16, .fmt = "JP $%04X" },
-	[CPU_OP_CALL_NZ_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-				 .fmt = "CALL NZ, $%04X" },
-	[CPU_OP_PUSH_BC] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "PUSH BC" },
-	[CPU_OP_ADD_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-			      .fmt = "ADD A, $%02X" },
-	[CPU_OP_RST_00] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $00" },
-	[CPU_OP_RET_Z] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET Z" },
-	[CPU_OP_RET] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET" },
-	[CPU_OP_JP_Z_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-			      .fmt = "JP Z, $%04X" },
-	[CPU_OP_CALL_Z_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-				.fmt = "CALL Z, $%04X" },
-	[CPU_OP_CALL_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-			      .fmt = "CALL $%04X" },
-	[CPU_OP_ADC_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-			      .fmt = "ADC A, $%02X" },
-	[CPU_OP_RST_08] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $08" },
-	[CPU_OP_RET_NC] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET NC" },
-	[CPU_OP_POP_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP DE" },
-	[CPU_OP_JP_NC_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-			       .fmt = "JP NC, $%04X" },
-	[CPU_OP_CALL_NC_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-				 .fmt = "CALL NC, $%04X" },
-	[CPU_OP_PUSH_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "PUSH DE" },
-	[CPU_OP_SUB_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-			      .fmt = "SUB A, $%02X" },
-	[CPU_OP_RST_10] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $10" },
-	[CPU_OP_RET_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET C" },
-	[CPU_OP_RETI] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RETI" },
-	[CPU_OP_JP_C_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-			      .fmt = "JP C, $%04X" },
-	[CPU_OP_CALL_C_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-				.fmt = "CALL C, $%04X" },
-	[CPU_OP_SBC_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-			      .fmt = "SBC A, $%02X" },
-	[CPU_OP_RST_18] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $18" },
-	[CPU_OP_LD_MEM_FF00_U8_A] = { .op = AGOGE_CORE_DISASM_OP_U8,
-				      .fmt = "LD (FF00+$%02X), A" },
-	[CPU_OP_POP_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP HL" },
-	[CPU_OP_LD_MEM_FF00_C_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				     .fmt = "LD (FF00+C), A" },
-	[CPU_OP_PUSH_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "PUSH HL" },
-	[CPU_OP_AND_A_U8] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			      .fmt = "AND A, $%02X" },
-	[CPU_OP_RST_20] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $20" },
-	[CPU_OP_ADD_SP_S8] = { .op = AGOGE_CORE_DISASM_OP_S8,
-			       .fmt = "ADD SP, %d" },
-	[CPU_OP_JP_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "JP (HL)" },
-	[CPU_OP_LD_MEM_U16_A] = { .op = AGOGE_CORE_DISASM_OP_U16,
-				  .fmt = "LD ($%04X), A" },
-	[CPU_OP_LD_A_MEM_FF00_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-				      .fmt = "LD A, (FF00+$%02X)" },
+	[CPU_OP_LD_B_C] = {
+		.fmt		= "LD B, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_B },
+		.num_traces	= 1
+	},
 
-	[CPU_OP_LD_A_MEM_FF00_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-				     .fmt = "LD A, (FF00+C)" },
-	[CPU_OP_POP_AF] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP AF" },
-	[CPU_OP_DI] = { .fmt = "DI", .op = OP_NONE, .traces = { TRACE_NONE }, .num_traces = 0 },
-	[CPU_OP_PUSH_AF] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			     .fmt = "PUSH AF" },
-	[CPU_OP_OR_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-			     .fmt = "OR A, $%02X" },
-	[CPU_OP_RST_30] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $30" },
-	[CPU_OP_LD_HL_SP_S8] = { .op = AGOGE_CORE_DISASM_OP_S8,
-				 .fmt = "LD HL, SP+%d" },
-	[CPU_OP_LD_SP_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
-			      .fmt = "LD SP, HL" },
-	[CPU_OP_LD_A_MEM_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
-				  .fmt = "LD A, ($%04X)" },
-	[CPU_OP_EI] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "EI" },
-	[CPU_OP_XOR_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-			      .fmt = "XOR A, $%02X" },
-	[CPU_OP_RST_28] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $28" },
-	[CPU_OP_CP_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
-			     .fmt = "CP A, $%02X" },
-	[CPU_OP_RST_38] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $38" },
+	[CPU_OP_LD_B_D] = {
+		.fmt		= "LD B, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_B },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_B_E] = {
+		.fmt		= "LD B, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_B },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_B_H] = {
+		.fmt		= "LD B, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_B },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_B_L] = {
+		.fmt		= "LD B, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_B },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_B_MEM_HL] = {
+		.fmt		= "LD B, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_B },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_B_A] = {
+		.fmt		= "LD B, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_B },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_B] = {
+		.fmt		= "LD C, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_C] = {
+		.fmt		= "LD C, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_D] = {
+		.fmt		= "LD C, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_E] = {
+		.fmt		= "LD C, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_H] = {
+		.fmt		= "LD C, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_L] = {
+		.fmt		= "LD C, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_MEM_HL] =  {
+		.fmt		= "LD C, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_C_A] = {
+		.fmt		= "LD C, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_C },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_B] = {
+		.fmt		= "LD D, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_C] = {
+		.fmt		= "LD D, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_D] = {
+		.fmt		= "LD D, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_E] = {
+		.fmt		= "LD D, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_H] = {
+		.fmt		= "LD D, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_L] = {
+		.fmt		= "LD D, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_MEM_HL] = {
+		.fmt		= "LD D, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_D_A] = {
+		.fmt		= "LD D, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_D },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_B] = {
+		.fmt		= "LD E, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_C] = {
+		.fmt		= "LD E, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_D] = {
+		.fmt		= "LD E, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_E] = {
+		.fmt		= "LD E, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_H] = {
+		.fmt		= "LD E, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_L] = {
+		.fmt		= "LD E, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_MEM_HL] = {
+		.fmt		= "LD E, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_E_A] = {
+		.fmt		= "LD E, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_E },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_B] = {
+		.fmt		= "LD H, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_C] = {
+		.fmt		= "LD H, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_D] = {
+		.fmt		= "LD H, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_E] = {
+		.fmt		= "LD H, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_H] = {
+		.fmt		= "LD H, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_L] = {
+		.fmt		= "LD H, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_MEM_HL] =  {
+		.fmt		= "LD H, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_H_A] = {
+		.fmt		= "LD H, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_H },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_B] = {
+		.fmt		= "LD L, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_C] = {
+		.fmt		= "LD L, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_D] = {
+		.fmt		= "LD L, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_E] = {
+		.fmt		= "LD L, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_H] = {
+		.fmt		= "LD L, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_L] = {
+		.fmt		= "LD L, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_MEM_HL] = {
+		.fmt		= "LD L, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_L_A] = {
+		.fmt		= "LD L, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_L },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_MEM_HL_B] = {
+		.fmt		= "LD (HL), B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_MEM_HL_C] = {
+		.fmt		= "LD (HL), C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_MEM_HL_D] = {
+		.fmt		= "LD (HL), D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_MEM_HL_E] = {
+		.fmt		= "LD (HL), E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_MEM_HL_H] = {
+		.fmt		= "LD (HL), H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_MEM_HL_L] = {
+		.fmt		= "LD (HL), L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_MEM_HL_A] = {
+		.fmt		= "LD (HL), A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_A_B] = {
+		.fmt		= "LD A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_C] = {
+		.fmt		= "LD A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_D] = {
+		.fmt		= "LD A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_E] = {
+		.fmt		= "LD A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_H] = {
+		.fmt		= "LD A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_L] = {
+		.fmt		= "LD A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_MEM_HL] = {
+		.fmt		= "LD A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_A] = {
+		.fmt		= "LD A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_ADD_A_B] = {
+		.fmt		= "ADD A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADD_A_C] = {
+		.fmt		= "ADD A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADD_A_D] = {
+		.fmt		= "ADD A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADD_A_E] =  {
+		.fmt		= "ADD A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADD_A_H] =  {
+		.fmt		= "ADD A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADD_A_L] = {
+		.fmt		= "ADD A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADD_A_MEM_HL] = {
+		.fmt		= "ADD A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADD_A_A] = {
+		.fmt		= "ADD A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_B] = {
+		.fmt		= "ADC A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_C] = {
+		.fmt		= "ADC A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_D] = {
+		.fmt		= "ADC A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_E] = {
+		.fmt		= "ADC A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_H] = {
+		.fmt		= "ADC A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_L] = {
+		.fmt		= "ADC A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_MEM_HL] = {
+		.fmt		= "ADC A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_ADC_A_A] = {
+		.fmt		= "ADC A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_B] = {
+		.fmt		= "SUB A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_C] = {
+		.fmt		= "SUB A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_D] = {
+		.fmt		= "SUB A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_E] = {
+		.fmt		= "SUB A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_H] = {
+		.fmt		= "SUB A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_L] = {
+		.fmt		= "SUB A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_MEM_HL] = {
+		.fmt		= "SUB A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SUB_A_A] = {
+		.fmt		= "SUB A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_B] = {
+		.fmt		= "SBC A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_C] = {
+		.fmt		= "SBC A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_D] = {
+		.fmt		= "SBC A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_E] = {
+		.fmt		= "SBC A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_H] = {
+		.fmt		= "SBC A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_L] = {
+		.fmt		= "SBC A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_MEM_HL] = {
+		.fmt		= "SBC A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_SBC_A_A] = {
+		.fmt		= "SBC A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_B] = {
+		.fmt		= "AND A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_C] = {
+		.fmt		= "AND A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_D] = {
+		.fmt		= "AND A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_E] = {
+		.fmt		= "AND A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_H] = {
+		.fmt		= "AND A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_L] = {
+		.fmt		= "AND A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_MEM_HL] = {
+		.fmt		= "AND A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_AND_A_A] = {
+		.fmt		= "AND A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_B] = {
+		.fmt		= "XOR A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_C] = {
+		.fmt		= "XOR A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_D] = {
+		.fmt		= "XOR A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_E] = {
+		.fmt		= "XOR A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_H] = {
+		.fmt		= "XOR A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_L] = {
+		.fmt		= "XOR A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_MEM_HL] = {
+		.fmt		= "XOR A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_XOR_A_A] = {
+		.fmt		= "XOR A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_B] = {
+		.fmt		= "OR A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_C] = {
+		.fmt		= "OR A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_D] = {
+		.fmt		= "OR A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_E] = {
+		.fmt		= "OR A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_H] = {
+		.fmt		= "OR A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_L] = {
+		.fmt		= "OR A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_MEM_HL] = {
+		.fmt		= "OR A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_OR_A_A] = {
+		.fmt		= "OR A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_B] = {
+		.fmt		= "CP A, B",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_C] = {
+		.fmt		= "CP A, C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_D] = {
+		.fmt		= "CP A, D",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_E] = {
+		.fmt		= "CP A, E",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_H] = {
+		.fmt		= "CP A, H",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_L] = {
+		.fmt		= "CP A, L",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_MEM_HL] = {
+		.fmt		= "CP A, (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_CP_A_A] = {
+		.fmt		= "CP A, A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_RET_NZ] = {
+		.fmt		= "RET NZ",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_POP_BC] = {
+		.fmt		= "POP BC",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_BC, TRACE_REG_SP },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_JP_NZ_U16] = {
+		.fmt		= "JP NZ, $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_JP_U16] = {
+		.fmt		= "JP $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_CALL_NZ_U16] = {
+		.fmt		= "CALL NZ, $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_PUSH_BC] = {
+		.fmt		= "PUSH BC",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_ADD_A_U8] = {
+		.fmt		= "ADD A, $%02X",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_RST_00] = {
+		.fmt		= "RST $00",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_RET_Z] = {
+		.fmt		= "RET Z",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_RET] = {
+		.fmt		= "RET",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_JP_Z_U16] = {
+		.fmt		= "JP Z, $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_CALL_Z_U16] = {
+		.fmt		= "CALL Z, $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_CALL_U16] = {
+		.fmt		= "CALL $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_ADC_A_U8] = {
+		.fmt		= "RST $00",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_RST_08] = {
+		.fmt		= "RST $08",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_RET_NC] = {
+		.fmt		= "RET NC",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_POP_DE] = {
+		.fmt		= "POP DE",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_DE, TRACE_REG_SP },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_JP_NC_U16] = {
+		.fmt		= "JP NC, $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_CALL_NC_U16] = {
+		.fmt		= "CALL NC, $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_PUSH_DE] = {
+		.fmt		= "PUSH DE",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_SUB_A_U8] = {
+		.fmt		= "SUB A, $%02X",
+		.op		= OP_U8,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_RST_10] = {
+		.fmt		= "RST $10",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_RET_C] = {
+		.fmt		= "RET C",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_RETI] = {
+		.fmt		= "RETI",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_JP_C_U16] = {
+		.fmt		= "JP C, $%04X",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_CALL_C_U16] = {
+		.fmt		= "CALL C, $%04X",
+		.op		= OP_U16,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_SBC_A_U8] = {
+		.fmt		= "SBC A, $%02X",
+		.op		= OP_U8,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_RST_18] = {
+		.fmt		= "RST $18",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_MEM_FF00_U8_A] = {
+		.fmt		= "LD (FF00+$%02X), A",
+		.op		= OP_U8,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_POP_HL] = {
+		.fmt		= "POP HL",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_HL, TRACE_REG_SP },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_LD_MEM_FF00_C_A] = {
+		.fmt		= "LD (FF00+C), A",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_PUSH_HL] = {
+		.fmt		= "PUSH HL",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_AND_A_U8] = {
+		.fmt		= "AND A, $%02X",
+		.op		= OP_U8,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_RST_20] = {
+		.fmt		= "RST $20",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_ADD_SP_S8] = {
+		.fmt		= "ADD SP, %d",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_JP_HL] = {
+		.fmt		= "JP (HL)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_MEM_U16_A] = {
+		.fmt		= "LD ($%04X), A",
+		.op		= OP_U16,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_LD_A_MEM_FF00_U8] = {
+		.fmt		= "LD A, (FF00+$%02X)",
+		.op		= OP_U8,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_MEM_FF00_C] = {
+		.fmt		= "LD A, (FF00+C)",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_POP_AF] = {
+		.fmt		= "POP AF",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_AF, TRACE_REG_SP },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_DI] = {
+		.fmt		= "DI",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_PUSH_AF] = {
+		.fmt		= "PUSH AF",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_OR_A_U8] = {
+		.fmt		= "OR A, $%02X",
+		.op		= OP_U8,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_RST_30] = {
+		.fmt		= "RST $30",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_HL_SP_S8] = {
+		.fmt		= "LD HL, SP+%d",
+		.op		= OP_S8,
+		.traces		= { TRACE_REG_HL },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_SP_HL] = {
+		.fmt		= "LD SP, HL",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_SP },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_LD_A_MEM_U16] = {
+		.fmt		= "LD A, ($%04X)",
+		.op		= OP_U16,
+		.traces		= { TRACE_REG_A },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_EI] = {
+		.fmt		= "EI",
+		.op		= OP_NONE,
+		.traces		= { TRACE_NONE },
+		.num_traces	= 0
+	},
+
+	[CPU_OP_XOR_A_U8] =  {
+		.fmt		= "XOR A, $%02X",
+		.op		= OP_U8,
+		.traces		= { TRACE_REG_A, TRACE_REG_F },
+		.num_traces	= 2
+	},
+
+	[CPU_OP_RST_28] = {
+		.fmt		= "RST $28",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_F },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_CP_A_U8] = {
+		.fmt		= "CP A, $%02X",
+		.op		= OP_U8,
+		.traces		= { TRACE_REG_F },
+		.num_traces	= 1
+	},
+
+	[CPU_OP_RST_38] = {
+		.fmt		= "RST $38",
+		.op		= OP_NONE,
+		.traces		= { TRACE_REG_F },
+		.num_traces	= 1
+	}
 
 	// clang-format on
 };
