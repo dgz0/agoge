@@ -32,305 +32,408 @@ LOG_CHANNEL(AGOGE_CORE_LOG_CH_DISASM);
 
 #define CB_INSTR(x, trace)					\
 	{							\
-		.str		= (x),				\
-		.str_len	= sizeof((x)) - 1,		\
+		.fmt		= (x),				\
 		.traces		= { (trace), TRACE_REG_F },	\
 		.num_traces	= 2				\
 	}
 
 #define CB_INSTR_BIT(x)					\
 	{						\
-		.str		= (x),			\
-		.str_len	= sizeof((x)) - 1,	\
+		.fmt		= (x),			\
 		.traces		= { TRACE_REG_F },	\
 		.num_traces	= 1			\
 	}
 
 #define CB_INSTR_RES_SET(x, trace)			\
 	{						\
-		.str		= (x),			\
-		.str_len	= sizeof((x)) - 1,	\
+		.fmt		= (x),			\
 		.traces		= { (trace) },		\
 		.num_traces	= 1			\
 	}
 
+#define APPEND_STR(str, len, fmt)					\
+	({								\
+		memcpy(&(str)[(len)], (fmt), sizeof((fmt)) - 1);	\
+		(len) += sizeof((fmt)) - 1;				\
+	})
+
+#define TRACE_NUM_SPACES (35)
+
 // clang-format on
 
-enum op_type { OP_NONE = 0, OP_U8 = 1, OP_U16 = 2, OP_S8 = 3, OP_BRANCH = 4 };
-
-enum trace_type {
-	TRACE_REG_B,
-	TRACE_REG_C,
-	TRACE_REG_D,
-	TRACE_REG_E,
-	TRACE_REG_F,
-	TRACE_REG_H,
-	TRACE_REG_L,
-	TRACE_REG_A,
-	TRACE_MEM_HL
-};
-
-struct disasm_entry {
-	const char *const fmt;
-	const enum op_type op;
-};
-
-struct cb_disasm_entry {
-	const char *const str;
-	const size_t str_len;
-	const enum trace_type traces[2];
-	const size_t num_traces;
-};
-
-static const struct disasm_entry op_tbl[] = {
-	[CPU_OP_NOP] = { .op = OP_NONE, .fmt = "NOP" },
-	[CPU_OP_LD_BC_U16] = { .op = OP_U16, .fmt = "LD BC, $%04X" },
-	[CPU_OP_LD_MEM_BC_A] = { .op = OP_NONE, .fmt = "LD (BC), A" },
-	[CPU_OP_INC_BC] = { .op = OP_NONE, .fmt = "INC BC" },
-	[CPU_OP_INC_B] = { .op = OP_NONE, .fmt = "INC B" },
-	[CPU_OP_DEC_B] = { .op = OP_NONE, .fmt = "DEC B" },
-	[CPU_OP_LD_B_U8] = { .op = OP_U8, .fmt = "LD B, $%02X" },
-	[CPU_OP_RLCA] = { .op = OP_NONE, .fmt = "RLCA" },
-	[CPU_OP_LD_MEM_U16_SP] = { .op = OP_U16, .fmt = "LD ($%04X), SP" },
-	[CPU_OP_ADD_HL_BC] = { .op = OP_NONE, .fmt = "ADD HL, BC" },
-	[CPU_OP_LD_A_MEM_BC] = { .op = OP_BRANCH, .fmt = "LD A, (BC)" },
-	[CPU_OP_DEC_BC] = { .op = OP_NONE, .fmt = "DEC BC" },
-	[CPU_OP_INC_C] = { .op = OP_NONE, .fmt = "INC C" },
-	[CPU_OP_DEC_C] = { .op = OP_NONE, .fmt = "DEC C" },
-	[CPU_OP_LD_C_U8] = { .op = OP_U8, .fmt = "LD C, $%02X" },
-	[CPU_OP_RRCA] = { .op = OP_NONE, .fmt = "RRCA" },
-	[CPU_OP_LD_DE_U16] = { .op = OP_U16, .fmt = "LD DE, $%04X" },
-	[CPU_OP_LD_MEM_DE_A] = { .op = OP_NONE, .fmt = "LD (DE), A" },
-	[CPU_OP_INC_DE] = { .op = OP_NONE, .fmt = "INC DE" },
-	[CPU_OP_INC_D] = { .op = OP_NONE, .fmt = "INC D" },
-	[CPU_OP_DEC_D] = { .op = OP_NONE, .fmt = "DEC D" },
-	[CPU_OP_LD_D_U8] = { .op = OP_U8, .fmt = "LD D, $%02X" },
-	[CPU_OP_RLA] = { .op = OP_NONE, .fmt = "RLA" },
-	[CPU_OP_JR_S8] = { .op = OP_BRANCH, .fmt = "JR $%04X" },
-	[CPU_OP_ADD_HL_DE] = { .op = OP_NONE, .fmt = "ADD HL, DE" },
-	[CPU_OP_LD_A_MEM_DE] = { .op = OP_NONE, .fmt = "LD A, (DE)" },
-	[CPU_OP_DEC_DE] = { .op = OP_NONE, .fmt = "DEC DE" },
-	[CPU_OP_INC_E] = { .op = OP_NONE, .fmt = "INC E" },
-	[CPU_OP_DEC_E] = { .op = OP_NONE, .fmt = "DEC E" },
-	[CPU_OP_LD_E_U8] = { .op = OP_U8, .fmt = "LD E, $%02X" },
-	[CPU_OP_RRA] = { .op = OP_NONE, .fmt = "RRA" },
-	[CPU_OP_JR_NZ_S8] = { .op = OP_BRANCH, .fmt = "JR NZ, $%04X" },
-	[CPU_OP_LD_HL_U16] = { .op = OP_U16, .fmt = "LD HL, $%04X" },
-	[CPU_OP_LDI_MEM_HL_A] = { .op = OP_NONE, .fmt = "LDI (HL), A" },
-	[CPU_OP_INC_HL] = { .op = OP_NONE, .fmt = "INC HL" },
-	[CPU_OP_INC_H] = { .op = OP_NONE, .fmt = "INC H" },
-	[CPU_OP_DEC_H] = { .op = OP_NONE, .fmt = "DEC H" },
-	[CPU_OP_LD_H_U8] = { .op = OP_U8, .fmt = "LD H, $%02X" },
-	[CPU_OP_DAA] = { .op = OP_NONE, .fmt = "DAA" },
-	[CPU_OP_JR_Z_S8] = { .op = OP_BRANCH, .fmt = "JR Z, $%04X" },
-	[CPU_OP_ADD_HL_HL] = { .op = OP_NONE, .fmt = "ADD HL, HL" },
-	[CPU_OP_LDI_A_MEM_HL] = { .op = OP_NONE, .fmt = "LD A, (HL+)" },
-	[CPU_OP_DEC_HL] = { .op = OP_NONE, .fmt = "DEC HL" },
-	[CPU_OP_INC_L] = { .op = OP_NONE, .fmt = "INC L" },
-	[CPU_OP_DEC_L] = { .op = OP_NONE, .fmt = "DEC L" },
-	[CPU_OP_LD_L_U8] = { .op = OP_U8, .fmt = "LD L, $%02X" },
-	[CPU_OP_CPL] = { .op = OP_NONE, .fmt = "CPL" },
-	[CPU_OP_JR_NC_S8] = { .op = OP_BRANCH, .fmt = "JR NC, $%04X" },
-	[CPU_OP_LD_SP_U16] = { .op = OP_U16, .fmt = "LD SP, $%04X" },
-	[CPU_OP_LDD_MEM_HL_A] = { .op = OP_NONE, .fmt = "LDD (HL), A" },
-	[CPU_OP_INC_SP] = { .op = OP_NONE, .fmt = "INC SP" },
-	[CPU_OP_INC_MEM_HL] = { .op = OP_NONE, .fmt = "INC (HL)" },
-	[CPU_OP_DEC_MEM_HL] = { .op = OP_NONE, .fmt = "DEC (HL)" },
-	[CPU_OP_LD_MEM_HL_U8] = { .op = OP_U8, .fmt = "LD (HL), $%02X" },
-	[CPU_OP_SCF] = { .op = OP_NONE, .fmt = "SCF" },
-	[CPU_OP_JR_C_S8] = { .op = OP_BRANCH, .fmt = "JR C, $%04X" },
-	[CPU_OP_ADD_HL_SP] = { .op = OP_NONE, .fmt = "ADD HL, SP" },
-	[CPU_OP_LDD_A_MEM_HL] = { .op = OP_NONE, .fmt = "LDD A, (HL)" },
-	[CPU_OP_DEC_SP] = { .op = OP_NONE, .fmt = "DEC SP" },
-	[CPU_OP_INC_A] = { .op = OP_NONE, .fmt = "INC A" },
-	[CPU_OP_DEC_A] = { .op = OP_NONE, .fmt = "DEC A" },
-	[CPU_OP_LD_A_U8] = { .op = OP_U8, .fmt = "LD A, $%02X" },
-	[CPU_OP_CCF] = { .op = OP_NONE, .fmt = "CCF" },
-	[CPU_OP_LD_B_B] = { .op = OP_NONE, .fmt = "LD B, B" },
-	[CPU_OP_LD_B_C] = { .op = OP_NONE, .fmt = "LD B, C" },
-	[CPU_OP_LD_B_D] = { .op = OP_NONE, .fmt = "LD B, D" },
-	[CPU_OP_LD_B_E] = { .op = OP_NONE, .fmt = "LD B, E" },
-	[CPU_OP_LD_B_H] = { .op = OP_NONE, .fmt = "LD B, H" },
-	[CPU_OP_LD_B_L] = { .op = OP_NONE, .fmt = "LD B, L" },
-	[CPU_OP_LD_B_MEM_HL] = { .op = OP_NONE, .fmt = "LD B, (HL)" },
-	[CPU_OP_LD_B_A] = { .op = OP_NONE, .fmt = "LD B, A" },
-	[CPU_OP_LD_C_B] = { .op = OP_NONE, .fmt = "LD C, B" },
-	[CPU_OP_LD_C_C] = { .op = OP_NONE, .fmt = "LD C, C" },
-	[CPU_OP_LD_C_D] = { .op = OP_NONE, .fmt = "LD C, D" },
-	[CPU_OP_LD_C_E] = { .op = OP_NONE, .fmt = "LD C, E" },
-	[CPU_OP_LD_C_H] = { .op = OP_NONE, .fmt = "LD C, H" },
-	[CPU_OP_LD_C_L] = { .op = OP_NONE, .fmt = "LD C, L" },
-	[CPU_OP_LD_C_MEM_HL] = { .op = OP_NONE, .fmt = "LD C, (HL)" },
-	[CPU_OP_LD_C_A] = { .op = OP_NONE, .fmt = "LD C, A" },
-	[CPU_OP_LD_D_B] = { .op = OP_NONE, .fmt = "LD D, B" },
-	[CPU_OP_LD_D_C] = { .op = OP_NONE, .fmt = "LD D, C" },
-	[CPU_OP_LD_D_D] = { .op = OP_NONE, .fmt = "LD D, D" },
-	[CPU_OP_LD_D_E] = { .op = OP_NONE, .fmt = "LD D, E" },
-	[CPU_OP_LD_D_H] = { .op = OP_NONE, .fmt = "LD D, H" },
-	[CPU_OP_LD_D_L] = { .op = OP_NONE, .fmt = "LD D, L" },
-	[CPU_OP_LD_D_MEM_HL] = { .op = OP_NONE, .fmt = "LD D, (HL)" },
-	[CPU_OP_LD_D_A] = { .op = OP_NONE, .fmt = "LD D, A" },
-	[CPU_OP_LD_E_B] = { .op = OP_NONE, .fmt = "LD E, B" },
-	[CPU_OP_LD_E_C] = { .op = OP_NONE, .fmt = "LD E, C" },
-	[CPU_OP_LD_E_D] = { .op = OP_NONE, .fmt = "LD E, D" },
-	[CPU_OP_LD_E_E] = { .op = OP_NONE, .fmt = "LD E, E" },
-	[CPU_OP_LD_E_H] = { .op = OP_NONE, .fmt = "LD E, H" },
-	[CPU_OP_LD_E_L] = { .op = OP_NONE, .fmt = "LD E, L" },
-	[CPU_OP_LD_E_MEM_HL] = { .op = OP_NONE, .fmt = "LD E, (HL)" },
-	[CPU_OP_LD_E_A] = { .op = OP_NONE, .fmt = "LD E, A" },
-	[CPU_OP_LD_H_B] = { .op = OP_NONE, .fmt = "LD H, B" },
-	[CPU_OP_LD_H_C] = { .op = OP_NONE, .fmt = "LD H, C" },
-	[CPU_OP_LD_H_D] = { .op = OP_NONE, .fmt = "LD H, D" },
-	[CPU_OP_LD_H_E] = { .op = OP_NONE, .fmt = "LD H, E" },
-	[CPU_OP_LD_H_H] = { .op = OP_NONE, .fmt = "LD H, H" },
-	[CPU_OP_LD_H_L] = { .op = OP_NONE, .fmt = "LD H, L" },
-	[CPU_OP_LD_H_MEM_HL] = { .op = OP_NONE, .fmt = "LD H, (HL)" },
-	[CPU_OP_LD_H_A] = { .op = OP_NONE, .fmt = "LD H, A" },
-	[CPU_OP_LD_L_B] = { .op = OP_NONE, .fmt = "LD L, B" },
-	[CPU_OP_LD_L_C] = { .op = OP_NONE, .fmt = "LD L, C" },
-	[CPU_OP_LD_L_D] = { .op = OP_NONE, .fmt = "LD L, D" },
-	[CPU_OP_LD_L_E] = { .op = OP_NONE, .fmt = "LD L, E" },
-	[CPU_OP_LD_L_H] = { .op = OP_NONE, .fmt = "LD L, H" },
-	[CPU_OP_LD_L_L] = { .op = OP_NONE, .fmt = "LD L, L" },
-	[CPU_OP_LD_L_MEM_HL] = { .op = OP_NONE, .fmt = "LD L, (HL)" },
-	[CPU_OP_LD_L_A] = { .op = OP_NONE, .fmt = "LD L, A" },
-	[CPU_OP_LD_MEM_HL_B] = { .op = OP_NONE, .fmt = "LD (HL), B" },
-	[CPU_OP_LD_MEM_HL_C] = { .op = OP_NONE, .fmt = "LD (HL), C" },
-	[CPU_OP_LD_MEM_HL_D] = { .op = OP_NONE, .fmt = "LD (HL), D" },
-	[CPU_OP_LD_MEM_HL_E] = { .op = OP_NONE, .fmt = "LD (HL), E" },
-	[CPU_OP_LD_MEM_HL_H] = { .op = OP_NONE, .fmt = "LD (HL), H" },
-	[CPU_OP_LD_MEM_HL_L] = { .op = OP_NONE, .fmt = "LD (HL), L" },
-	[CPU_OP_LD_MEM_HL_A] = { .op = OP_NONE, .fmt = "LD (HL), A" },
-	[CPU_OP_LD_A_B] = { .op = OP_NONE, .fmt = "LD A, B" },
-	[CPU_OP_LD_A_C] = { .op = OP_NONE, .fmt = "LD A, C" },
-	[CPU_OP_LD_A_D] = { .op = OP_NONE, .fmt = "LD A, D" },
-	[CPU_OP_LD_A_E] = { .op = OP_NONE, .fmt = "LD A, E" },
-	[CPU_OP_LD_A_H] = { .op = OP_NONE, .fmt = "LD A, H" },
-	[CPU_OP_LD_A_L] = { .op = OP_NONE, .fmt = "LD A, L" },
-	[CPU_OP_LD_A_MEM_HL] = { .op = OP_NONE, .fmt = "LD A, (HL)" },
-	[CPU_OP_LD_A_A] = { .op = OP_NONE, .fmt = "LD A, A" },
-	[CPU_OP_ADD_A_B] = { .op = OP_NONE, .fmt = "ADD A, B" },
-	[CPU_OP_ADD_A_C] = { .op = OP_NONE, .fmt = "ADD A, C" },
-	[CPU_OP_ADD_A_D] = { .op = OP_NONE, .fmt = "ADD A, D" },
-	[CPU_OP_ADD_A_E] = { .op = OP_NONE, .fmt = "ADD A, E" },
-	[CPU_OP_ADD_A_H] = { .op = OP_NONE, .fmt = "ADD A, H" },
-	[CPU_OP_ADD_A_L] = { .op = OP_NONE, .fmt = "ADD A, L" },
-	[CPU_OP_ADD_A_MEM_HL] = { .op = OP_NONE, .fmt = "ADD A, (HL)" },
-	[CPU_OP_ADD_A_A] = { .op = OP_NONE, .fmt = "ADD A, A" },
-	[CPU_OP_ADC_A_B] = { .op = OP_NONE, .fmt = "ADC A, B" },
-	[CPU_OP_ADC_A_C] = { .op = OP_NONE, .fmt = "ADC A, C" },
-	[CPU_OP_ADC_A_D] = { .op = OP_NONE, .fmt = "ADC A, D" },
-	[CPU_OP_ADC_A_E] = { .op = OP_NONE, .fmt = "ADC A, E" },
-	[CPU_OP_ADC_A_H] = { .op = OP_NONE, .fmt = "ADC A, H" },
-	[CPU_OP_ADC_A_L] = { .op = OP_NONE, .fmt = "ADC A, L" },
-	[CPU_OP_ADC_A_MEM_HL] = { .op = OP_NONE, .fmt = "ADC A, (HL)" },
-	[CPU_OP_ADC_A_A] = { .op = OP_NONE, .fmt = "ADC A, A" },
-	[CPU_OP_SUB_A_B] = { .op = OP_NONE, .fmt = "SUB A, B" },
-	[CPU_OP_SUB_A_C] = { .op = OP_NONE, .fmt = "SUB A, C" },
-	[CPU_OP_SUB_A_D] = { .op = OP_NONE, .fmt = "SUB A, D" },
-	[CPU_OP_SUB_A_E] = { .op = OP_NONE, .fmt = "SUB A, E" },
-	[CPU_OP_SUB_A_H] = { .op = OP_NONE, .fmt = "SUB A, H" },
-	[CPU_OP_SUB_A_L] = { .op = OP_NONE, .fmt = "SUB A, L" },
-	[CPU_OP_SUB_A_MEM_HL] = { .op = OP_NONE, .fmt = "SUB A, (HL)" },
-	[CPU_OP_SUB_A_A] = { .op = OP_NONE, .fmt = "SUB A, A" },
-	[CPU_OP_SBC_A_B] = { .op = OP_NONE, .fmt = "SBC A, B" },
-	[CPU_OP_SBC_A_C] = { .op = OP_NONE, .fmt = "SBC A, C" },
-	[CPU_OP_SBC_A_D] = { .op = OP_NONE, .fmt = "SBC A, D" },
-	[CPU_OP_SBC_A_E] = { .op = OP_NONE, .fmt = "SBC A, E" },
-	[CPU_OP_SBC_A_H] = { .op = OP_NONE, .fmt = "SBC A, H" },
-	[CPU_OP_SBC_A_L] = { .op = OP_NONE, .fmt = "SBC A, L" },
-	[CPU_OP_SBC_A_MEM_HL] = { .op = OP_NONE, .fmt = "SBC A, (HL)" },
-	[CPU_OP_SBC_A_A] = { .op = OP_NONE, .fmt = "SBC A, A" },
-	[CPU_OP_AND_A_B] = { .op = OP_NONE, .fmt = "AND A, B" },
-	[CPU_OP_AND_A_C] = { .op = OP_NONE, .fmt = "AND A, C" },
-	[CPU_OP_AND_A_D] = { .op = OP_NONE, .fmt = "AND A, D" },
-	[CPU_OP_AND_A_E] = { .op = OP_NONE, .fmt = "AND A, E" },
-	[CPU_OP_AND_A_H] = { .op = OP_NONE, .fmt = "AND A, H" },
-	[CPU_OP_AND_A_L] = { .op = OP_NONE, .fmt = "AND A, L" },
-	[CPU_OP_AND_A_MEM_HL] = { .op = OP_NONE, .fmt = "AND A, (HL)" },
-	[CPU_OP_AND_A_A] = { .op = OP_NONE, .fmt = "AND A, A" },
-	[CPU_OP_XOR_A_B] = { .op = OP_NONE, .fmt = "XOR A, B" },
-	[CPU_OP_XOR_A_C] = { .op = OP_NONE, .fmt = "XOR A, C" },
-	[CPU_OP_XOR_A_D] = { .op = OP_NONE, .fmt = "XOR A, D" },
-	[CPU_OP_XOR_A_E] = { .op = OP_NONE, .fmt = "XOR A, E" },
-	[CPU_OP_XOR_A_H] = { .op = OP_NONE, .fmt = "XOR A, H" },
-	[CPU_OP_XOR_A_L] = { .op = OP_NONE, .fmt = "XOR A, L" },
-	[CPU_OP_XOR_A_MEM_HL] = { .op = OP_NONE, .fmt = "XOR A, (HL)" },
-	[CPU_OP_XOR_A_A] = { .op = OP_NONE, .fmt = "XOR A, A" },
-	[CPU_OP_OR_A_B] = { .op = OP_NONE, .fmt = "OR A, B" },
-	[CPU_OP_OR_A_C] = { .op = OP_NONE, .fmt = "OR A, C" },
-	[CPU_OP_OR_A_D] = { .op = OP_NONE, .fmt = "OR A, D" },
-	[CPU_OP_OR_A_E] = { .op = OP_NONE, .fmt = "OR A, E" },
-	[CPU_OP_OR_A_H] = { .op = OP_NONE, .fmt = "OR A, H" },
-	[CPU_OP_OR_A_MEM_HL] = { .op = OP_NONE, .fmt = "OR A, (HL)" },
-	[CPU_OP_OR_A_L] = { .op = OP_NONE, .fmt = "OR A, L" },
-	[CPU_OP_OR_A_A] = { .op = OP_NONE, .fmt = "OR A, A" },
-	[CPU_OP_CP_A_B] = { .op = OP_NONE, .fmt = "CP A, B" },
-	[CPU_OP_CP_A_C] = { .op = OP_NONE, .fmt = "CP A, C" },
-	[CPU_OP_CP_A_D] = { .op = OP_NONE, .fmt = "CP A, D" },
-	[CPU_OP_CP_A_E] = { .op = OP_NONE, .fmt = "CP A, E" },
-	[CPU_OP_CP_A_H] = { .op = OP_NONE, .fmt = "CP A, H" },
-	[CPU_OP_CP_A_L] = { .op = OP_NONE, .fmt = "CP A, L" },
-	[CPU_OP_CP_A_MEM_HL] = { .op = OP_NONE, .fmt = "CP A, (HL)" },
-	[CPU_OP_CP_A_A] = { .op = OP_NONE, .fmt = "CP A, A" },
-	[CPU_OP_RET_NZ] = { .op = OP_NONE, .fmt = "RET NZ" },
-	[CPU_OP_POP_BC] = { .op = OP_NONE, .fmt = "POP BC" },
-	[CPU_OP_JP_NZ_U16] = { .op = OP_U16, .fmt = "JP NZ, $%04X" },
-	[CPU_OP_JP_U16] = { .op = OP_U16, .fmt = "JP $%04X" },
-	[CPU_OP_CALL_NZ_U16] = { .op = OP_U16, .fmt = "CALL NZ, $%04X" },
-	[CPU_OP_PUSH_BC] = { .op = OP_NONE, .fmt = "PUSH BC" },
-	[CPU_OP_ADD_A_U8] = { .op = OP_U8, .fmt = "ADD A, $%02X" },
-	[CPU_OP_RST_00] = { .op = OP_NONE, .fmt = "RST $00" },
-	[CPU_OP_RET_Z] = { .op = OP_NONE, .fmt = "RET Z" },
-	[CPU_OP_RET] = { .op = OP_NONE, .fmt = "RET" },
-	[CPU_OP_JP_Z_U16] = { .op = OP_U16, .fmt = "JP Z, $%04X" },
-	[CPU_OP_CALL_Z_U16] = { .op = OP_U16, .fmt = "CALL Z, $%04X" },
-	[CPU_OP_CALL_U16] = { .op = OP_U16, .fmt = "CALL $%04X" },
-	[CPU_OP_ADC_A_U8] = { .op = OP_U8, .fmt = "ADC A, $%02X" },
-	[CPU_OP_RST_08] = { .op = OP_NONE, .fmt = "RST $08" },
-	[CPU_OP_RET_NC] = { .op = OP_NONE, .fmt = "RET NC" },
-	[CPU_OP_POP_DE] = { .op = OP_NONE, .fmt = "POP DE" },
-	[CPU_OP_JP_NC_U16] = { .op = OP_U16, .fmt = "JP NC, $%04X" },
-	[CPU_OP_CALL_NC_U16] = { .op = OP_U16, .fmt = "CALL NC, $%04X" },
-	[CPU_OP_PUSH_DE] = { .op = OP_NONE, .fmt = "PUSH DE" },
-	[CPU_OP_SUB_A_U8] = { .op = OP_U8, .fmt = "SUB A, $%02X" },
-	[CPU_OP_RST_10] = { .op = OP_NONE, .fmt = "RST $10" },
-	[CPU_OP_RET_C] = { .op = OP_NONE, .fmt = "RET C" },
-	[CPU_OP_RETI] = { .op = OP_NONE, .fmt = "RETI" },
-	[CPU_OP_JP_C_U16] = { .op = OP_U16, .fmt = "JP C, $%04X" },
-	[CPU_OP_CALL_C_U16] = { .op = OP_U16, .fmt = "CALL C, $%04X" },
-	[CPU_OP_SBC_A_U8] = { .op = OP_U8, .fmt = "SBC A, $%02X" },
-	[CPU_OP_RST_18] = { .op = OP_NONE, .fmt = "RST $18" },
-	[CPU_OP_LD_MEM_FF00_U8_A] = { .op = OP_U8,
+static const struct agoge_core_disasm_entry op_tbl[] = {
+	[CPU_OP_NOP] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "NOP" },
+	[CPU_OP_LD_BC_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			       .fmt = "LD BC, $%04X" },
+	[CPU_OP_LD_MEM_BC_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (BC), A" },
+	[CPU_OP_INC_BC] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC BC" },
+	[CPU_OP_INC_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC B" },
+	[CPU_OP_DEC_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC B" },
+	[CPU_OP_LD_B_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "LD B, $%02X" },
+	[CPU_OP_RLCA] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RLCA" },
+	[CPU_OP_LD_MEM_U16_SP] = { .op = AGOGE_CORE_DISASM_OP_U16,
+				   .fmt = "LD ($%04X), SP" },
+	[CPU_OP_ADD_HL_BC] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			       .fmt = "ADD HL, BC" },
+	[CPU_OP_LD_A_MEM_BC] = { .op = AGOGE_CORE_DISASM_OP_BRANCH,
+				 .fmt = "LD A, (BC)" },
+	[CPU_OP_DEC_BC] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC BC" },
+	[CPU_OP_INC_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC C" },
+	[CPU_OP_DEC_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC C" },
+	[CPU_OP_LD_C_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "LD C, $%02X" },
+	[CPU_OP_RRCA] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RRCA" },
+	[CPU_OP_LD_DE_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			       .fmt = "LD DE, $%04X" },
+	[CPU_OP_LD_MEM_DE_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (DE), A" },
+	[CPU_OP_INC_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC DE" },
+	[CPU_OP_INC_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC D" },
+	[CPU_OP_DEC_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC D" },
+	[CPU_OP_LD_D_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "LD D, $%02X" },
+	[CPU_OP_RLA] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RLA" },
+	[CPU_OP_JR_S8] = { .op = AGOGE_CORE_DISASM_OP_BRANCH,
+			   .fmt = "JR $%04X" },
+	[CPU_OP_ADD_HL_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			       .fmt = "ADD HL, DE" },
+	[CPU_OP_LD_A_MEM_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD A, (DE)" },
+	[CPU_OP_DEC_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC DE" },
+	[CPU_OP_INC_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC E" },
+	[CPU_OP_DEC_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC E" },
+	[CPU_OP_LD_E_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "LD E, $%02X" },
+	[CPU_OP_RRA] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RRA" },
+	[CPU_OP_JR_NZ_S8] = { .op = AGOGE_CORE_DISASM_OP_BRANCH,
+			      .fmt = "JR NZ, $%04X" },
+	[CPU_OP_LD_HL_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			       .fmt = "LD HL, $%04X" },
+	[CPU_OP_LDI_MEM_HL_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "LDI (HL), A" },
+	[CPU_OP_INC_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC HL" },
+	[CPU_OP_INC_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC H" },
+	[CPU_OP_DEC_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC H" },
+	[CPU_OP_LD_H_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "LD H, $%02X" },
+	[CPU_OP_DAA] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DAA" },
+	[CPU_OP_JR_Z_S8] = { .op = AGOGE_CORE_DISASM_OP_BRANCH,
+			     .fmt = "JR Z, $%04X" },
+	[CPU_OP_ADD_HL_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			       .fmt = "ADD HL, HL" },
+	[CPU_OP_LDI_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "LD A, (HL+)" },
+	[CPU_OP_DEC_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC HL" },
+	[CPU_OP_INC_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC L" },
+	[CPU_OP_DEC_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC L" },
+	[CPU_OP_LD_L_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "LD L, $%02X" },
+	[CPU_OP_CPL] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CPL" },
+	[CPU_OP_JR_NC_S8] = { .op = AGOGE_CORE_DISASM_OP_BRANCH,
+			      .fmt = "JR NC, $%04X" },
+	[CPU_OP_LD_SP_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			       .fmt = "LD SP, $%04X" },
+	[CPU_OP_LDD_MEM_HL_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "LDD (HL), A" },
+	[CPU_OP_INC_SP] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC SP" },
+	[CPU_OP_INC_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				.fmt = "INC (HL)" },
+	[CPU_OP_DEC_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				.fmt = "DEC (HL)" },
+	[CPU_OP_LD_MEM_HL_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+				  .fmt = "LD (HL), $%02X" },
+	[CPU_OP_SCF] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "SCF" },
+	[CPU_OP_JR_C_S8] = { .op = AGOGE_CORE_DISASM_OP_BRANCH,
+			     .fmt = "JR C, $%04X" },
+	[CPU_OP_ADD_HL_SP] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			       .fmt = "ADD HL, SP" },
+	[CPU_OP_LDD_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "LDD A, (HL)" },
+	[CPU_OP_DEC_SP] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC SP" },
+	[CPU_OP_INC_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "INC A" },
+	[CPU_OP_DEC_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DEC A" },
+	[CPU_OP_LD_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "LD A, $%02X" },
+	[CPU_OP_CCF] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CCF" },
+	[CPU_OP_LD_B_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, B" },
+	[CPU_OP_LD_B_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, C" },
+	[CPU_OP_LD_B_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, D" },
+	[CPU_OP_LD_B_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, E" },
+	[CPU_OP_LD_B_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, H" },
+	[CPU_OP_LD_B_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, L" },
+	[CPU_OP_LD_B_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD B, (HL)" },
+	[CPU_OP_LD_B_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD B, A" },
+	[CPU_OP_LD_C_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, B" },
+	[CPU_OP_LD_C_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, C" },
+	[CPU_OP_LD_C_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, D" },
+	[CPU_OP_LD_C_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, E" },
+	[CPU_OP_LD_C_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, H" },
+	[CPU_OP_LD_C_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, L" },
+	[CPU_OP_LD_C_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD C, (HL)" },
+	[CPU_OP_LD_C_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD C, A" },
+	[CPU_OP_LD_D_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, B" },
+	[CPU_OP_LD_D_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, C" },
+	[CPU_OP_LD_D_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, D" },
+	[CPU_OP_LD_D_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, E" },
+	[CPU_OP_LD_D_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, H" },
+	[CPU_OP_LD_D_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, L" },
+	[CPU_OP_LD_D_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD D, (HL)" },
+	[CPU_OP_LD_D_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD D, A" },
+	[CPU_OP_LD_E_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, B" },
+	[CPU_OP_LD_E_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, C" },
+	[CPU_OP_LD_E_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, D" },
+	[CPU_OP_LD_E_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, E" },
+	[CPU_OP_LD_E_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, H" },
+	[CPU_OP_LD_E_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, L" },
+	[CPU_OP_LD_E_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD E, (HL)" },
+	[CPU_OP_LD_E_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD E, A" },
+	[CPU_OP_LD_H_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, B" },
+	[CPU_OP_LD_H_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, C" },
+	[CPU_OP_LD_H_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, D" },
+	[CPU_OP_LD_H_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, E" },
+	[CPU_OP_LD_H_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, H" },
+	[CPU_OP_LD_H_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, L" },
+	[CPU_OP_LD_H_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD H, (HL)" },
+	[CPU_OP_LD_H_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD H, A" },
+	[CPU_OP_LD_L_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, B" },
+	[CPU_OP_LD_L_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, C" },
+	[CPU_OP_LD_L_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, D" },
+	[CPU_OP_LD_L_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, E" },
+	[CPU_OP_LD_L_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, H" },
+	[CPU_OP_LD_L_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, L" },
+	[CPU_OP_LD_L_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD L, (HL)" },
+	[CPU_OP_LD_L_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD L, A" },
+	[CPU_OP_LD_MEM_HL_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (HL), B" },
+	[CPU_OP_LD_MEM_HL_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (HL), C" },
+	[CPU_OP_LD_MEM_HL_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (HL), D" },
+	[CPU_OP_LD_MEM_HL_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (HL), E" },
+	[CPU_OP_LD_MEM_HL_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (HL), H" },
+	[CPU_OP_LD_MEM_HL_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (HL), L" },
+	[CPU_OP_LD_MEM_HL_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD (HL), A" },
+	[CPU_OP_LD_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, B" },
+	[CPU_OP_LD_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, C" },
+	[CPU_OP_LD_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, D" },
+	[CPU_OP_LD_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, E" },
+	[CPU_OP_LD_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, H" },
+	[CPU_OP_LD_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, L" },
+	[CPU_OP_LD_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "LD A, (HL)" },
+	[CPU_OP_LD_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "LD A, A" },
+	[CPU_OP_ADD_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADD A, B" },
+	[CPU_OP_ADD_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADD A, C" },
+	[CPU_OP_ADD_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADD A, D" },
+	[CPU_OP_ADD_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADD A, E" },
+	[CPU_OP_ADD_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADD A, H" },
+	[CPU_OP_ADD_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADD A, L" },
+	[CPU_OP_ADD_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "ADD A, (HL)" },
+	[CPU_OP_ADD_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADD A, A" },
+	[CPU_OP_ADC_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADC A, B" },
+	[CPU_OP_ADC_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADC A, C" },
+	[CPU_OP_ADC_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADC A, D" },
+	[CPU_OP_ADC_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADC A, E" },
+	[CPU_OP_ADC_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADC A, H" },
+	[CPU_OP_ADC_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADC A, L" },
+	[CPU_OP_ADC_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "ADC A, (HL)" },
+	[CPU_OP_ADC_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "ADC A, A" },
+	[CPU_OP_SUB_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SUB A, B" },
+	[CPU_OP_SUB_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SUB A, C" },
+	[CPU_OP_SUB_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SUB A, D" },
+	[CPU_OP_SUB_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SUB A, E" },
+	[CPU_OP_SUB_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SUB A, H" },
+	[CPU_OP_SUB_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SUB A, L" },
+	[CPU_OP_SUB_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "SUB A, (HL)" },
+	[CPU_OP_SUB_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SUB A, A" },
+	[CPU_OP_SBC_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SBC A, B" },
+	[CPU_OP_SBC_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SBC A, C" },
+	[CPU_OP_SBC_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SBC A, D" },
+	[CPU_OP_SBC_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SBC A, E" },
+	[CPU_OP_SBC_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SBC A, H" },
+	[CPU_OP_SBC_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SBC A, L" },
+	[CPU_OP_SBC_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "SBC A, (HL)" },
+	[CPU_OP_SBC_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "SBC A, A" },
+	[CPU_OP_AND_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "AND A, B" },
+	[CPU_OP_AND_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "AND A, C" },
+	[CPU_OP_AND_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "AND A, D" },
+	[CPU_OP_AND_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "AND A, E" },
+	[CPU_OP_AND_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "AND A, H" },
+	[CPU_OP_AND_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "AND A, L" },
+	[CPU_OP_AND_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "AND A, (HL)" },
+	[CPU_OP_AND_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "AND A, A" },
+	[CPU_OP_XOR_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "XOR A, B" },
+	[CPU_OP_XOR_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "XOR A, C" },
+	[CPU_OP_XOR_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "XOR A, D" },
+	[CPU_OP_XOR_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "XOR A, E" },
+	[CPU_OP_XOR_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "XOR A, H" },
+	[CPU_OP_XOR_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "XOR A, L" },
+	[CPU_OP_XOR_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				  .fmt = "XOR A, (HL)" },
+	[CPU_OP_XOR_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "XOR A, A" },
+	[CPU_OP_OR_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, B" },
+	[CPU_OP_OR_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, C" },
+	[CPU_OP_OR_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, D" },
+	[CPU_OP_OR_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, E" },
+	[CPU_OP_OR_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, H" },
+	[CPU_OP_OR_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "OR A, (HL)" },
+	[CPU_OP_OR_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, L" },
+	[CPU_OP_OR_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "OR A, A" },
+	[CPU_OP_CP_A_B] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, B" },
+	[CPU_OP_CP_A_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, C" },
+	[CPU_OP_CP_A_D] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, D" },
+	[CPU_OP_CP_A_E] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, E" },
+	[CPU_OP_CP_A_H] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, H" },
+	[CPU_OP_CP_A_L] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, L" },
+	[CPU_OP_CP_A_MEM_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				 .fmt = "CP A, (HL)" },
+	[CPU_OP_CP_A_A] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "CP A, A" },
+	[CPU_OP_RET_NZ] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET NZ" },
+	[CPU_OP_POP_BC] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP BC" },
+	[CPU_OP_JP_NZ_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			       .fmt = "JP NZ, $%04X" },
+	[CPU_OP_JP_U16] = { .op = AGOGE_CORE_DISASM_OP_U16, .fmt = "JP $%04X" },
+	[CPU_OP_CALL_NZ_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+				 .fmt = "CALL NZ, $%04X" },
+	[CPU_OP_PUSH_BC] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "PUSH BC" },
+	[CPU_OP_ADD_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			      .fmt = "ADD A, $%02X" },
+	[CPU_OP_RST_00] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $00" },
+	[CPU_OP_RET_Z] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET Z" },
+	[CPU_OP_RET] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET" },
+	[CPU_OP_JP_Z_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			      .fmt = "JP Z, $%04X" },
+	[CPU_OP_CALL_Z_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+				.fmt = "CALL Z, $%04X" },
+	[CPU_OP_CALL_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			      .fmt = "CALL $%04X" },
+	[CPU_OP_ADC_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			      .fmt = "ADC A, $%02X" },
+	[CPU_OP_RST_08] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $08" },
+	[CPU_OP_RET_NC] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET NC" },
+	[CPU_OP_POP_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP DE" },
+	[CPU_OP_JP_NC_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			       .fmt = "JP NC, $%04X" },
+	[CPU_OP_CALL_NC_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+				 .fmt = "CALL NC, $%04X" },
+	[CPU_OP_PUSH_DE] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "PUSH DE" },
+	[CPU_OP_SUB_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			      .fmt = "SUB A, $%02X" },
+	[CPU_OP_RST_10] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $10" },
+	[CPU_OP_RET_C] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RET C" },
+	[CPU_OP_RETI] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RETI" },
+	[CPU_OP_JP_C_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+			      .fmt = "JP C, $%04X" },
+	[CPU_OP_CALL_C_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+				.fmt = "CALL C, $%04X" },
+	[CPU_OP_SBC_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			      .fmt = "SBC A, $%02X" },
+	[CPU_OP_RST_18] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $18" },
+	[CPU_OP_LD_MEM_FF00_U8_A] = { .op = AGOGE_CORE_DISASM_OP_U8,
 				      .fmt = "LD (FF00+$%02X), A" },
-	[CPU_OP_POP_HL] = { .op = OP_NONE, .fmt = "POP HL" },
-	[CPU_OP_LD_MEM_FF00_C_A] = { .op = OP_NONE, .fmt = "LD (FF00+C), A" },
-	[CPU_OP_PUSH_HL] = { .op = OP_NONE, .fmt = "PUSH HL" },
-	[CPU_OP_AND_A_U8] = { .op = OP_NONE, .fmt = "AND A, $%02X" },
-	[CPU_OP_RST_20] = { .op = OP_NONE, .fmt = "RST $20" },
-	[CPU_OP_ADD_SP_S8] = { .op = OP_S8, .fmt = "ADD SP, %d" },
-	[CPU_OP_JP_HL] = { .op = OP_NONE, .fmt = "JP (HL)" },
-	[CPU_OP_LD_MEM_U16_A] = { .op = OP_U16, .fmt = "LD ($%04X), A" },
-	[CPU_OP_LD_A_MEM_FF00_U8] = { .op = OP_U8,
+	[CPU_OP_POP_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP HL" },
+	[CPU_OP_LD_MEM_FF00_C_A] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				     .fmt = "LD (FF00+C), A" },
+	[CPU_OP_PUSH_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "PUSH HL" },
+	[CPU_OP_AND_A_U8] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			      .fmt = "AND A, $%02X" },
+	[CPU_OP_RST_20] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $20" },
+	[CPU_OP_ADD_SP_S8] = { .op = AGOGE_CORE_DISASM_OP_S8,
+			       .fmt = "ADD SP, %d" },
+	[CPU_OP_JP_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "JP (HL)" },
+	[CPU_OP_LD_MEM_U16_A] = { .op = AGOGE_CORE_DISASM_OP_U16,
+				  .fmt = "LD ($%04X), A" },
+	[CPU_OP_LD_A_MEM_FF00_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
 				      .fmt = "LD A, (FF00+$%02X)" },
 
-	[CPU_OP_LD_A_MEM_FF00_C] = { .op = OP_NONE, .fmt = "LD A, (FF00+C)" },
-	[CPU_OP_POP_AF] = { .op = OP_NONE, .fmt = "POP AF" },
-	[CPU_OP_DI] = { .op = OP_NONE, .fmt = "DI" },
-	[CPU_OP_PUSH_AF] = { .op = OP_NONE, .fmt = "PUSH AF" },
-	[CPU_OP_OR_A_U8] = { .op = OP_U8, .fmt = "OR A, $%02X" },
-	[CPU_OP_RST_30] = { .op = OP_NONE, .fmt = "RST $30" },
-	[CPU_OP_LD_HL_SP_S8] = { .op = OP_S8, .fmt = "LD HL, SP+%d" },
-	[CPU_OP_LD_SP_HL] = { .op = OP_NONE, .fmt = "LD SP, HL" },
-	[CPU_OP_LD_A_MEM_U16] = { .op = OP_U16, .fmt = "LD A, ($%04X)" },
-	[CPU_OP_EI] = { .op = OP_NONE, .fmt = "EI" },
-	[CPU_OP_XOR_A_U8] = { .op = OP_U8, .fmt = "XOR A, $%02X" },
-	[CPU_OP_RST_28] = { .op = OP_NONE, .fmt = "RST $28" },
-	[CPU_OP_CP_A_U8] = { .op = OP_U8, .fmt = "CP A, $%02X" },
-	[CPU_OP_RST_38] = { .op = OP_NONE, .fmt = "RST $38" },
+	[CPU_OP_LD_A_MEM_FF00_C] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+				     .fmt = "LD A, (FF00+C)" },
+	[CPU_OP_POP_AF] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "POP AF" },
+	[CPU_OP_DI] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "DI" },
+	[CPU_OP_PUSH_AF] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			     .fmt = "PUSH AF" },
+	[CPU_OP_OR_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "OR A, $%02X" },
+	[CPU_OP_RST_30] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $30" },
+	[CPU_OP_LD_HL_SP_S8] = { .op = AGOGE_CORE_DISASM_OP_S8,
+				 .fmt = "LD HL, SP+%d" },
+	[CPU_OP_LD_SP_HL] = { .op = AGOGE_CORE_DISASM_OP_NONE,
+			      .fmt = "LD SP, HL" },
+	[CPU_OP_LD_A_MEM_U16] = { .op = AGOGE_CORE_DISASM_OP_U16,
+				  .fmt = "LD A, ($%04X)" },
+	[CPU_OP_EI] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "EI" },
+	[CPU_OP_XOR_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			      .fmt = "XOR A, $%02X" },
+	[CPU_OP_RST_28] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $28" },
+	[CPU_OP_CP_A_U8] = { .op = AGOGE_CORE_DISASM_OP_U8,
+			     .fmt = "CP A, $%02X" },
+	[CPU_OP_RST_38] = { .op = AGOGE_CORE_DISASM_OP_NONE, .fmt = "RST $38" },
 };
 
-static const struct cb_disasm_entry cb_tbl[] = {
+static const struct agoge_core_disasm_entry cb_tbl[] = {
 	// clang-format off
 
 	[CPU_OP_RLC_B]		= CB_INSTR("RLC B", TRACE_REG_B),
@@ -606,24 +709,16 @@ NODISCARD static uint16_t read_u16(struct agoge_core_ctx *const ctx)
 	return (hi << 8) | lo;
 }
 
-static void format_cb_instr(struct agoge_core_ctx *const ctx,
-			    const uint8_t instr)
+static void format_instr(struct agoge_core_ctx *const ctx,
+			 const struct agoge_core_disasm_entry *const entry)
 {
-	const struct cb_disasm_entry *const entry = &cb_tbl[instr];
-
-	memcpy(ctx->disasm.res.str, entry->str, entry->str_len);
-	ctx->disasm.res.len = entry->str_len;
-}
-
-static void format_instr(struct agoge_core_ctx *const ctx, const uint8_t instr)
-{
-	static const void *const jmp_tbl[] = { [OP_NONE] = &&op_none,
-					       [OP_U8] = &&op_u8,
-					       [OP_U16] = &&op_u16,
-					       [OP_S8] = &&op_s8,
-					       [OP_BRANCH] = &&op_branch };
-
-	const struct disasm_entry *const entry = &op_tbl[instr];
+	static const void *const jmp_tbl[] = {
+		[AGOGE_CORE_DISASM_OP_NONE] = &&op_none,
+		[AGOGE_CORE_DISASM_OP_U8] = &&op_u8,
+		[AGOGE_CORE_DISASM_OP_U16] = &&op_u16,
+		[AGOGE_CORE_DISASM_OP_S8] = &&op_s8,
+		[AGOGE_CORE_DISASM_OP_BRANCH] = &&op_branch
+	};
 
 	goto *jmp_tbl[entry->op];
 
@@ -660,19 +755,136 @@ op_branch:
 #pragma GCC diagnostic pop
 }
 
+static void format_trace_area(struct agoge_core_ctx *const ctx)
+{
+	const size_t num_spaces = TRACE_NUM_SPACES - ctx->disasm.res.len;
+
+	memset(&ctx->disasm.res.str[ctx->disasm.res.len], ' ', num_spaces);
+	ctx->disasm.res.len += num_spaces;
+
+	APPEND_STR(ctx->disasm.res.str, ctx->disasm.res.len, " ; ");
+}
+
+static void append_trace(struct agoge_core_ctx *const ctx,
+			 const enum agoge_core_disasm_trace_type type)
+{
+#define FORMAT(...)                     \
+	ctx->disasm.res.len += sprintf( \
+		&ctx->disasm.res.str[ctx->disasm.res.len], __VA_ARGS__)
+
+	static const void *const jmp_tbl[] = {
+		// clang-format off
+
+		[TRACE_REG_B]	= &&trace_reg_b,
+		[TRACE_REG_C]	= &&trace_reg_c,
+		[TRACE_REG_D]	= &&trace_reg_d,
+		[TRACE_REG_E]	= &&trace_reg_e,
+		[TRACE_REG_F]	= &&trace_reg_f,
+		[TRACE_REG_H]	= &&trace_reg_h,
+		[TRACE_REG_L]	= &&trace_reg_l,
+		[TRACE_REG_A]	= &&trace_reg_a
+
+		// clang-format on
+	};
+
+	goto *jmp_tbl[type];
+
+trace_reg_b:
+	FORMAT("B=$%02X", ctx->cpu.reg.b);
+	return;
+
+trace_reg_c:
+	FORMAT("C=$%02X", ctx->cpu.reg.c);
+	return;
+
+trace_reg_d:
+	FORMAT("D=$%02X", ctx->cpu.reg.d);
+	return;
+
+trace_reg_e:
+	FORMAT("E=$%02X", ctx->cpu.reg.e);
+	return;
+
+trace_reg_f:
+	FORMAT("F=$%02X", ctx->cpu.reg.f);
+	return;
+
+trace_reg_h:
+	FORMAT("H=$%02X", ctx->cpu.reg.h);
+	return;
+
+trace_reg_l:
+	FORMAT("L=$%02X", ctx->cpu.reg.l);
+	return;
+
+trace_reg_hl:
+	FORMAT("HL=$%04X", ctx->cpu.reg.hl);
+	return;
+
+trace_reg_a:
+	FORMAT("A=$%04X", ctx->cpu.reg.a);
+	return;
+
+#undef FORMAT
+}
+
+static const struct agoge_core_disasm_entry *
+get_disasm_entry(struct agoge_core_ctx *const ctx, const uint16_t addr)
+{
+	uint8_t instr = agoge_core_bus_peek(ctx, addr);
+
+	if (instr == CPU_OP_PREFIX_CB) {
+		instr = agoge_core_bus_peek(ctx, addr + 1);
+		return &cb_tbl[instr];
+	}
+	return &op_tbl[instr];
+}
+
 void agoge_core_disasm_single(struct agoge_core_ctx *const ctx,
 			      const uint16_t addr)
 {
-	memset(&ctx->disasm.res, 0, sizeof(ctx->disasm.res));
+	memset(&ctx->disasm, 0, sizeof(ctx->disasm));
 	ctx->disasm.res.addr = addr;
 
-	uint8_t instr = agoge_core_bus_peek(ctx, addr);
+	format_instr(ctx, get_disasm_entry(ctx, addr));
+}
 
-	if (instr == 0xCB) {
-		instr = agoge_core_bus_peek(ctx, addr + 1);
-		format_cb_instr(ctx, instr);
-	} else {
-		format_instr(ctx, instr);
+void agoge_core_disasm_trace_before(struct agoge_core_ctx *const ctx)
+{
+	memset(&ctx->disasm, 0, sizeof(ctx->disasm));
+	ctx->disasm.res.addr = ctx->cpu.reg.pc;
+
+	const struct agoge_core_disasm_entry *const entry =
+		get_disasm_entry(ctx, ctx->cpu.reg.pc);
+
+	format_instr(ctx, entry);
+
+	if (!entry->num_traces) {
+		return;
+	}
+
+	ctx->disasm.curr_trace_entry = entry;
+	format_trace_area(ctx);
+}
+
+void agoge_core_disasm_trace_after(struct agoge_core_ctx *const ctx)
+{
+	if (!ctx->disasm.curr_trace_entry) {
+		LOG_TRACE(ctx, "$%04X: %s", ctx->disasm.res.addr,
+			  ctx->disasm.res.str);
+		return;
+	}
+
+	append_trace(ctx, ctx->disasm.curr_trace_entry->traces[0]);
+
+	if (ctx->disasm.curr_trace_entry->num_traces - 1) {
+		for (size_t i = 1; i < ctx->disasm.curr_trace_entry->num_traces;
+		     ++i) {
+			APPEND_STR(ctx->disasm.res.str, ctx->disasm.res.len,
+				   ", ");
+			append_trace(ctx,
+				     ctx->disasm.curr_trace_entry->traces[i]);
+		}
 	}
 	LOG_TRACE(ctx, "$%04X: %s", ctx->disasm.res.addr, ctx->disasm.res.str);
 }

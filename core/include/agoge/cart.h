@@ -39,7 +39,6 @@ struct agoge_core_cart {
 	/// Pointer to the current cartridge data. This must remain valid at
 	/// all times if a cartridge is "inserted".
 	uint8_t *data;
-	struct agoge_core_log *log;
 
 	uint8_t (*banked_read_cb)(struct agoge_core_ctx *ctx, uint16_t addr);
 	unsigned int rom_bank;

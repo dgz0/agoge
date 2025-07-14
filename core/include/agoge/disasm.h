@@ -26,12 +26,41 @@ struct agoge_core_ctx;
 /// terminator.
 #define AGOGE_CORE_DISASM_RES_LEN_MAX (256)
 
+enum agoge_core_disasm_op_type {
+	AGOGE_CORE_DISASM_OP_NONE = 0,
+	AGOGE_CORE_DISASM_OP_U8 = 1,
+	AGOGE_CORE_DISASM_OP_U16 = 2,
+	AGOGE_CORE_DISASM_OP_S8 = 3,
+	AGOGE_CORE_DISASM_OP_BRANCH = 4
+};
+
+enum agoge_core_disasm_trace_type {
+	TRACE_REG_B = 0,
+	TRACE_REG_C = 1,
+	TRACE_REG_D = 2,
+	TRACE_REG_E = 3,
+	TRACE_REG_F = 4,
+	TRACE_REG_H = 5,
+	TRACE_REG_L = 6,
+	TRACE_REG_A = 7,
+	TRACE_MEM_HL = 8
+};
+
+struct agoge_core_disasm_entry {
+	const char *const fmt;
+	const enum agoge_core_disasm_op_type op;
+	const enum agoge_core_disasm_trace_type traces[2];
+	const size_t num_traces;
+};
+
 struct agoge_core_disasm {
 	struct {
 		char str[AGOGE_CORE_DISASM_RES_LEN_MAX + 1];
 		size_t len;
 		uint16_t addr;
 	} res;
+
+	const struct agoge_core_disasm_entry *curr_trace_entry;
 };
 
 /// Disassembles a single instruction.
@@ -39,3 +68,10 @@ struct agoge_core_disasm {
 /// @param ctx The emulator context.
 /// @param addr The address in the system bus to inspect.
 void agoge_core_disasm_single(struct agoge_core_ctx *ctx, uint16_t addr);
+
+/// Prepares the disassembler to trace the next instruction.
+///
+/// @param ctx The emulator context.
+void agoge_core_disasm_trace_before(struct agoge_core_ctx *ctx);
+
+void agoge_core_disasm_trace_after(struct agoge_core_ctx *ctx);

@@ -134,8 +134,9 @@ int main(int argc, char *argv[])
 	}
 
 	for (;;) {
-		agoge_core_disasm_single(&ctx, ctx.cpu.reg.pc);
+		agoge_core_disasm_trace_before(&ctx);
 		agoge_core_ctx_step(&ctx, 1);
+		agoge_core_disasm_trace_after(&ctx);
 	}
 	return EXIT_SUCCESS;
 }
